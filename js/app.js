@@ -105,9 +105,13 @@ var TodoList = Ctx.createClass({
       return isShown(item) ? TodoItem({ state: itemsBinding.sub(index) }) : null;
     };
 
+    var allCompleted = !items.find(function (item) {
+      return !item.get('completed');
+    });
+
     var _ = Ctx.React.DOM;
     return _.section({ id: 'main' },
-      items.size() ? _.input({ id: 'toggle-all', type: 'checkbox', onChange: this.onToggleAll }) : null,
+      items.size() ? _.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
       _.ul({ id: 'todo-list' },
         items.map(renderTodo).toArray()
       )
