@@ -121,7 +121,7 @@ var TodoList = Ctx.createClass({
 
 var TodoItem = Ctx.createClass({
   componentDidUpdate: function () {
-    if (this.getState().val('editing')) {
+    if (this.getState().val('editing') !== this.getPreviousState().get('editing')) {
       var node = this.refs.editField.getDOMNode();
       node.focus();
       node.setSelectionRange(node.value.length, node.value.length);
