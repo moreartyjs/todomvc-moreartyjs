@@ -5,8 +5,6 @@ var Ctx = Morearty.createContext(React, {
       completed: false,
       editing: false
     }]
-  }, {
-    requestAnimationFrameEnabled: true
   }
 );
 
