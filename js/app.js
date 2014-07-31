@@ -132,8 +132,8 @@ var TodoItem = Ctx.createClass({
     return false;
   },
 
-  onToggleEditing: function () {
-    this.getState().update('editing', Ctx.Util.not);
+  onToggleEditing: function (editing) {
+    this.getState().set('editing', editing);
     return false;
   },
 
@@ -164,7 +164,7 @@ var TodoItem = Ctx.createClass({
           checked: item.get('completed'),
           onChange: this.onToggleCompleted
         }),
-        _.label({ onClick: this.onToggleEditing }, title),
+        _.label({ onClick: this.onToggleEditing.bind(null, true) }, title),
         _.button({ className: 'destroy', onClick: state.delete.bind(state, '') })
       ),
       _.input({
@@ -173,7 +173,7 @@ var TodoItem = Ctx.createClass({
         value: title,
         onChange: Ctx.Callback.set(state, 'title'),
         onKeyPress: Ctx.Callback.onEnter(this.onEnter),
-        onBlur: this.onToggleEditing
+        onBlur: this.onToggleEditing.bind(null, false)
       })
     )
   }
