@@ -1,55 +1,66 @@
-var Ctx = Morearty.createContext(React, Immutable, {
-  nowShowing: 'all',
-  items: [{
-    title: 'My first task',
-    completed: false,
-    editing: false
-  }]
-});
+var Ctx = Morearty.createContext(React, Immutable,
+  { // initial state
+    nowShowing: 'all',
+    items: [{
+      title: 'My first task',
+      completed: false,
+      editing: false
+    }]
+  },
+  { // configuration
+    requestAnimationFrameEnabled: true
+  }
+);
 
-var Bootstrap = Ctx.createClass({
+var Bootstrap = React.createClass({
   componentWillMount: function () {
     Ctx.init(this);
   },
 
   render: function () {
-    return App({ state: Ctx.state() });
+    return React.withContext({ morearty: Ctx }, function () { // pass Morearty context downside
+      return App({ binding: Ctx.getBinding() });              // your App component
+    });
   }
 });
 
 var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 
-var App = Ctx.createClass({
+var App = React.createClass({
+  mixins: [Morearty.Mixin],
+
   componentDidMount: function () {
-    var state = this.getState();
+    var binding = this.getDefaultBinding();
     Router({
-      '/': state.set.bind(state, 'nowShowing', NOW_SHOWING.ALL),
-      '/active': state.set.bind(state, 'nowShowing', NOW_SHOWING.ACTIVE),
-      '/completed': state.set.bind(state, 'nowShowing', NOW_SHOWING.COMPLETED)
+      '/': binding.set.bind(binding, 'nowShowing', NOW_SHOWING.ALL),
+      '/active': binding.set.bind(binding, 'nowShowing', NOW_SHOWING.ACTIVE),
+      '/completed': binding.set.bind(binding, 'nowShowing', NOW_SHOWING.COMPLETED)
     }).init();
   },
 
   render: function () {
-    var state = this.getState();
-    var _ = Ctx.React.DOM;
+    var binding = this.getDefaultBinding();
+    var _ = React.DOM;
     return  _.section({ id: 'todoapp' },
-      Header({ state: state }),
-      TodoList({ state: state }),
-      Footer({ state: state })
+      Header({ binding: binding }),
+      TodoList({ binding: binding }),
+      Footer({ binding: binding })
     );
   }
 });
 
-var Header = Ctx.createClass({
+var Header = React.createClass({
+  mixins: [Morearty.Mixin],
+
   componentDidMount: function () {
-    this.refs.newTodo.getDOMNode().focus();
+    this.refs.newTodo.getDOMNode().focus(); // focus on show
   },
 
   onAddTodo: function (event) {
     var title = event.target.value;
     if (title) {
-      this.getState().update('items', function (todos) {
-        return todos.push(Ctx.Imm.Map({
+      this.getDefaultBinding().update('items', function (todos) { // add new item
+        return todos.push(Immutable.Map({
           title: title,
           completed: false,
           editing: false
@@ -60,23 +71,26 @@ var Header = Ctx.createClass({
   },
 
   render: function () {
-    var _ = Ctx.React.DOM;
+    var _ = React.DOM;
+    var ctx = this.getMoreartyContext();
     return _.header({ id: 'header' },
       _.h1(null, 'todos'),
-      _.input({
+      ctx.DOM.input({ // requestAnimationFrame-friendly wrapper around input
         id: 'new-todo',
         ref: 'newTodo',
         placeholder: 'What needs to be done?',
-        onKeyPress: Ctx.Callback.onEnter(this.onAddTodo)
+        onKeyPress: Morearty.Callback.onEnter(this.onAddTodo)
       })
     );
   }
 });
 
-var TodoList = Ctx.createClass({
+var TodoList = React.createClass({
+  mixins: [Morearty.Mixin],
+
   onToggleAll: function (event) {
     var completed = event.target.checked;
-    this.getState().update('items', function (items) {
+    this.getDefaultBinding().update('items', function (items) {
       return items.map(function (item) {
         return item.set('completed', completed);
       }).toVector();
@@ -84,9 +98,9 @@ var TodoList = Ctx.createClass({
   },
 
   render: function () {
-    var state = this.getState();
-    var nowShowing = state.val('nowShowing');
-    var itemsBinding = state.sub('items');
+    var binding = this.getDefaultBinding();
+    var nowShowing = binding.val('nowShowing');
+    var itemsBinding = binding.sub('items');
     var items = itemsBinding.val();
 
     var isShown = function (item) {
@@ -101,16 +115,17 @@ var TodoList = Ctx.createClass({
     };
 
     var renderTodo = function (item, index) {
-      return isShown(item) ? TodoItem({ state: itemsBinding.sub(index) }) : null;
+      return isShown(item) ? TodoItem({ binding: itemsBinding.sub(index) }) : null;
     };
 
     var allCompleted = !items.find(function (item) {
       return !item.get('completed');
     });
 
-    var _ = Ctx.React.DOM;
+    var _ = React.DOM;
+    var ctx = this.getMoreartyContext();
     return _.section({ id: 'main' },
-      items.length ? _.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
+      items.length ? ctx.DOM.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
       _.ul({ id: 'todo-list' },
         items.map(renderTodo).toArray()
       )
@@ -118,9 +133,12 @@ var TodoList = Ctx.createClass({
   }
 });
 
-var TodoItem = Ctx.createClass({
+var TodoItem = React.createClass({
+  mixins: [Morearty.Mixin],
+
   componentDidUpdate: function () {
-    if (Ctx.changed(this.getState().sub('editing'))) {
+    var ctx = this.getMoreartyContext();
+    if (ctx.isChanged(this.getDefaultBinding().sub('editing'))) {
       var node = this.refs.editField.getDOMNode();
       node.focus();
       node.setSelectionRange(node.value.length, node.value.length);
@@ -128,17 +146,17 @@ var TodoItem = Ctx.createClass({
   },
 
   onToggleCompleted: function (event) {
-    this.getState().set('completed', event.target.checked);
+    this.getDefaultBinding().set('completed', event.target.checked);
     return false;
   },
 
   onToggleEditing: function (editing) {
-    this.getState().set('editing', editing);
+    this.getDefaultBinding().set('editing', editing);
     return false;
   },
 
   onEnter: function (event) {
-    this.getState().atomically()
+    this.getDefaultBinding().atomically()
       .set('title', event.target.value)
       .set('editing', false)
       .commit();
@@ -146,42 +164,45 @@ var TodoItem = Ctx.createClass({
   },
 
   render: function () {
-    var state = this.getState();
-    var item = state.val();
+    var binding = this.getDefaultBinding();
+    var item = binding.val();
 
-    var liClass = Ctx.React.addons.classSet({
+    var liClass = React.addons.classSet({
       completed: item.get('completed'),
       editing: item.get('editing')
     });
     var title = item.get('title');
 
-    var _ = Ctx.React.DOM;
+    var _ = React.DOM;
+    var ctx = this.getMoreartyContext();
     return _.li({ className: liClass },
       _.div({ className: 'view' },
-        _.input({
+        ctx.DOM.input({
           className: 'toggle',
           type: 'checkbox',
           checked: item.get('completed'),
           onChange: this.onToggleCompleted
         }),
         _.label({ onClick: this.onToggleEditing.bind(null, true) }, title),
-        _.button({ className: 'destroy', onClick: state.delete.bind(state, '') })
+        _.button({ className: 'destroy', onClick: binding.delete.bind(binding, '') })
       ),
-      _.input({
+      ctx.DOM.input({
         className: 'edit',
         ref: 'editField',
         value: title,
-        onChange: Ctx.Callback.set(state, 'title'),
-        onKeyPress: Ctx.Callback.onEnter(this.onEnter),
+        onChange: Morearty.Callback.set(binding, 'title'),
+        onKeyPress: Morearty.Callback.onEnter(this.onEnter),
         onBlur: this.onToggleEditing.bind(null, false)
       })
     )
   }
 });
 
-var Footer = Ctx.createClass({
+var Footer = React.createClass({
+  mixins: [Morearty.Mixin],
+
   onClearCompleted: function () {
-    this.getState().update('items', function (items) {
+    this.getDefaultBinding().update('items', function (items) {
       return items.filter(function (item) {
         return !item.get('completed');
       }).toVector();
@@ -189,15 +210,15 @@ var Footer = Ctx.createClass({
   },
 
   render: function () {
-    var state = this.getState();
-    var nowShowing = state.val('nowShowing');
+    var binding = this.getDefaultBinding();
+    var nowShowing = binding.val('nowShowing');
 
-    var items = state.val('items');
+    var items = binding.val('items');
     var completedItemsCount = items.reduce(function (acc, item) {
       return item.get('completed') ? acc + 1 : acc;
     }, 0);
 
-    var _ = Ctx.React.DOM;
+    var _ = React.DOM;
     return _.footer({ id: 'footer' },
       _.span({ id: 'todo-count' }, items.length - completedItemsCount + ' items left'),
       _.ul({ id: 'filters' },
@@ -214,7 +235,7 @@ var Footer = Ctx.createClass({
   }
 });
 
-Ctx.React.renderComponent(
+React.renderComponent(
   Bootstrap(),
   document.getElementById('root')
 );
