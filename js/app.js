@@ -79,7 +79,7 @@ var Header = React.createClass({
         id: 'new-todo',
         ref: 'newTodo',
         placeholder: 'What needs to be done?',
-        onKeyPress: Morearty.Callback.onEnter(this.onAddTodo)
+        onKeyDown: Morearty.Callback.onEnter(this.onAddTodo)
       })
     );
   }
@@ -191,7 +191,7 @@ var TodoItem = React.createClass({
         ref: 'editField',
         value: title,
         onChange: Morearty.Callback.set(binding, 'title'),
-        onKeyPress: Morearty.Callback.onEnter(this.onEnter),
+        onKeyDown: Morearty.Callback.onEnter(this.onEnter),
         onBlur: this.onToggleEditing.bind(null, false)
       })
     )
