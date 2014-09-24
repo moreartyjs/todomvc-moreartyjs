@@ -1,4 +1,4 @@
-var Ctx = Morearty.createContext(React, Immutable,
+var Ctx = Morearty.createContext(
   { // initial state
     nowShowing: 'all',
     items: [{
@@ -72,10 +72,9 @@ var Header = React.createClass({
 
   render: function () {
     var _ = React.DOM;
-    var ctx = this.getMoreartyContext();
     return _.header({ id: 'header' },
       _.h1(null, 'todos'),
-      ctx.DOM.input({ // requestAnimationFrame-friendly wrapper around input
+      Morearty.DOM.input({ // requestAnimationFrame-friendly wrapper around input
         id: 'new-todo',
         ref: 'newTodo',
         placeholder: 'What needs to be done?',
@@ -125,7 +124,7 @@ var TodoList = React.createClass({
     var _ = React.DOM;
     var ctx = this.getMoreartyContext();
     return _.section({ id: 'main' },
-      items.length ? ctx.DOM.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
+      items.length ? Morearty.DOM.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
       _.ul({ id: 'todo-list' },
         items.map(renderTodo).toArray()
       )
@@ -177,7 +176,7 @@ var TodoItem = React.createClass({
     var ctx = this.getMoreartyContext();
     return _.li({ className: liClass },
       _.div({ className: 'view' },
-        ctx.DOM.input({
+        Morearty.DOM.input({
           className: 'toggle',
           type: 'checkbox',
           checked: item.get('completed'),
@@ -186,7 +185,7 @@ var TodoItem = React.createClass({
         _.label({ onClick: this.onToggleEditing.bind(null, true) }, title),
         _.button({ className: 'destroy', onClick: binding.delete.bind(binding, '') })
       ),
-      ctx.DOM.input({
+      Morearty.DOM.input({
         className: 'edit',
         ref: 'editField',
         value: title,
