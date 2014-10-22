@@ -1,32 +1,14 @@
-var Ctx = Morearty.createContext(
-  { // initial state
-    nowShowing: 'all',
-    items: [{
-      title: 'My first task',
-      completed: false,
-      editing: false
-    }]
-  },
-  { // configuration
-    requestAnimationFrameEnabled: true
-  }
-);
-
-var Bootstrap = React.createClass({
-  componentWillMount: function () {
-    Ctx.init(this);
-  },
-
-  render: function () {
-    return React.withContext({ morearty: Ctx }, function () { // pass Morearty context downside
-      return App({ binding: Ctx.getBinding() });              // your App component
-    });
-  }
-});
+var Morearty = require('morearty');
+var React = window.React = require('react/addons');
+var Router = require('director').Router;
+var Immutable = require('immutable');
 
 var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
+var currentId = 2;
 
 var App = React.createClass({
+  displayName: 'App',
+
   mixins: [Morearty.Mixin],
 
   componentDidMount: function () {
@@ -50,6 +32,7 @@ var App = React.createClass({
 });
 
 var Header = React.createClass({
+  displayName: 'Header',
   mixins: [Morearty.Mixin],
 
   componentDidMount: function () {
@@ -61,6 +44,7 @@ var Header = React.createClass({
     if (title) {
       this.getDefaultBinding().update('items', function (todos) { // add new item
         return todos.push(Immutable.Map({
+          id: currentId++,
           title: title,
           completed: false,
           editing: false
@@ -74,7 +58,7 @@ var Header = React.createClass({
     var _ = React.DOM;
     return _.header({ id: 'header' },
       _.h1(null, 'todos'),
-      Morearty.DOM.input({ // requestAnimationFrame-friendly wrapper around input
+      _.input({ // requestAnimationFrame-friendly wrapper around input
         id: 'new-todo',
         ref: 'newTodo',
         placeholder: 'What needs to be done?',
@@ -85,6 +69,8 @@ var Header = React.createClass({
 });
 
 var TodoList = React.createClass({
+  displayName: 'TodoList',
+
   mixins: [Morearty.Mixin],
 
   onToggleAll: function (event) {
@@ -114,7 +100,8 @@ var TodoList = React.createClass({
     };
 
     var renderTodo = function (item, index) {
-      return isShown(item) ? TodoItem({ binding: itemsBinding.sub(index) }) : null;
+      var itemBinding = itemsBinding.sub(index);
+      return isShown(item) ? TodoItem({ binding: itemBinding, key: itemBinding.toJS('id') }) : null;
     };
 
     var allCompleted = !items.find(function (item) {
@@ -124,7 +111,7 @@ var TodoList = React.createClass({
     var _ = React.DOM;
     var ctx = this.getMoreartyContext();
     return _.section({ id: 'main' },
-      items.length ? Morearty.DOM.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
+      items.length ? _.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) : null,
       _.ul({ id: 'todo-list' },
         items.map(renderTodo).toArray()
       )
@@ -133,6 +120,8 @@ var TodoList = React.createClass({
 });
 
 var TodoItem = React.createClass({
+  displayName: 'TodoItem',
+
   mixins: [Morearty.Mixin],
 
   componentDidUpdate: function () {
@@ -140,7 +129,7 @@ var TodoItem = React.createClass({
     if (ctx.isChanged(this.getDefaultBinding().sub('editing'))) {
       var node = this.refs.editField.getDOMNode();
       node.focus();
-      node.setSelectionRange(node.value.length, node.value.length);
+      node.setSelectionRange(0, node.value.length);
     }
   },
 
@@ -176,7 +165,7 @@ var TodoItem = React.createClass({
     var ctx = this.getMoreartyContext();
     return _.li({ className: liClass },
       _.div({ className: 'view' },
-        Morearty.DOM.input({
+        _.input({
           className: 'toggle',
           type: 'checkbox',
           checked: item.get('completed'),
@@ -185,7 +174,7 @@ var TodoItem = React.createClass({
         _.label({ onClick: this.onToggleEditing.bind(null, true) }, title),
         _.button({ className: 'destroy', onClick: binding.delete.bind(binding, '') })
       ),
-      Morearty.DOM.input({
+      _.input({
         className: 'edit',
         ref: 'editField',
         value: title,
@@ -193,11 +182,13 @@ var TodoItem = React.createClass({
         onKeyDown: Morearty.Callback.onEnter(this.onEnter),
         onBlur: this.onToggleEditing.bind(null, false)
       })
-    )
+    );
   }
 });
 
 var Footer = React.createClass({
+  displayName: 'Footer',
+
   mixins: [Morearty.Mixin],
 
   onClearCompleted: function () {
@@ -234,7 +225,4 @@ var Footer = React.createClass({
   }
 });
 
-React.renderComponent(
-  Bootstrap(),
-  document.getElementById('root')
-);
+module.exports = App;

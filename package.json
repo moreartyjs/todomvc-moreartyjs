@@ -1,0 +1,37 @@
+{
+  "name": "todomvc-moreartyjs",
+  "version": "0.0.3",
+  "description": "Moreartyjs demo app with react hot reload",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moreartyjs/todomvc-moreartyjs.git"
+  },
+  "keywords": [
+    "moreartyjs",
+    "webpack",
+    "hot-reload",
+    "todomvc"
+  ],
+  "author": "",
+  "license": "Apache v2",
+  "bugs": {
+    "url": "https://github.com/moreartyjs/todomvc-moreartyjs/issues"
+  },
+  "homepage": "https://github.com/moreartyjs/todomvc-moreartyjs",
+  "dependencies": {
+    "director": "^1.2.3",
+    "immutable": "^2.5.1",
+    "morearty": "^0.4.7",
+    "react": "^0.11.2"
+  },
+  "devDependencies": {
+    "jsx-loader": "^0.11.2",
+    "react-hot-loader": "^0.5.0",
+    "webpack": "^1.4.8",
+    "webpack-dev-server": "^1.6.5"
+  }
+}
