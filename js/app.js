@@ -6,6 +6,39 @@ var Immutable = require('immutable');
 var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 var currentId = 2;
 
+// initial state
+var state = {
+  nowShowing: 'all',
+  items: [{
+    id: 1,
+    title: 'My first task',
+    completed: false,
+    editing: false
+  }]
+};
+
+var Ctx = Morearty.createContext(
+  state,
+  { // configuration
+    requestAnimationFrameEnabled: true
+  }
+);
+
+var Bootstrap = React.createClass({
+  displayName: 'AppRoot',
+
+  componentWillMount: function () {
+    Ctx.init(this);
+  },
+
+  render: function () {
+    return React.withContext({ morearty: Ctx }, function () { // pass Morearty context downside
+      return App({ binding: Ctx.getBinding() });              // your App component
+    });
+  }
+});
+
+
 var App = React.createClass({
   displayName: 'App',
 
@@ -227,4 +260,8 @@ var Footer = React.createClass({
   }
 });
 
-module.exports = App;
+React.renderComponent(
+  Bootstrap(),
+  document.getElementById('root')
+);
+
