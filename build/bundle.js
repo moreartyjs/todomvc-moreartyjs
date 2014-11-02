@@ -51,10 +51,10 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Morearty = __webpack_require__(3);
-	var React = window.React = __webpack_require__(2);
-	var Router = __webpack_require__(5).Router;
-	var Immutable = __webpack_require__(4);
+	var Morearty = __webpack_require__(2);
+	var React = window.React = __webpack_require__(3);
+	var Router = __webpack_require__(4).Router;
+	var Immutable = __webpack_require__(5);
 
 	var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 	var currentId = 2;
@@ -71,7 +71,7 @@
 	};
 
 	var Ctx = Morearty.createContext(
-	  state,
+	  state, {},
 	  { // configuration
 	    requestAnimationFrameEnabled: true
 	  }
@@ -86,7 +86,7 @@
 
 	  render: function () {
 	    return React.withContext({ morearty: Ctx }, function () { // pass Morearty context downside
-	      return App({ binding: Ctx.getBinding() });              // your App component
+	      return React.createElement(App, {binding:  Ctx.getBinding() });            // your App component
 	    });
 	  }
 	});
@@ -108,11 +108,12 @@
 
 	  render: function () {
 	    var binding = this.getDefaultBinding();
-	    var _ = React.DOM;
-	    return  _.section({ id: 'todoapp' },
-	      Header({ binding: binding }),
-	      TodoList({ binding: binding }),
-	      Footer({ binding: binding })
+	    return (
+	      React.createElement("section", {id: "todoapp"}, 
+	        React.createElement(Header, {binding: binding }), 
+	        React.createElement(TodoList, {binding: binding }), 
+	        React.createElement(Footer, {binding: binding })
+	      )
 	    );
 	  }
 	});
@@ -141,15 +142,14 @@
 	  },
 
 	  render: function () {
-	    var _ = React.DOM;
-	    return _.header({ id: 'header' },
-	      _.h1(null, 'todos'),
-	      Morearty.DOM.input({ // requestAnimationFrame-friendly wrapper around input
-	        id: 'new-todo',
-	        ref: 'newTodo',
-	        placeholder: 'What needs to be done?',
-	        onKeyDown: Morearty.Callback.onEnter(this.onAddTodo)
-	      })
+	    return (
+	      React.createElement("header", {id: "header"}, 
+	        React.createElement("h1", null, "todos"), 
+	        React.createElement(Morearty.DOM.input, {id: "new-todo", 
+	                            ref: "newTodo", 
+	                            placeholder: "What needs to be done?", 
+	                            onKeyDown:  Morearty.Callback.onEnter(this.onAddTodo) })
+	      )
 	    );
 	  }
 	});
@@ -164,15 +164,15 @@
 	    this.getDefaultBinding().update('items', function (items) {
 	      return items.map(function (item) {
 	        return item.set('completed', completed);
-	      }).toVector();
+	      });
 	    });
 	  },
 
 	  render: function () {
 	    var binding = this.getDefaultBinding();
-	    var nowShowing = binding.val('nowShowing');
+	    var nowShowing = binding.get('nowShowing');
 	    var itemsBinding = binding.sub('items');
-	    var items = itemsBinding.val();
+	    var items = itemsBinding.get();
 
 	    var isShown = function (item) {
 	      switch (nowShowing) {
@@ -187,21 +187,24 @@
 
 	    var renderTodo = function (item, index) {
 	      var itemBinding = itemsBinding.sub(index);
-	      return isShown(item) ? TodoItem({ binding: itemBinding, key: itemBinding.toJS('id') }) : null;
+	      return isShown(item) ? React.createElement(TodoItem, {binding: itemBinding, key:  itemBinding.toJS('id') }) : null;
 	    };
 
 	    var allCompleted = !items.find(function (item) {
 	      return !item.get('completed');
 	    });
 
-	    var _ = React.DOM;
-	    var ctx = this.getMoreartyContext();
-	    return _.section({ id: 'main' },
-	      items.length ?
-	        Morearty.DOM.input({ id: 'toggle-all', type: 'checkbox', checked: allCompleted, onChange: this.onToggleAll }) :
-	        null,
-	      _.ul({ id: 'todo-list' },
-	        items.map(renderTodo).toArray()
+	    return (
+	      React.createElement("section", {id: "main"}, 
+	      
+	        items.count() ?
+	          React.createElement(Morearty.DOM.input, {id: "toggle-all", 
+	                              type: "checkbox", 
+	                              checked: allCompleted, 
+	                              onChange:  this.onToggleAll}) :
+	          null, 
+	      
+	        React.createElement("ul", {id: "todo-list"},  items.map(renderTodo).toArray() )
 	      )
 	    );
 	  }
@@ -223,12 +226,10 @@
 
 	  onToggleCompleted: function (event) {
 	    this.getDefaultBinding().set('completed', event.target.checked);
-	    return false;
 	  },
 
 	  onToggleEditing: function (editing) {
 	    this.getDefaultBinding().set('editing', editing);
-	    return false;
 	  },
 
 	  onEnter: function (event) {
@@ -236,12 +237,11 @@
 	      .set('title', event.target.value)
 	      .set('editing', false)
 	      .commit();
-	    return false;
 	  },
 
 	  render: function () {
 	    var binding = this.getDefaultBinding();
-	    var item = binding.val();
+	    var item = binding.get();
 
 	    var liClass = React.addons.classSet({
 	      completed: item.get('completed'),
@@ -249,27 +249,23 @@
 	    });
 	    var title = item.get('title');
 
-	    var _ = React.DOM;
-	    var ctx = this.getMoreartyContext();
-	    return _.li({ className: liClass },
-	      _.div({ className: 'view' },
-	        Morearty.DOM.input({
-	          className: 'toggle',
-	          type: 'checkbox',
-	          checked: item.get('completed'),
-	          onChange: this.onToggleCompleted
-	        }),
-	        _.label({ onClick: this.onToggleEditing.bind(null, true) }, title),
-	        _.button({ className: 'destroy', onClick: binding.delete.bind(binding, '') })
-	      ),
-	      Morearty.DOM.input({
-	        className: 'edit',
-	        ref: 'editField',
-	        value: title,
-	        onChange: Morearty.Callback.set(binding, 'title'),
-	        onKeyDown: Morearty.Callback.onEnter(this.onEnter),
-	        onBlur: this.onToggleEditing.bind(null, false)
-	      })
+	    return (
+	      React.createElement("li", {className: liClass }, 
+	        React.createElement("div", {className: "view"}, 
+	          React.createElement(Morearty.DOM.input, {className: "toggle", 
+	                              type: "checkbox", 
+	                              checked:  item.get('completed'), 
+	                              onChange:  this.onToggleCompleted}), 
+	          React.createElement("label", {onClick:  this.onToggleEditing.bind(null, true) }, title ), 
+	          React.createElement("button", {className: "destroy", onClick:  binding.delete.bind(binding, '') })
+	        ), 
+	        React.createElement(Morearty.DOM.input, {className: "edit", 
+	                            ref: "editField", 
+	                            value: title, 
+	                            onChange:  Morearty.Callback.set(binding, 'title'), 
+	                            onKeyDown:  Morearty.Callback.onEnter(this.onEnter), 
+	                            onBlur:  this.onToggleEditing.bind(null, false) })
+	      )
 	    );
 	  }
 	});
@@ -283,3550 +279,67 @@
 	    this.getDefaultBinding().update('items', function (items) {
 	      return items.filter(function (item) {
 	        return !item.get('completed');
-	      }).toVector();
+	      });
 	    });
 	  },
 
 	  render: function () {
 	    var binding = this.getDefaultBinding();
-	    var nowShowing = binding.val('nowShowing');
+	    var nowShowing = binding.get('nowShowing');
 
-	    var items = binding.val('items');
+	    var items = binding.get('items');
 	    var completedItemsCount = items.reduce(function (acc, item) {
 	      return item.get('completed') ? acc + 1 : acc;
 	    }, 0);
 
-	    var _ = React.DOM;
-	    return _.footer({ id: 'footer' },
-	      _.span({ id: 'todo-count' }, items.length - completedItemsCount + ' items left'),
-	      _.ul({ id: 'filters' },
-	        _.li(null, _.a({ className: nowShowing === NOW_SHOWING.ALL ? 'selected' : '', href: '#/' }, 'All')),
-	        _.li(null, _.a({ className: nowShowing === NOW_SHOWING.ACTIVE ? 'selected' : '', href: '#/active' }, 'Active')),
-	        _.li(null, _.a({ className: nowShowing === NOW_SHOWING.COMPLETED ? 'selected' : '', href: '#/completed' }, 'Completed'))
-	      ),
-	      completedItemsCount ?
-	        _.button({ id: 'clear-completed', onClick: this.onClearCompleted },
-	            'Clear completed (' + completedItemsCount + ')'
-	        ) :
-	        null
+	    return (
+	      React.createElement("footer", {id: "footer"}, 
+	        React.createElement("span", {id: "todo-count"},  items.count() - completedItemsCount + ' items left'), 
+	        React.createElement("ul", {id: "filters"}, 
+	          React.createElement("li", null, 
+	            React.createElement("a", {className:  nowShowing === NOW_SHOWING.ALL ? 'selected' : '', href: "#/"}, "All")
+	          ), 
+	          React.createElement("li", null, 
+	            React.createElement("a", {className:  nowShowing === NOW_SHOWING.ACTIVE ? 'selected' : '', href: "#/active"}, "Active")
+	          ), 
+	          React.createElement("li", null, 
+	            React.createElement("a", {className:  nowShowing === NOW_SHOWING.COMPLETED ? 'selected' : '', href: "#/completed"}, "Completed")
+	          )
+	        ), 
+	      
+	        completedItemsCount ?
+	          React.createElement("button", {id: "clear-completed", onClick:  this.onClearCompleted}, 
+	             'Clear completed (' + completedItemsCount + ')'
+	          ) :
+	          null
+	      
+	      )
 	    );
 	  }
 	});
 
-	React.renderComponent(
-	  Bootstrap(),
+	React.render(
+	  React.createElement(Bootstrap, null),
 	  document.getElementById('root')
 	);
-
 
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(7);
+	module.exports = __webpack_require__(6);
 
 
 /***/ },
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(6);
+	module.exports = __webpack_require__(7);
 
 
 /***/ },
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 *  Copyright (c) 2014, Facebook, Inc.
-	 *  All rights reserved.
-	 *
-	 *  This source code is licensed under the BSD-style license found in the
-	 *  LICENSE file in the root directory of this source tree. An additional grant
-	 *  of patent rights can be found in the PATENTS file in the same directory.
-	 */
-	function universalModule() {
-	  var $Object = Object;
-
-	function createClass(ctor, methods, staticMethods, superClass) {
-	  var proto;
-	  if (superClass) {
-	    var superProto = superClass.prototype;
-	    proto = $Object.create(superProto);
-	  } else {
-	    proto = ctor.prototype;
-	  }
-	  $Object.keys(methods).forEach(function (key) {
-	    proto[key] = methods[key];
-	  });
-	  $Object.keys(staticMethods).forEach(function (key) {
-	    ctor[key] = staticMethods[key];
-	  });
-	  proto.constructor = ctor;
-	  ctor.prototype = proto;
-	  return ctor;
-	}
-
-	function superCall(self, proto, name, args) {
-	  return $Object.getPrototypeOf(proto)[name].apply(self, args);
-	}
-
-	function defaultSuperCall(self, proto, args) {
-	  superCall(self, proto, 'constructor', args);
-	}
-
-	var $traceurRuntime = {};
-	$traceurRuntime.createClass = createClass;
-	$traceurRuntime.superCall = superCall;
-	$traceurRuntime.defaultSuperCall = defaultSuperCall;
-	"use strict";
-	function is(first, second) {
-	  if (first === second) {
-	    return first !== 0 || second !== 0 || 1 / first === 1 / second;
-	  }
-	  if (first !== first) {
-	    return second !== second;
-	  }
-	  if (first && typeof first.equals === 'function') {
-	    return first.equals(second);
-	  }
-	  return false;
-	}
-	var DELETE = 'delete';
-	var SHIFT = 5;
-	var SIZE = 1 << SHIFT;
-	var MASK = SIZE - 1;
-	var NOT_SET = {};
-	var CHANGE_LENGTH = {value: false};
-	var DID_ALTER = {value: false};
-	function MakeRef(ref) {
-	  ref.value = false;
-	  return ref;
-	}
-	function SetRef(ref) {
-	  ref && (ref.value = true);
-	}
-	function OwnerID() {}
-	function arrCopy(arr, offset) {
-	  offset = offset || 0;
-	  var len = Math.max(0, arr.length - offset);
-	  var newArr = new Array(len);
-	  for (var ii = 0; ii < len; ii++) {
-	    newArr[ii] = arr[ii + offset];
-	  }
-	  return newArr;
-	}
-	function invariant(condition, error) {
-	  if (!condition)
-	    throw new Error(error);
-	}
-	function hash(o) {
-	  if (!o) {
-	    return 0;
-	  }
-	  if (o === true) {
-	    return 1;
-	  }
-	  var type = typeof o;
-	  if (type === 'number') {
-	    if ((o | 0) === o) {
-	      return o & HASH_MAX_VAL;
-	    }
-	    o = '' + o;
-	    type = 'string';
-	  }
-	  if (type === 'string') {
-	    return o.length > STRING_HASH_CACHE_MIN_STRLEN ? cachedHashString(o) : hashString(o);
-	  }
-	  if (o.hashCode) {
-	    return hash(typeof o.hashCode === 'function' ? o.hashCode() : o.hashCode);
-	  }
-	  return hashJSObj(o);
-	}
-	function cachedHashString(string) {
-	  var hash = stringHashCache[string];
-	  if (hash == null) {
-	    hash = hashString(string);
-	    if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
-	      STRING_HASH_CACHE_SIZE = 0;
-	      stringHashCache = {};
-	    }
-	    STRING_HASH_CACHE_SIZE++;
-	    stringHashCache[string] = hash;
-	  }
-	  return hash;
-	}
-	function hashString(string) {
-	  var hash = 0;
-	  for (var ii = 0; ii < string.length; ii++) {
-	    hash = (31 * hash + string.charCodeAt(ii)) & HASH_MAX_VAL;
-	  }
-	  return hash;
-	}
-	function hashJSObj(obj) {
-	  var hash = weakMap && weakMap.get(obj);
-	  if (hash)
-	    return hash;
-	  hash = obj[UID_HASH_KEY];
-	  if (hash)
-	    return hash;
-	  if (!canDefineProperty) {
-	    hash = obj.propertyIsEnumerable && obj.propertyIsEnumerable[UID_HASH_KEY];
-	    if (hash)
-	      return hash;
-	    hash = getIENodeHash(obj);
-	    if (hash)
-	      return hash;
-	  }
-	  if (canDefineProperty && !Object.isExtensible(obj)) {
-	    throw new Error('Non-extensible objects are not allowed as keys.');
-	  }
-	  hash = ++objHashUID & HASH_MAX_VAL;
-	  if (weakMap) {
-	    weakMap.set(obj, hash);
-	  } else if (canDefineProperty) {
-	    Object.defineProperty(obj, UID_HASH_KEY, {
-	      'enumerable': false,
-	      'configurable': false,
-	      'writable': false,
-	      'value': hash
-	    });
-	  } else if (propertyIsEnumerable && obj.propertyIsEnumerable === propertyIsEnumerable) {
-	    obj.propertyIsEnumerable = function() {
-	      return propertyIsEnumerable.apply(this, arguments);
-	    };
-	    obj.propertyIsEnumerable[UID_HASH_KEY] = hash;
-	  } else if (obj.nodeType) {
-	    obj[UID_HASH_KEY] = hash;
-	  } else {
-	    throw new Error('Unable to set a non-enumerable property on object.');
-	  }
-	  return hash;
-	}
-	var propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
-	var canDefineProperty = (function() {
-	  try {
-	    Object.defineProperty({}, 'x', {});
-	    return true;
-	  } catch (e) {
-	    return false;
-	  }
-	}());
-	function getIENodeHash(node) {
-	  if (node && node.nodeType > 0) {
-	    switch (node.nodeType) {
-	      case 1:
-	        return node.uniqueID;
-	      case 9:
-	        return node.documentElement && node.documentElement.uniqueID;
-	    }
-	  }
-	}
-	var weakMap = typeof WeakMap === 'function' && new WeakMap();
-	var HASH_MAX_VAL = 0x7FFFFFFF;
-	var objHashUID = 0;
-	var UID_HASH_KEY = '__immutablehash__';
-	if (typeof Symbol === 'function') {
-	  UID_HASH_KEY = Symbol(UID_HASH_KEY);
-	}
-	var STRING_HASH_CACHE_MIN_STRLEN = 16;
-	var STRING_HASH_CACHE_MAX_SIZE = 255;
-	var STRING_HASH_CACHE_SIZE = 0;
-	var stringHashCache = {};
-	var ITERATE_KEYS = 0;
-	var ITERATE_VALUES = 1;
-	var ITERATE_ENTRIES = 2;
-	var FAUX_ITERATOR_SYMBOL = '@@iterator';
-	var REAL_ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
-	var ITERATOR_SYMBOL = REAL_ITERATOR_SYMBOL || FAUX_ITERATOR_SYMBOL;
-	var Iterator = function Iterator(next) {
-	  this.next = next;
-	};
-	($traceurRuntime.createClass)(Iterator, {toString: function() {
-	    return '[Iterator]';
-	  }}, {});
-	var IteratorPrototype = Iterator.prototype;
-	IteratorPrototype.inspect = IteratorPrototype.toSource = function() {
-	  return this.toString();
-	};
-	IteratorPrototype[ITERATOR_SYMBOL] = function() {
-	  return this;
-	};
-	function iteratorValue(type, k, v, iteratorResult) {
-	  var value = type === 0 ? k : type === 1 ? v : [k, v];
-	  iteratorResult ? (iteratorResult.value = value) : (iteratorResult = {
-	    value: value,
-	    done: false
-	  });
-	  return iteratorResult;
-	}
-	function iteratorDone() {
-	  return {
-	    value: undefined,
-	    done: true
-	  };
-	}
-	function isIterable(maybeIterable) {
-	  return !!_iteratorFn(maybeIterable);
-	}
-	function isIterator(maybeIterator) {
-	  return maybeIterator && typeof maybeIterator.next === 'function';
-	}
-	function getIterator(iterable) {
-	  var iteratorFn = _iteratorFn(iterable);
-	  return iteratorFn && iteratorFn.call(iterable);
-	}
-	function _iteratorFn(iterable) {
-	  var iteratorFn = iterable && ((REAL_ITERATOR_SYMBOL && iterable[REAL_ITERATOR_SYMBOL]) || iterable[FAUX_ITERATOR_SYMBOL]);
-	  if (typeof iteratorFn === 'function') {
-	    return iteratorFn;
-	  }
-	}
-	var Sequence = function Sequence(value) {
-	  return $Sequence.from(arguments.length === 1 ? value : Array.prototype.slice.call(arguments));
-	};
-	var $Sequence = Sequence;
-	($traceurRuntime.createClass)(Sequence, {
-	  toArray: function() {
-	    assertNotInfinite(this.length);
-	    var array = new Array(this.length || 0);
-	    this.valueSeq().__iterate((function(v, i) {
-	      array[i] = v;
-	    }));
-	    return array;
-	  },
-	  toJS: function() {
-	    return this.map((function(value) {
-	      return value instanceof $Sequence ? value.toJS() : value;
-	    })).__toJS();
-	  },
-	  toMap: function() {
-	    assertNotInfinite(this.length);
-	    return Map.from(this);
-	  },
-	  toObject: function() {
-	    assertNotInfinite(this.length);
-	    var object = {};
-	    this.__iterate((function(v, k) {
-	      object[k] = v;
-	    }));
-	    return object;
-	  },
-	  toOrderedMap: function() {
-	    assertNotInfinite(this.length);
-	    return OrderedMap.from(this);
-	  },
-	  toSet: function() {
-	    assertNotInfinite(this.length);
-	    return Set.from(this);
-	  },
-	  toStack: function() {
-	    assertNotInfinite(this.length);
-	    return Stack.from(this);
-	  },
-	  toVector: function() {
-	    assertNotInfinite(this.length);
-	    return Vector.from(this);
-	  },
-	  toString: function() {
-	    return this.__toString('Seq {', '}');
-	  },
-	  __toString: function(head, tail) {
-	    if (this.length === 0) {
-	      return head + tail;
-	    }
-	    return head + ' ' + this.map(this.__toStringMapper).join(', ') + ' ' + tail;
-	  },
-	  __toStringMapper: function(v, k) {
-	    return k + ': ' + quoteString(v);
-	  },
-	  concat: function() {
-	    for (var values = [],
-	        $__2 = 0; $__2 < arguments.length; $__2++)
-	      values[$__2] = arguments[$__2];
-	    return concatFactory(this, values, true);
-	  },
-	  contains: function(searchValue) {
-	    return this.find((function(value) {
-	      return is(value, searchValue);
-	    }), null, NOT_SET) !== NOT_SET;
-	  },
-	  entries: function() {
-	    return this.__iterator(ITERATE_ENTRIES);
-	  },
-	  every: function(predicate, context) {
-	    var returnValue = true;
-	    this.__iterate((function(v, k, c) {
-	      if (!predicate.call(context, v, k, c)) {
-	        returnValue = false;
-	        return false;
-	      }
-	    }));
-	    return returnValue;
-	  },
-	  filter: function(predicate, context) {
-	    return filterFactory(this, predicate, context, true);
-	  },
-	  find: function(predicate, context, notSetValue) {
-	    var foundValue = notSetValue;
-	    this.__iterate((function(v, k, c) {
-	      if (predicate.call(context, v, k, c)) {
-	        foundValue = v;
-	        return false;
-	      }
-	    }));
-	    return foundValue;
-	  },
-	  forEach: function(sideEffect, context) {
-	    return this.__iterate(context ? sideEffect.bind(context) : sideEffect);
-	  },
-	  join: function(separator) {
-	    separator = separator !== undefined ? '' + separator : ',';
-	    var joined = '';
-	    var isFirst = true;
-	    this.__iterate((function(v) {
-	      isFirst ? (isFirst = false) : (joined += separator);
-	      joined += v != null ? v : '';
-	    }));
-	    return joined;
-	  },
-	  keys: function() {
-	    return this.__iterator(ITERATE_KEYS);
-	  },
-	  map: function(mapper, context) {
-	    return mapFactory(this, mapper, context);
-	  },
-	  reduce: function(reducer, initialReduction, context) {
-	    var reduction;
-	    var useFirst;
-	    if (arguments.length < 2) {
-	      useFirst = true;
-	    } else {
-	      reduction = initialReduction;
-	    }
-	    this.__iterate((function(v, k, c) {
-	      if (useFirst) {
-	        useFirst = false;
-	        reduction = v;
-	      } else {
-	        reduction = reducer.call(context, reduction, v, k, c);
-	      }
-	    }));
-	    return reduction;
-	  },
-	  reduceRight: function(reducer, initialReduction, context) {
-	    var reversed = this.toKeyedSeq().reverse();
-	    return reversed.reduce.apply(reversed, arguments);
-	  },
-	  reverse: function() {
-	    return reverseFactory(this, true);
-	  },
-	  slice: function(begin, end) {
-	    if (wholeSlice(begin, end, this.length)) {
-	      return this;
-	    }
-	    var resolvedBegin = resolveBegin(begin, this.length);
-	    var resolvedEnd = resolveEnd(end, this.length);
-	    if (resolvedBegin !== resolvedBegin || resolvedEnd !== resolvedEnd) {
-	      return this.cacheResult().slice(begin, end);
-	    }
-	    var skipped = resolvedBegin === 0 ? this : this.skip(resolvedBegin);
-	    return resolvedEnd == null || resolvedEnd === this.length ? skipped : skipped.take(resolvedEnd - resolvedBegin);
-	  },
-	  some: function(predicate, context) {
-	    return !this.every(not(predicate), context);
-	  },
-	  sort: function(comparator) {
-	    return this.sortBy(valueMapper, comparator);
-	  },
-	  values: function() {
-	    return this.__iterator(ITERATE_VALUES);
-	  },
-	  butLast: function() {
-	    return this.slice(0, -1);
-	  },
-	  count: function(predicate, context) {
-	    if (!predicate) {
-	      if (this.length == null) {
-	        this.length = this.__iterate(returnTrue);
-	      }
-	      return this.length;
-	    }
-	    return this.filter(predicate, context).count();
-	  },
-	  countBy: function(grouper, context) {
-	    var $__0 = this;
-	    var groupMap = {};
-	    var groups = [];
-	    this.__iterate((function(v, k) {
-	      var g = grouper.call(context, v, k, $__0);
-	      var h = hash(g);
-	      if (!groupMap.hasOwnProperty(h)) {
-	        groupMap[h] = groups.length;
-	        groups.push([g, 1]);
-	      } else {
-	        groups[groupMap[h]][1]++;
-	      }
-	    }));
-	    return $Sequence(groups).fromEntrySeq();
-	  },
-	  equals: function(other) {
-	    if (this === other) {
-	      return true;
-	    }
-	    if (!(other instanceof $Sequence)) {
-	      return false;
-	    }
-	    if (this.length != null && other.length != null) {
-	      if (this.length !== other.length) {
-	        return false;
-	      }
-	      if (this.length === 0 && other.length === 0) {
-	        return true;
-	      }
-	    }
-	    if (this.__hash != null && other.__hash != null && this.__hash !== other.__hash) {
-	      return false;
-	    }
-	    return this.__deepEquals(other);
-	  },
-	  __deepEquals: function(other) {
-	    var entries = this.entries();
-	    return other.every((function(v, k) {
-	      var entry = entries.next().value;
-	      return entry && is(entry[0], k) && is(entry[1], v);
-	    })) && entries.next().done;
-	  },
-	  entrySeq: function() {
-	    var sequence = this;
-	    if (sequence._cache) {
-	      return $Sequence(sequence._cache);
-	    }
-	    var entriesSequence = sequence.toKeyedSeq().map(entryMapper).valueSeq();
-	    entriesSequence.fromEntries = (function() {
-	      return sequence;
-	    });
-	    return entriesSequence;
-	  },
-	  findKey: function(predicate, context) {
-	    var foundKey;
-	    this.__iterate((function(v, k, c) {
-	      if (predicate.call(context, v, k, c)) {
-	        foundKey = k;
-	        return false;
-	      }
-	    }));
-	    return foundKey;
-	  },
-	  findLast: function(predicate, context, notSetValue) {
-	    return this.toKeyedSeq().reverse().find(predicate, context, notSetValue);
-	  },
-	  findLastKey: function(predicate, context) {
-	    return this.toKeyedSeq().reverse().findKey(predicate, context);
-	  },
-	  first: function() {
-	    return this.find(returnTrue);
-	  },
-	  flatMap: function(mapper, context) {
-	    return this.map((function(v, k, c) {
-	      return $Sequence(mapper.call(context, v, k, c));
-	    })).flatten(true);
-	  },
-	  flatten: function(depth) {
-	    return flattenFactory(this, depth, true);
-	  },
-	  flip: function() {
-	    return flipFactory(this);
-	  },
-	  get: function(searchKey, notSetValue) {
-	    return this.find((function(_, key) {
-	      return is(key, searchKey);
-	    }), null, notSetValue);
-	  },
-	  getIn: function(searchKeyPath, notSetValue) {
-	    var nested = this;
-	    if (searchKeyPath) {
-	      for (var ii = 0; ii < searchKeyPath.length; ii++) {
-	        nested = nested && nested.get ? nested.get(searchKeyPath[ii], NOT_SET) : NOT_SET;
-	        if (nested === NOT_SET) {
-	          return notSetValue;
-	        }
-	      }
-	    }
-	    return nested;
-	  },
-	  groupBy: function(grouper, context) {
-	    return groupByFactory(this, grouper, context, true);
-	  },
-	  has: function(searchKey) {
-	    return this.get(searchKey, NOT_SET) !== NOT_SET;
-	  },
-	  keySeq: function() {
-	    return this.flip().valueSeq();
-	  },
-	  last: function() {
-	    return this.reverse().first();
-	  },
-	  mapEntries: function(mapper, context) {
-	    var $__0 = this;
-	    return this.entrySeq().map((function(entry, index) {
-	      return mapper.call(context, entry, index, $__0);
-	    })).fromEntrySeq();
-	  },
-	  mapKeys: function(mapper, context) {
-	    var $__0 = this;
-	    return this.flip().map((function(k, v) {
-	      return mapper.call(context, k, v, $__0);
-	    })).flip();
-	  },
-	  rest: function() {
-	    return this.slice(1);
-	  },
-	  skip: function(amount) {
-	    return skipFactory(this, amount, true);
-	  },
-	  skipLast: function(amount) {
-	    return this.reverse().skip(amount).reverse();
-	  },
-	  skipWhile: function(predicate, context) {
-	    return skipWhileFactory(this, predicate, context, true);
-	  },
-	  skipUntil: function(predicate, context) {
-	    return this.skipWhile(not(predicate), context);
-	  },
-	  sortBy: function(mapper, comparator) {
-	    comparator = comparator || defaultComparator;
-	    var seq = this;
-	    return $Sequence(this.entrySeq().entrySeq().toArray().sort((function(a, b) {
-	      return comparator(mapper(a[1][1], a[1][0], seq), mapper(b[1][1], b[1][0], seq)) || a[0] - b[0];
-	    }))).fromEntrySeq().valueSeq().fromEntrySeq();
-	  },
-	  take: function(amount) {
-	    return takeFactory(this, amount);
-	  },
-	  takeLast: function(amount) {
-	    return this.reverse().take(amount).reverse();
-	  },
-	  takeWhile: function(predicate, context) {
-	    return takeWhileFactory(this, predicate, context);
-	  },
-	  takeUntil: function(predicate, context) {
-	    return this.takeWhile(not(predicate), context);
-	  },
-	  toKeyedSeq: function() {
-	    return this;
-	  },
-	  valueSeq: function() {
-	    return new ValuesSequence(this);
-	  },
-	  cacheResult: function() {
-	    if (!this._cache && this.__iterateUncached) {
-	      assertNotInfinite(this.length);
-	      this._cache = this.entrySeq().toArray();
-	      if (this.length == null) {
-	        this.length = this._cache.length;
-	      }
-	    }
-	    return this;
-	  },
-	  hashCode: function() {
-	    return this.__hash || (this.__hash = this.length === Infinity ? 0 : this.reduce((function(h, v, k) {
-	      return (h + (hash(v) ^ (v === k ? 0 : hash(k)))) & HASH_MAX_VAL;
-	    }), 0));
-	  },
-	  __makeSequence: function() {
-	    return Object.create(SequencePrototype);
-	  },
-	  __iterate: function(fn, reverse) {
-	    return iterate(this, fn, reverse, true);
-	  },
-	  __iterator: function(type, reverse) {
-	    return iterator(this, type, reverse, true);
-	  }
-	}, {from: function(value) {
-	    if (value instanceof $Sequence) {
-	      return value;
-	    }
-	    if (!Array.isArray(value)) {
-	      if (isIterator(value)) {
-	        return new IteratorSequence(value);
-	      }
-	      if (isIterable(value)) {
-	        return new IterableSequence(value);
-	      }
-	      if (value && value.constructor === Object) {
-	        return new ObjectSequence(value);
-	      }
-	      value = [value];
-	    }
-	    return new ArraySequence(value);
-	  }});
-	var SequencePrototype = Sequence.prototype;
-	SequencePrototype[ITERATOR_SYMBOL] = SequencePrototype.entries;
-	SequencePrototype.toJSON = SequencePrototype.toJS;
-	SequencePrototype.__toJS = SequencePrototype.toObject;
-	SequencePrototype.inspect = SequencePrototype.toSource = function() {
-	  return this.toString();
-	};
-	SequencePrototype.chain = SequencePrototype.flatMap;
-	var IndexedSequence = function IndexedSequence() {
-	  $traceurRuntime.defaultSuperCall(this, $IndexedSequence.prototype, arguments);
-	};
-	var $IndexedSequence = IndexedSequence;
-	($traceurRuntime.createClass)(IndexedSequence, {
-	  toString: function() {
-	    return this.__toString('Seq [', ']');
-	  },
-	  concat: function() {
-	    for (var values = [],
-	        $__3 = 0; $__3 < arguments.length; $__3++)
-	      values[$__3] = arguments[$__3];
-	    return concatFactory(this, values, false);
-	  },
-	  filter: function(predicate, context) {
-	    return filterFactory(this, predicate, context, false);
-	  },
-	  findIndex: function(predicate, context) {
-	    var key = this.findKey(predicate, context);
-	    return key == null ? -1 : key;
-	  },
-	  indexOf: function(searchValue) {
-	    return this.findIndex((function(value) {
-	      return is(value, searchValue);
-	    }));
-	  },
-	  lastIndexOf: function(searchValue) {
-	    return this.toKeyedSeq().reverse().indexOf(searchValue);
-	  },
-	  reverse: function() {
-	    return reverseFactory(this, false);
-	  },
-	  splice: function(index, removeNum) {
-	    var numArgs = arguments.length;
-	    removeNum = Math.max(removeNum | 0, 0);
-	    if (numArgs === 0 || (numArgs === 2 && !removeNum)) {
-	      return this;
-	    }
-	    index = resolveBegin(index, this.length);
-	    var spliced = this.slice(0, index);
-	    return numArgs === 1 ? spliced : spliced.concat(arrCopy(arguments, 2), this.slice(index + removeNum));
-	  },
-	  findLastIndex: function(predicate, context) {
-	    return this.toKeyedSeq().reverse().findIndex(predicate, context);
-	  },
-	  first: function() {
-	    return this.get(0);
-	  },
-	  flatten: function(depth) {
-	    return flattenFactory(this, depth, false);
-	  },
-	  flip: function() {
-	    return flipFactory(this.toKeyedSeq());
-	  },
-	  fromEntrySeq: function() {
-	    return new FromEntriesSequence(this);
-	  },
-	  get: function(index, notSetValue) {
-	    index = wrapIndex(this, index);
-	    return (index < 0 || (this.length === Infinity || (this.length != null && index > this.length))) ? notSetValue : this.find((function(_, key) {
-	      return key === index;
-	    }), null, notSetValue);
-	  },
-	  groupBy: function(grouper, context) {
-	    return groupByFactory(this, grouper, context, false);
-	  },
-	  has: function(index) {
-	    index = wrapIndex(this, index);
-	    return index >= 0 && (this.length != null ? this.length === Infinity || index < this.length : this.indexOf(index) !== -1);
-	  },
-	  interpose: function(separator) {
-	    return interposeFactory(this, separator);
-	  },
-	  last: function() {
-	    return this.get(-1);
-	  },
-	  skip: function(amount) {
-	    var seq = this;
-	    var skipSeq = skipFactory(seq, amount, false);
-	    if (skipSeq !== seq) {
-	      skipSeq.get = function(index, notSetValue) {
-	        index = wrapIndex(this, index);
-	        return index >= 0 ? seq.get(index + amount, notSetValue) : notSetValue;
-	      };
-	    }
-	    return skipSeq;
-	  },
-	  skipWhile: function(predicate, context) {
-	    return skipWhileFactory(this, predicate, context, false);
-	  },
-	  sortBy: function(mapper, comparator) {
-	    comparator = comparator || defaultComparator;
-	    var seq = this;
-	    return Sequence(this.entrySeq().toArray().sort((function(a, b) {
-	      return comparator(mapper(a[1], a[0], seq), mapper(b[1], b[0], seq)) || a[0] - b[0];
-	    }))).fromEntrySeq().valueSeq();
-	  },
-	  take: function(amount) {
-	    var seq = this;
-	    var takeSeq = takeFactory(seq, amount);
-	    if (takeSeq !== seq) {
-	      takeSeq.get = function(index, notSetValue) {
-	        index = wrapIndex(this, index);
-	        return index >= 0 && index < amount ? seq.get(index, notSetValue) : notSetValue;
-	      };
-	    }
-	    return takeSeq;
-	  },
-	  toKeyedSeq: function() {
-	    return new KeyedIndexedSequence(this);
-	  },
-	  valueSeq: function() {
-	    return this;
-	  },
-	  __makeSequence: function() {
-	    return Object.create(IndexedSequencePrototype);
-	  },
-	  __iterate: function(fn, reverse) {
-	    return iterate(this, fn, reverse, false);
-	  },
-	  __iterator: function(type, reverse) {
-	    return iterator(this, type, reverse, false);
-	  }
-	}, {}, Sequence);
-	var IndexedSequencePrototype = IndexedSequence.prototype;
-	IndexedSequencePrototype[ITERATOR_SYMBOL] = IndexedSequencePrototype.values;
-	IndexedSequencePrototype.__toJS = IndexedSequencePrototype.toArray;
-	IndexedSequencePrototype.__toStringMapper = quoteString;
-	var IteratorSequence = function IteratorSequence(iterator) {
-	  this._iterator = iterator;
-	  this._iteratorCache = [];
-	};
-	($traceurRuntime.createClass)(IteratorSequence, {
-	  __iterateUncached: function(fn, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var iterator = this._iterator;
-	    var cache = this._iteratorCache;
-	    var iterations = 0;
-	    while (iterations < cache.length) {
-	      if (fn(cache[iterations], iterations++, this) === false) {
-	        return iterations;
-	      }
-	    }
-	    var step;
-	    while (!(step = iterator.next()).done) {
-	      var val = step.value;
-	      cache[iterations] = val;
-	      if (fn(val, iterations++, this) === false) {
-	        break;
-	      }
-	    }
-	    return iterations;
-	  },
-	  __iteratorUncached: function(type, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterator = this._iterator;
-	    var cache = this._iteratorCache;
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      if (iterations >= cache.length) {
-	        var step = iterator.next();
-	        if (step.done) {
-	          return step;
-	        }
-	        cache[iterations] = step.value;
-	      }
-	      return iteratorValue(type, iterations, cache[iterations++]);
-	    }));
-	  }
-	}, {}, IndexedSequence);
-	var IterableSequence = function IterableSequence(iterable) {
-	  this._iterable = iterable;
-	  this.length = iterable.length || iterable.size;
-	};
-	($traceurRuntime.createClass)(IterableSequence, {
-	  __iterateUncached: function(fn, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var iterable = this._iterable;
-	    var iterator = getIterator(iterable);
-	    var iterations = 0;
-	    if (isIterator(iterator)) {
-	      var step;
-	      while (!(step = iterator.next()).done) {
-	        if (fn(step.value, iterations++, this) === false) {
-	          break;
-	        }
-	      }
-	    }
-	    return iterations;
-	  },
-	  __iteratorUncached: function(type, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterable = this._iterable;
-	    var iterator = getIterator(iterable);
-	    if (!isIterator(iterator)) {
-	      return new Iterator((function() {
-	        return iteratorDone();
-	      }));
-	    }
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      var step = iterator.next();
-	      return step.done ? step : iteratorValue(type, iterations++, step.value);
-	    }));
-	  }
-	}, {}, IndexedSequence);
-	var ObjectSequence = function ObjectSequence(object) {
-	  var keys = Object.keys(object);
-	  this._object = object;
-	  this._keys = keys;
-	  this.length = keys.length;
-	};
-	($traceurRuntime.createClass)(ObjectSequence, {
-	  get: function(key, notSetValue) {
-	    if (notSetValue !== undefined && !this.has(key)) {
-	      return notSetValue;
-	    }
-	    return this._object[key];
-	  },
-	  has: function(key) {
-	    return this._object.hasOwnProperty(key);
-	  },
-	  __iterate: function(fn, reverse) {
-	    var object = this._object;
-	    var keys = this._keys;
-	    var maxIndex = keys.length - 1;
-	    for (var ii = 0; ii <= maxIndex; ii++) {
-	      var key = keys[reverse ? maxIndex - ii : ii];
-	      if (fn(object[key], key, this) === false) {
-	        return ii + 1;
-	      }
-	    }
-	    return ii;
-	  },
-	  __iterator: function(type, reverse) {
-	    var object = this._object;
-	    var keys = this._keys;
-	    var maxIndex = keys.length - 1;
-	    var ii = 0;
-	    return new Iterator((function() {
-	      var key = keys[reverse ? maxIndex - ii : ii];
-	      return ii++ > maxIndex ? iteratorDone() : iteratorValue(type, key, object[key]);
-	    }));
-	  }
-	}, {}, Sequence);
-	var ArraySequence = function ArraySequence(array) {
-	  this._array = array;
-	  this.length = array.length;
-	};
-	($traceurRuntime.createClass)(ArraySequence, {
-	  get: function(index, notSetValue) {
-	    return this.has(index) ? this._array[wrapIndex(this, index)] : notSetValue;
-	  },
-	  __iterate: function(fn, reverse) {
-	    var array = this._array;
-	    var maxIndex = array.length - 1;
-	    for (var ii = 0; ii <= maxIndex; ii++) {
-	      if (fn(array[reverse ? maxIndex - ii : ii], ii, this) === false) {
-	        return ii + 1;
-	      }
-	    }
-	    return ii;
-	  },
-	  __iterator: function(type, reverse) {
-	    var array = this._array;
-	    var maxIndex = array.length - 1;
-	    var ii = 0;
-	    return new Iterator((function() {
-	      return ii > maxIndex ? iteratorDone() : iteratorValue(type, ii, array[reverse ? maxIndex - ii++ : ii++]);
-	    }));
-	  }
-	}, {}, IndexedSequence);
-	function ensureLength(indexedSeq) {
-	  if (indexedSeq.length == null) {
-	    indexedSeq.cacheResult();
-	  }
-	  invariant(indexedSeq.length < Infinity, 'Cannot reverse infinite range.');
-	  return indexedSeq.length;
-	}
-	function wholeSlice(begin, end, length) {
-	  return (begin === 0 || (length != null && begin <= -length)) && (end == null || (length != null && end >= length));
-	}
-	function resolveBegin(begin, length) {
-	  return resolveIndex(begin, length, 0);
-	}
-	function resolveEnd(end, length) {
-	  return resolveIndex(end, length, length);
-	}
-	function resolveIndex(index, length, defaultIndex) {
-	  return index == null ? defaultIndex : index < 0 ? Math.max(0, length + index) : length ? Math.min(length, index) : index;
-	}
-	function valueMapper(v) {
-	  return v;
-	}
-	function entryMapper(v, k) {
-	  return [k, v];
-	}
-	function returnTrue() {
-	  return true;
-	}
-	function not(predicate) {
-	  return function() {
-	    return !predicate.apply(this, arguments);
-	  };
-	}
-	function quoteString(value) {
-	  return typeof value === 'string' ? JSON.stringify(value) : value;
-	}
-	function defaultComparator(a, b) {
-	  return a > b ? 1 : a < b ? -1 : 0;
-	}
-	function wrapIndex(seq, index) {
-	  if (index < 0) {
-	    if (seq.length == null) {
-	      seq.cacheResult();
-	    }
-	    return seq.length + index;
-	  }
-	  return index;
-	}
-	function assertNotInfinite(length) {
-	  invariant(length !== Infinity, 'Cannot perform this action with an infinite sequence.');
-	}
-	function iterate(sequence, fn, reverse, useKeys) {
-	  var cache = sequence._cache;
-	  if (cache) {
-	    var maxIndex = cache.length - 1;
-	    for (var ii = 0; ii <= maxIndex; ii++) {
-	      var entry = cache[reverse ? maxIndex - ii : ii];
-	      if (fn(entry[1], useKeys ? entry[0] : ii, sequence) === false) {
-	        return ii + 1;
-	      }
-	    }
-	    return ii;
-	  }
-	  return sequence.__iterateUncached(fn, reverse);
-	}
-	function iterator(sequence, type, reverse, useKeys) {
-	  var cache = sequence._cache;
-	  if (cache) {
-	    var maxIndex = cache.length - 1;
-	    var ii = 0;
-	    return new Iterator((function() {
-	      var entry = cache[reverse ? maxIndex - ii : ii];
-	      return ii++ > maxIndex ? iteratorDone() : iteratorValue(type, useKeys ? entry[0] : ii - 1, entry[1]);
-	    }));
-	  }
-	  return sequence.__iteratorUncached(type, reverse);
-	}
-	var ValuesSequence = function ValuesSequence(seq) {
-	  this._seq = seq;
-	  this.length = seq.length;
-	};
-	($traceurRuntime.createClass)(ValuesSequence, {
-	  contains: function(value) {
-	    return this._seq.contains(value);
-	  },
-	  cacheResult: function() {
-	    this._seq.cacheResult();
-	    this.length = this._seq.length;
-	    return this;
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    var iterations = 0;
-	    return this._seq.__iterate((function(v) {
-	      return fn(v, iterations++, $__0);
-	    }), reverse);
-	  },
-	  __iterator: function(type, reverse) {
-	    var iterator = this._seq.__iterator(ITERATE_VALUES, reverse);
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      var step = iterator.next();
-	      return step.done ? step : iteratorValue(type, iterations++, step.value, step);
-	    }));
-	  }
-	}, {}, IndexedSequence);
-	var KeyedIndexedSequence = function KeyedIndexedSequence(indexedSeq) {
-	  this._seq = indexedSeq;
-	  this.length = indexedSeq.length;
-	};
-	($traceurRuntime.createClass)(KeyedIndexedSequence, {
-	  get: function(key, notSetValue) {
-	    return this._seq.get(key, notSetValue);
-	  },
-	  has: function(key) {
-	    return this._seq.has(key);
-	  },
-	  valueSeq: function() {
-	    return this._seq;
-	  },
-	  reverse: function() {
-	    var $__0 = this;
-	    var reversedSequence = reverseFactory(this, true);
-	    reversedSequence.valueSeq = (function() {
-	      return $__0._seq.reverse();
-	    });
-	    return reversedSequence;
-	  },
-	  map: function(mapper, context) {
-	    var $__0 = this;
-	    var mappedSequence = mapFactory(this, mapper, context);
-	    mappedSequence.valueSeq = (function() {
-	      return $__0._seq.map(mapper, context);
-	    });
-	    return mappedSequence;
-	  },
-	  cacheResult: function() {
-	    this._seq.cacheResult();
-	    this.length = this._seq.length;
-	    return this;
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    var ii = reverse ? ensureLength(this) : 0;
-	    return this._seq.__iterate((function(v) {
-	      return fn(v, reverse ? --ii : ii++, $__0);
-	    }), reverse);
-	  },
-	  __iterator: function(type, reverse) {
-	    var iterator = this._seq.__iterator(ITERATE_VALUES, reverse);
-	    var ii = reverse ? ensureLength(this) : 0;
-	    return new Iterator((function() {
-	      var step = iterator.next();
-	      return step.done ? step : iteratorValue(type, reverse ? --ii : ii++, step.value, step);
-	    }));
-	  }
-	}, {}, Sequence);
-	var FromEntriesSequence = function FromEntriesSequence(entriesSeq) {
-	  this._seq = entriesSeq;
-	  this.length = entriesSeq.length;
-	};
-	($traceurRuntime.createClass)(FromEntriesSequence, {
-	  entrySeq: function() {
-	    return this._seq;
-	  },
-	  cacheResult: function() {
-	    this._seq.cacheResult();
-	    this.length = this._seq.length;
-	    return this;
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    return this._seq.__iterate((function(entry) {
-	      return entry && fn(entry[1], entry[0], $__0);
-	    }), reverse);
-	  },
-	  __iterator: function(type, reverse) {
-	    var iterator = this._seq.__iterator(ITERATE_VALUES, reverse);
-	    return new Iterator((function() {
-	      while (true) {
-	        var step = iterator.next();
-	        if (step.done) {
-	          return step;
-	        }
-	        var entry = step.value;
-	        if (entry) {
-	          return type === ITERATE_ENTRIES ? step : iteratorValue(type, entry[0], entry[1], step);
-	        }
-	      }
-	    }));
-	  }
-	}, {}, Sequence);
-	function flipFactory(sequence) {
-	  var flipSequence = sequence.__makeSequence();
-	  flipSequence.length = sequence.length;
-	  flipSequence.flip = (function() {
-	    return sequence;
-	  });
-	  flipSequence.reverse = function() {
-	    var reversedSequence = sequence.reverse.apply(this);
-	    reversedSequence.flip = (function() {
-	      return sequence.reverse();
-	    });
-	    return reversedSequence;
-	  };
-	  flipSequence.has = (function(key) {
-	    return sequence.contains(key);
-	  });
-	  flipSequence.contains = (function(key) {
-	    return sequence.has(key);
-	  });
-	  flipSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    return sequence.__iterate((function(v, k) {
-	      return fn(k, v, $__0) !== false;
-	    }), reverse);
-	  };
-	  flipSequence.__iteratorUncached = function(type, reverse) {
-	    if (type === ITERATE_ENTRIES) {
-	      var iterator = sequence.__iterator(type, reverse);
-	      return new Iterator((function() {
-	        var step = iterator.next();
-	        if (!step.done) {
-	          var k = step.value[0];
-	          step.value[0] = step.value[1];
-	          step.value[1] = k;
-	        }
-	        return step;
-	      }));
-	    }
-	    return sequence.__iterator(type === ITERATE_VALUES ? ITERATE_KEYS : ITERATE_VALUES, reverse);
-	  };
-	  return flipSequence;
-	}
-	function mapFactory(sequence, mapper, context) {
-	  var mappedSequence = sequence.__makeSequence();
-	  mappedSequence.length = sequence.length;
-	  mappedSequence.has = (function(key) {
-	    return sequence.has(key);
-	  });
-	  mappedSequence.get = (function(key, notSetValue) {
-	    var v = sequence.get(key, NOT_SET);
-	    return v === NOT_SET ? notSetValue : mapper.call(context, v, key, sequence);
-	  });
-	  mappedSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    return sequence.__iterate((function(v, k, c) {
-	      return fn(mapper.call(context, v, k, c), k, $__0) !== false;
-	    }), reverse);
-	  };
-	  mappedSequence.__iteratorUncached = function(type, reverse) {
-	    var iterator = sequence.__iterator(ITERATE_ENTRIES, reverse);
-	    return new Iterator((function() {
-	      var step = iterator.next();
-	      if (step.done) {
-	        return step;
-	      }
-	      var entry = step.value;
-	      var key = entry[0];
-	      return iteratorValue(type, key, mapper.call(context, entry[1], key, sequence), step);
-	    }));
-	  };
-	  return mappedSequence;
-	}
-	function reverseFactory(sequence, useKeys) {
-	  var reversedSequence = sequence.__makeSequence();
-	  reversedSequence.length = sequence.length;
-	  reversedSequence.reverse = (function() {
-	    return sequence;
-	  });
-	  reversedSequence.flip = function() {
-	    var flipSequence = sequence.flip.apply(this);
-	    flipSequence.reverse = (function() {
-	      return sequence.flip();
-	    });
-	    return flipSequence;
-	  };
-	  reversedSequence.get = (function(key, notSetValue) {
-	    return sequence.get(useKeys ? key : -1 - key, notSetValue);
-	  });
-	  reversedSequence.has = (function(key) {
-	    return sequence.has(useKeys ? key : -1 - key);
-	  });
-	  reversedSequence.contains = (function(value) {
-	    return sequence.contains(value);
-	  });
-	  reversedSequence.cacheResult = function() {
-	    sequence.cacheResult();
-	    this.length = sequence.length;
-	    return this;
-	  };
-	  reversedSequence.__iterate = function(fn, reverse) {
-	    var $__0 = this;
-	    return sequence.__iterate((function(v, k) {
-	      return fn(v, k, $__0);
-	    }), !reverse);
-	  };
-	  reversedSequence.__iterator = (function(type, reverse) {
-	    return sequence.__iterator(type, !reverse);
-	  });
-	  return reversedSequence;
-	}
-	function filterFactory(sequence, predicate, context, useKeys) {
-	  var filterSequence = sequence.__makeSequence();
-	  if (useKeys) {
-	    filterSequence.has = (function(key) {
-	      var v = sequence.get(key, NOT_SET);
-	      return v !== NOT_SET && !!predicate.call(context, v, key, sequence);
-	    });
-	    filterSequence.get = (function(key, notSetValue) {
-	      var v = sequence.get(key, NOT_SET);
-	      return v !== NOT_SET && predicate.call(context, v, key, sequence) ? v : notSetValue;
-	    });
-	  }
-	  filterSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k, c) {
-	      if (predicate.call(context, v, k, c)) {
-	        iterations++;
-	        return fn(v, useKeys ? k : iterations - 1, $__0);
-	      }
-	    }), reverse);
-	    return iterations;
-	  };
-	  filterSequence.__iteratorUncached = function(type, reverse) {
-	    var iterator = sequence.__iterator(ITERATE_ENTRIES, reverse);
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      while (true) {
-	        var step = iterator.next();
-	        if (step.done) {
-	          return step;
-	        }
-	        var entry = step.value;
-	        var key = entry[0];
-	        var value = entry[1];
-	        if (predicate.call(context, value, key, sequence)) {
-	          return iteratorValue(type, useKeys ? key : iterations++, value, step);
-	        }
-	      }
-	    }));
-	  };
-	  return filterSequence;
-	}
-	function groupByFactory(seq, grouper, context, useKeys) {
-	  var groupMap = {};
-	  var groups = [];
-	  seq.__iterate((function(v, k) {
-	    var g = grouper.call(context, v, k, seq);
-	    var h = hash(g);
-	    var e = useKeys ? [k, v] : v;
-	    if (!groupMap.hasOwnProperty(h)) {
-	      groupMap[h] = groups.length;
-	      groups.push([g, [e]]);
-	    } else {
-	      groups[groupMap[h]][1].push(e);
-	    }
-	  }));
-	  return Sequence(groups).fromEntrySeq().map(useKeys ? (function(group) {
-	    return Sequence(group).fromEntrySeq();
-	  }) : (function(group) {
-	    return Sequence(group);
-	  }));
-	}
-	function takeFactory(sequence, amount) {
-	  if (amount > sequence.length) {
-	    return sequence;
-	  }
-	  if (amount < 0) {
-	    amount = 0;
-	  }
-	  var takeSequence = sequence.__makeSequence();
-	  takeSequence.length = sequence.length && Math.min(sequence.length, amount);
-	  takeSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    if (amount === 0) {
-	      return 0;
-	    }
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k) {
-	      return ++iterations && fn(v, k, $__0) !== false && iterations < amount;
-	    }));
-	    return iterations;
-	  };
-	  takeSequence.__iteratorUncached = function(type, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterator = amount && sequence.__iterator(type, reverse);
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      if (iterations++ > amount) {
-	        return iteratorDone();
-	      }
-	      return iterator.next();
-	    }));
-	  };
-	  return takeSequence;
-	}
-	function takeWhileFactory(sequence, predicate, context) {
-	  var takeSequence = sequence.__makeSequence();
-	  takeSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k, c) {
-	      return predicate.call(context, v, k, c) && ++iterations && fn(v, k, $__0);
-	    }));
-	    return iterations;
-	  };
-	  takeSequence.__iteratorUncached = function(type, reverse) {
-	    var $__0 = this;
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterator = sequence.__iterator(ITERATE_ENTRIES, reverse);
-	    var iterating = true;
-	    return new Iterator((function() {
-	      if (!iterating) {
-	        return iteratorDone();
-	      }
-	      var step = iterator.next();
-	      if (step.done) {
-	        return step;
-	      }
-	      var entry = step.value;
-	      var k = entry[0];
-	      var v = entry[1];
-	      if (!predicate.call(context, v, k, $__0)) {
-	        iterating = false;
-	        return iteratorDone();
-	      }
-	      return type === ITERATE_ENTRIES ? step : iteratorValue(type, k, v, step);
-	    }));
-	  };
-	  return takeSequence;
-	}
-	function skipFactory(sequence, amount, useKeys) {
-	  if (amount <= 0) {
-	    return sequence;
-	  }
-	  var skipSequence = sequence.__makeSequence();
-	  skipSequence.length = sequence.length && Math.max(0, sequence.length - amount);
-	  skipSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var skipped = 0;
-	    var isSkipping = true;
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k) {
-	      if (!(isSkipping && (isSkipping = skipped++ < amount))) {
-	        iterations++;
-	        return fn(v, useKeys ? k : iterations - 1, $__0);
-	      }
-	    }));
-	    return iterations;
-	  };
-	  skipSequence.__iteratorUncached = function(type, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterator = amount && sequence.__iterator(type, reverse);
-	    var skipped = 0;
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      while (skipped < amount) {
-	        skipped++;
-	        iterator.next();
-	      }
-	      var step = iterator.next();
-	      if (useKeys || type === ITERATE_VALUES) {
-	        return step;
-	      } else if (type === ITERATE_KEYS) {
-	        return iteratorValue(type, iterations++, null, step);
-	      } else {
-	        return iteratorValue(type, iterations++, step.value[1], step);
-	      }
-	    }));
-	  };
-	  return skipSequence;
-	}
-	function skipWhileFactory(sequence, predicate, context, useKeys) {
-	  var skipSequence = sequence.__makeSequence();
-	  skipSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var isSkipping = true;
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k, c) {
-	      if (!(isSkipping && (isSkipping = predicate.call(context, v, k, c)))) {
-	        iterations++;
-	        return fn(v, useKeys ? k : iterations - 1, $__0);
-	      }
-	    }));
-	    return iterations;
-	  };
-	  skipSequence.__iteratorUncached = function(type, reverse) {
-	    var $__0 = this;
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterator = sequence.__iterator(ITERATE_ENTRIES, reverse);
-	    var skipping = true;
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      var step,
-	          k,
-	          v;
-	      do {
-	        step = iterator.next();
-	        if (step.done) {
-	          if (useKeys || type === ITERATE_VALUES) {
-	            return step;
-	          } else if (type === ITERATE_KEYS) {
-	            return iteratorValue(type, iterations++, null, step);
-	          } else {
-	            return iteratorValue(type, iterations++, step.value[1], step);
-	          }
-	        }
-	        var entry = step.value;
-	        k = entry[0];
-	        v = entry[1];
-	        skipping && (skipping = predicate.call(context, v, k, $__0));
-	      } while (skipping);
-	      return type === ITERATE_ENTRIES ? step : iteratorValue(type, k, v, step);
-	    }));
-	  };
-	  return skipSequence;
-	}
-	function concatFactory(sequence, values, useKeys) {
-	  var sequences = [sequence].concat(values);
-	  var concatSequence = Sequence(sequences);
-	  if (useKeys) {
-	    concatSequence = concatSequence.toKeyedSeq();
-	  }
-	  concatSequence = concatSequence.flatMap(valueMapper);
-	  concatSequence.length = sequences.reduce((function(sum, seq) {
-	    if (sum !== undefined) {
-	      var len = Sequence(seq).length;
-	      if (len != null) {
-	        return sum + len;
-	      }
-	    }
-	  }), 0);
-	  return concatSequence;
-	}
-	function flattenFactory(sequence, depth, useKeys) {
-	  var flatSequence = sequence.__makeSequence();
-	  flatSequence.__iterateUncached = function(fn, reverse) {
-	    var iterations = 0;
-	    var stopped = false;
-	    function flatDeep(seq, currentDepth) {
-	      var $__0 = this;
-	      seq.__iterate((function(v, k) {
-	        if ((!depth || currentDepth < depth) && v instanceof Sequence) {
-	          flatDeep(v, currentDepth + 1);
-	        } else if (fn(v, useKeys ? k : iterations++, $__0) === false) {
-	          stopped = true;
-	        }
-	        return !stopped;
-	      }), reverse);
-	    }
-	    flatDeep(sequence, 0);
-	    return iterations;
-	  };
-	  flatSequence.__iteratorUncached = function(type, reverse) {
-	    var iterator = sequence.__iterator(type, reverse);
-	    var stack = [];
-	    var iterations = 0;
-	    return new Iterator((function() {
-	      while (iterator) {
-	        var step = iterator.next();
-	        if (step.done !== false) {
-	          iterator = stack.pop();
-	          continue;
-	        }
-	        var value = step.value;
-	        if (type === ITERATE_ENTRIES) {
-	          value = value[1];
-	        }
-	        if ((!depth || stack.length < depth) && value instanceof Sequence) {
-	          stack.push(iterator);
-	          iterator = value.__iterator(type, reverse);
-	        } else {
-	          return useKeys ? step : iteratorValue(type, iterations++, value, step);
-	        }
-	      }
-	      return iteratorDone();
-	    }));
-	  };
-	  return flatSequence;
-	}
-	function interposeFactory(sequence, separator) {
-	  var interposedSequence = sequence.__makeSequence();
-	  interposedSequence.length = sequence.length && sequence.length * 2 - 1;
-	  interposedSequence.__iterateUncached = function(fn, reverse) {
-	    var $__0 = this;
-	    var iterations = 0;
-	    sequence.__iterate((function(v, k) {
-	      return (!iterations || fn(separator, iterations++, $__0) !== false) && fn(v, iterations++, $__0) !== false;
-	    }), reverse);
-	    return iterations;
-	  };
-	  interposedSequence.__iteratorUncached = function(type, reverse) {
-	    var iterator = sequence.__iterator(ITERATE_VALUES, reverse);
-	    var iterations = 0;
-	    var step;
-	    return new Iterator((function() {
-	      if (!step || iterations % 2) {
-	        step = iterator.next();
-	        if (step.done) {
-	          return step;
-	        }
-	      }
-	      return iterations % 2 ? iteratorValue(type, iterations++, separator) : iteratorValue(type, iterations++, step.value, step);
-	    }));
-	  };
-	  return interposedSequence;
-	}
-	var Map = function Map(sequence) {
-	  var map = $Map.empty();
-	  return sequence ? sequence.constructor === $Map ? sequence : map.merge(sequence) : map;
-	};
-	var $Map = Map;
-	($traceurRuntime.createClass)(Map, {
-	  toString: function() {
-	    return this.__toString('Map {', '}');
-	  },
-	  get: function(k, notSetValue) {
-	    return this._root ? this._root.get(0, hash(k), k, notSetValue) : notSetValue;
-	  },
-	  set: function(k, v) {
-	    return updateMap(this, k, v);
-	  },
-	  remove: function(k) {
-	    return updateMap(this, k, NOT_SET);
-	  },
-	  update: function(k, notSetValue, updater) {
-	    return arguments.length === 1 ? k(this) : this.updateIn([k], notSetValue, updater);
-	  },
-	  updateIn: function(keyPath, notSetValue, updater) {
-	    if (!updater) {
-	      updater = notSetValue;
-	      notSetValue = undefined;
-	    }
-	    return keyPath.length === 0 ? updater(this) : updateInDeepMap(this, keyPath, notSetValue, updater, 0);
-	  },
-	  clear: function() {
-	    if (this.length === 0) {
-	      return this;
-	    }
-	    if (this.__ownerID) {
-	      this.length = 0;
-	      this._root = null;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return $Map.empty();
-	  },
-	  merge: function() {
-	    return mergeIntoMapWith(this, null, arguments);
-	  },
-	  mergeWith: function(merger) {
-	    for (var seqs = [],
-	        $__4 = 1; $__4 < arguments.length; $__4++)
-	      seqs[$__4 - 1] = arguments[$__4];
-	    return mergeIntoMapWith(this, merger, seqs);
-	  },
-	  mergeDeep: function() {
-	    return mergeIntoMapWith(this, deepMerger(null), arguments);
-	  },
-	  mergeDeepWith: function(merger) {
-	    for (var seqs = [],
-	        $__5 = 1; $__5 < arguments.length; $__5++)
-	      seqs[$__5 - 1] = arguments[$__5];
-	    return mergeIntoMapWith(this, deepMerger(merger), seqs);
-	  },
-	  cursor: function(maybeKeyPath, onChange) {
-	    var keyPath = arguments.length === 0 || typeof maybeKeyPath === 'function' && (onChange = maybeKeyPath) ? [] : Array.isArray(maybeKeyPath) ? maybeKeyPath : [maybeKeyPath];
-	    return makeCursor(this, keyPath, onChange);
-	  },
-	  withMutations: function(fn) {
-	    var mutable = this.asMutable();
-	    fn(mutable);
-	    return mutable.wasAltered() ? mutable.__ensureOwner(this.__ownerID) : this;
-	  },
-	  asMutable: function() {
-	    return this.__ownerID ? this : this.__ensureOwner(new OwnerID());
-	  },
-	  asImmutable: function() {
-	    return this.__ensureOwner();
-	  },
-	  wasAltered: function() {
-	    return this.__altered;
-	  },
-	  __iterator: function(type, reverse) {
-	    return new MapIterator(this, type, reverse);
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    var iterations = 0;
-	    this._root && this._root.iterate((function(entry) {
-	      iterations++;
-	      return fn(entry[1], entry[0], $__0);
-	    }), reverse);
-	    return iterations;
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      this.__altered = false;
-	      return this;
-	    }
-	    return makeMap(this.length, this._root, ownerID, this.__hash);
-	  }
-	}, {empty: function() {
-	    return EMPTY_MAP || (EMPTY_MAP = makeMap(0));
-	  }}, Sequence);
-	var MapPrototype = Map.prototype;
-	MapPrototype[DELETE] = MapPrototype.remove;
-	Map.from = Map;
-	var BitmapIndexedNode = function BitmapIndexedNode(ownerID, bitmap, nodes) {
-	  this.ownerID = ownerID;
-	  this.bitmap = bitmap;
-	  this.nodes = nodes;
-	};
-	var $BitmapIndexedNode = BitmapIndexedNode;
-	($traceurRuntime.createClass)(BitmapIndexedNode, {
-	  get: function(shift, hash, key, notSetValue) {
-	    var bit = (1 << ((shift === 0 ? hash : hash >>> shift) & MASK));
-	    var bitmap = this.bitmap;
-	    return (bitmap & bit) === 0 ? notSetValue : this.nodes[popCount(bitmap & (bit - 1))].get(shift + SHIFT, hash, key, notSetValue);
-	  },
-	  update: function(ownerID, shift, hash, key, value, didChangeLength, didAlter) {
-	    var hashFrag = (shift === 0 ? hash : hash >>> shift) & MASK;
-	    var bit = 1 << hashFrag;
-	    var bitmap = this.bitmap;
-	    var exists = (bitmap & bit) !== 0;
-	    if (!exists && value === NOT_SET) {
-	      return this;
-	    }
-	    var idx = popCount(bitmap & (bit - 1));
-	    var nodes = this.nodes;
-	    var node = exists ? nodes[idx] : null;
-	    var newNode = updateNode(node, ownerID, shift + SHIFT, hash, key, value, didChangeLength, didAlter);
-	    if (newNode === node) {
-	      return this;
-	    }
-	    if (!exists && newNode && nodes.length >= MAX_BITMAP_SIZE) {
-	      return expandNodes(ownerID, nodes, bitmap, hashFrag, newNode);
-	    }
-	    if (exists && !newNode && nodes.length === 2 && isLeafNode(nodes[idx ^ 1])) {
-	      return nodes[idx ^ 1];
-	    }
-	    if (exists && newNode && nodes.length === 1 && isLeafNode(newNode)) {
-	      return newNode;
-	    }
-	    var isEditable = ownerID && ownerID === this.ownerID;
-	    var newBitmap = exists ? newNode ? bitmap : bitmap ^ bit : bitmap | bit;
-	    var newNodes = exists ? newNode ? setIn(nodes, idx, newNode, isEditable) : spliceOut(nodes, idx, isEditable) : spliceIn(nodes, idx, newNode, isEditable);
-	    if (isEditable) {
-	      this.bitmap = newBitmap;
-	      this.nodes = newNodes;
-	      return this;
-	    }
-	    return new $BitmapIndexedNode(ownerID, newBitmap, newNodes);
-	  },
-	  iterate: function(fn, reverse) {
-	    var nodes = this.nodes;
-	    for (var ii = 0,
-	        maxIndex = nodes.length - 1; ii <= maxIndex; ii++) {
-	      if (nodes[reverse ? maxIndex - ii : ii].iterate(fn, reverse) === false) {
-	        return false;
-	      }
-	    }
-	  }
-	}, {});
-	var ArrayNode = function ArrayNode(ownerID, count, nodes) {
-	  this.ownerID = ownerID;
-	  this.count = count;
-	  this.nodes = nodes;
-	};
-	var $ArrayNode = ArrayNode;
-	($traceurRuntime.createClass)(ArrayNode, {
-	  get: function(shift, hash, key, notSetValue) {
-	    var idx = (shift === 0 ? hash : hash >>> shift) & MASK;
-	    var node = this.nodes[idx];
-	    return node ? node.get(shift + SHIFT, hash, key, notSetValue) : notSetValue;
-	  },
-	  update: function(ownerID, shift, hash, key, value, didChangeLength, didAlter) {
-	    var idx = (shift === 0 ? hash : hash >>> shift) & MASK;
-	    var removed = value === NOT_SET;
-	    var nodes = this.nodes;
-	    var node = nodes[idx];
-	    if (removed && !node) {
-	      return this;
-	    }
-	    var newNode = updateNode(node, ownerID, shift + SHIFT, hash, key, value, didChangeLength, didAlter);
-	    if (newNode === node) {
-	      return this;
-	    }
-	    var newCount = this.count;
-	    if (!node) {
-	      newCount++;
-	    } else if (!newNode) {
-	      newCount--;
-	      if (newCount < MIN_ARRAY_SIZE) {
-	        return packNodes(ownerID, nodes, newCount, idx);
-	      }
-	    }
-	    var isEditable = ownerID && ownerID === this.ownerID;
-	    var newNodes = setIn(nodes, idx, newNode, isEditable);
-	    if (isEditable) {
-	      this.count = newCount;
-	      this.nodes = newNodes;
-	      return this;
-	    }
-	    return new $ArrayNode(ownerID, newCount, newNodes);
-	  },
-	  iterate: function(fn, reverse) {
-	    var nodes = this.nodes;
-	    for (var ii = 0,
-	        maxIndex = nodes.length - 1; ii <= maxIndex; ii++) {
-	      var node = nodes[reverse ? maxIndex - ii : ii];
-	      if (node && node.iterate(fn, reverse) === false) {
-	        return false;
-	      }
-	    }
-	  }
-	}, {});
-	var HashCollisionNode = function HashCollisionNode(ownerID, hash, entries) {
-	  this.ownerID = ownerID;
-	  this.hash = hash;
-	  this.entries = entries;
-	};
-	var $HashCollisionNode = HashCollisionNode;
-	($traceurRuntime.createClass)(HashCollisionNode, {
-	  get: function(shift, hash, key, notSetValue) {
-	    var entries = this.entries;
-	    for (var ii = 0,
-	        len = entries.length; ii < len; ii++) {
-	      if (is(key, entries[ii][0])) {
-	        return entries[ii][1];
-	      }
-	    }
-	    return notSetValue;
-	  },
-	  update: function(ownerID, shift, hash, key, value, didChangeLength, didAlter) {
-	    var removed = value === NOT_SET;
-	    if (hash !== this.hash) {
-	      if (removed) {
-	        return this;
-	      }
-	      SetRef(didAlter);
-	      SetRef(didChangeLength);
-	      return mergeIntoNode(this, ownerID, shift, hash, [key, value]);
-	    }
-	    var entries = this.entries;
-	    var idx = 0;
-	    for (var len = entries.length; idx < len; idx++) {
-	      if (is(key, entries[idx][0])) {
-	        break;
-	      }
-	    }
-	    var exists = idx < len;
-	    if (removed && !exists) {
-	      return this;
-	    }
-	    SetRef(didAlter);
-	    (removed || !exists) && SetRef(didChangeLength);
-	    if (removed && len === 2) {
-	      return new ValueNode(ownerID, this.hash, entries[idx ^ 1]);
-	    }
-	    var isEditable = ownerID && ownerID === this.ownerID;
-	    var newEntries = isEditable ? entries : arrCopy(entries);
-	    if (exists) {
-	      if (removed) {
-	        idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop());
-	      } else {
-	        newEntries[idx] = [key, value];
-	      }
-	    } else {
-	      newEntries.push([key, value]);
-	    }
-	    if (isEditable) {
-	      this.entries = newEntries;
-	      return this;
-	    }
-	    return new $HashCollisionNode(ownerID, this.hash, newEntries);
-	  },
-	  iterate: function(fn, reverse) {
-	    var entries = this.entries;
-	    for (var ii = 0,
-	        maxIndex = entries.length - 1; ii <= maxIndex; ii++) {
-	      if (fn(entries[reverse ? maxIndex - ii : ii]) === false) {
-	        return false;
-	      }
-	    }
-	  }
-	}, {});
-	var ValueNode = function ValueNode(ownerID, hash, entry) {
-	  this.ownerID = ownerID;
-	  this.hash = hash;
-	  this.entry = entry;
-	};
-	var $ValueNode = ValueNode;
-	($traceurRuntime.createClass)(ValueNode, {
-	  get: function(shift, hash, key, notSetValue) {
-	    return is(key, this.entry[0]) ? this.entry[1] : notSetValue;
-	  },
-	  update: function(ownerID, shift, hash, key, value, didChangeLength, didAlter) {
-	    var removed = value === NOT_SET;
-	    var keyMatch = is(key, this.entry[0]);
-	    if (keyMatch ? value === this.entry[1] : removed) {
-	      return this;
-	    }
-	    SetRef(didAlter);
-	    if (removed) {
-	      SetRef(didChangeLength);
-	      return null;
-	    }
-	    if (keyMatch) {
-	      if (ownerID && ownerID === this.ownerID) {
-	        this.entry[1] = value;
-	        return this;
-	      }
-	      return new $ValueNode(ownerID, hash, [key, value]);
-	    }
-	    SetRef(didChangeLength);
-	    return mergeIntoNode(this, ownerID, shift, hash, [key, value]);
-	  },
-	  iterate: function(fn) {
-	    return fn(this.entry);
-	  }
-	}, {});
-	var MapIterator = function MapIterator(map, type, reverse) {
-	  this._type = type;
-	  this._reverse = reverse;
-	  this._stack = map._root && mapIteratorFrame(map._root);
-	};
-	($traceurRuntime.createClass)(MapIterator, {next: function() {
-	    var type = this._type;
-	    var stack = this._stack;
-	    while (stack) {
-	      var node = stack.node;
-	      var index = stack.index++;
-	      var maxIndex;
-	      if (node.entry) {
-	        if (index === 0) {
-	          return mapIteratorValue(type, node.entry);
-	        }
-	      } else if (node.entries) {
-	        maxIndex = node.entries.length - 1;
-	        if (index <= maxIndex) {
-	          return mapIteratorValue(type, node.entries[this._reverse ? maxIndex - index : index]);
-	        }
-	      } else {
-	        maxIndex = node.nodes.length - 1;
-	        if (index <= maxIndex) {
-	          var subNode = node.nodes[this._reverse ? maxIndex - index : index];
-	          if (subNode) {
-	            if (subNode.entry) {
-	              return mapIteratorValue(type, subNode.entry);
-	            }
-	            stack = this._stack = mapIteratorFrame(subNode, stack);
-	          }
-	          continue;
-	        }
-	      }
-	      stack = this._stack = this._stack.__prev;
-	    }
-	    return iteratorDone();
-	  }}, {}, Iterator);
-	function mapIteratorValue(type, entry) {
-	  return iteratorValue(type, entry[0], entry[1]);
-	}
-	function mapIteratorFrame(node, prev) {
-	  return {
-	    node: node,
-	    index: 0,
-	    __prev: prev
-	  };
-	}
-	function makeMap(length, root, ownerID, hash) {
-	  var map = Object.create(MapPrototype);
-	  map.length = length;
-	  map._root = root;
-	  map.__ownerID = ownerID;
-	  map.__hash = hash;
-	  map.__altered = false;
-	  return map;
-	}
-	function updateMap(map, k, v) {
-	  var didChangeLength = MakeRef(CHANGE_LENGTH);
-	  var didAlter = MakeRef(DID_ALTER);
-	  var newRoot = updateNode(map._root, map.__ownerID, 0, hash(k), k, v, didChangeLength, didAlter);
-	  if (!didAlter.value) {
-	    return map;
-	  }
-	  var newLength = map.length + (didChangeLength.value ? v === NOT_SET ? -1 : 1 : 0);
-	  if (map.__ownerID) {
-	    map.length = newLength;
-	    map._root = newRoot;
-	    map.__hash = undefined;
-	    map.__altered = true;
-	    return map;
-	  }
-	  return newRoot ? makeMap(newLength, newRoot) : Map.empty();
-	}
-	function updateNode(node, ownerID, shift, hash, key, value, didChangeLength, didAlter) {
-	  if (!node) {
-	    if (value === NOT_SET) {
-	      return node;
-	    }
-	    SetRef(didAlter);
-	    SetRef(didChangeLength);
-	    return new ValueNode(ownerID, hash, [key, value]);
-	  }
-	  return node.update(ownerID, shift, hash, key, value, didChangeLength, didAlter);
-	}
-	function isLeafNode(node) {
-	  return node.constructor === ValueNode || node.constructor === HashCollisionNode;
-	}
-	function mergeIntoNode(node, ownerID, shift, hash, entry) {
-	  if (node.hash === hash) {
-	    return new HashCollisionNode(ownerID, hash, [node.entry, entry]);
-	  }
-	  var idx1 = (shift === 0 ? node.hash : node.hash >>> shift) & MASK;
-	  var idx2 = (shift === 0 ? hash : hash >>> shift) & MASK;
-	  var newNode;
-	  var nodes = idx1 === idx2 ? [mergeIntoNode(node, ownerID, shift + SHIFT, hash, entry)] : ((newNode = new ValueNode(ownerID, hash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node]);
-	  return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes);
-	}
-	function packNodes(ownerID, nodes, count, excluding) {
-	  var bitmap = 0;
-	  var packedII = 0;
-	  var packedNodes = new Array(count);
-	  for (var ii = 0,
-	      bit = 1,
-	      len = nodes.length; ii < len; ii++, bit <<= 1) {
-	    var node = nodes[ii];
-	    if (node != null && ii !== excluding) {
-	      bitmap |= bit;
-	      packedNodes[packedII++] = node;
-	    }
-	  }
-	  return new BitmapIndexedNode(ownerID, bitmap, packedNodes);
-	}
-	function expandNodes(ownerID, nodes, bitmap, including, node) {
-	  var count = 0;
-	  var expandedNodes = new Array(SIZE);
-	  for (var ii = 0; bitmap !== 0; ii++, bitmap >>>= 1) {
-	    expandedNodes[ii] = bitmap & 1 ? nodes[count++] : null;
-	  }
-	  expandedNodes[including] = node;
-	  return new ArrayNode(ownerID, count + 1, expandedNodes);
-	}
-	function mergeIntoMapWith(map, merger, iterables) {
-	  var seqs = [];
-	  for (var ii = 0; ii < iterables.length; ii++) {
-	    var seq = iterables[ii];
-	    if (!(seq instanceof Sequence)) {
-	      seq = Sequence(seq);
-	      if (seq instanceof IndexedSequence) {
-	        seq = seq.fromEntrySeq();
-	      }
-	    }
-	    seq && seqs.push(seq);
-	  }
-	  return mergeIntoCollectionWith(map, merger, seqs);
-	}
-	function deepMerger(merger) {
-	  return (function(existing, value) {
-	    return existing && existing.mergeDeepWith ? existing.mergeDeepWith(merger, value) : merger ? merger(existing, value) : value;
-	  });
-	}
-	function mergeIntoCollectionWith(collection, merger, seqs) {
-	  if (seqs.length === 0) {
-	    return collection;
-	  }
-	  return collection.withMutations((function(collection) {
-	    var mergeIntoMap = merger ? (function(value, key) {
-	      var existing = collection.get(key, NOT_SET);
-	      collection.set(key, existing === NOT_SET ? value : merger(existing, value));
-	    }) : (function(value, key) {
-	      collection.set(key, value);
-	    });
-	    for (var ii = 0; ii < seqs.length; ii++) {
-	      seqs[ii].forEach(mergeIntoMap);
-	    }
-	  }));
-	}
-	function updateInDeepMap(collection, keyPath, notSetValue, updater, offset) {
-	  invariant(!collection || collection.set, 'updateIn with invalid keyPath');
-	  var key = keyPath[offset];
-	  var existing = collection ? collection.get(key, NOT_SET) : NOT_SET;
-	  var existingValue = existing === NOT_SET ? undefined : existing;
-	  var value = offset === keyPath.length - 1 ? updater(existing === NOT_SET ? notSetValue : existing) : updateInDeepMap(existingValue, keyPath, notSetValue, updater, offset + 1);
-	  return value === existingValue ? collection : (collection || Map.empty()).set(key, value);
-	}
-	function popCount(x) {
-	  x = x - ((x >> 1) & 0x55555555);
-	  x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-	  x = (x + (x >> 4)) & 0x0f0f0f0f;
-	  x = x + (x >> 8);
-	  x = x + (x >> 16);
-	  return x & 0x7f;
-	}
-	function setIn(array, idx, val, canEdit) {
-	  var newArray = canEdit ? array : arrCopy(array);
-	  newArray[idx] = val;
-	  return newArray;
-	}
-	function spliceIn(array, idx, val, canEdit) {
-	  var newLen = array.length + 1;
-	  if (canEdit && idx + 1 === newLen) {
-	    array[idx] = val;
-	    return array;
-	  }
-	  var newArray = new Array(newLen);
-	  var after = 0;
-	  for (var ii = 0; ii < newLen; ii++) {
-	    if (ii === idx) {
-	      newArray[ii] = val;
-	      after = -1;
-	    } else {
-	      newArray[ii] = array[ii + after];
-	    }
-	  }
-	  return newArray;
-	}
-	function spliceOut(array, idx, canEdit) {
-	  var newLen = array.length - 1;
-	  if (canEdit && idx === newLen) {
-	    array.pop();
-	    return array;
-	  }
-	  var newArray = new Array(newLen);
-	  var after = 0;
-	  for (var ii = 0; ii < newLen; ii++) {
-	    if (ii === idx) {
-	      after = 1;
-	    }
-	    newArray[ii] = array[ii + after];
-	  }
-	  return newArray;
-	}
-	var MAX_BITMAP_SIZE = SIZE / 2;
-	var MIN_ARRAY_SIZE = SIZE / 4;
-	var EMPTY_MAP;
-	var Vector = function Vector() {
-	  for (var values = [],
-	      $__6 = 0; $__6 < arguments.length; $__6++)
-	    values[$__6] = arguments[$__6];
-	  return $Vector.from(values);
-	};
-	var $Vector = Vector;
-	($traceurRuntime.createClass)(Vector, {
-	  toString: function() {
-	    return this.__toString('Vector [', ']');
-	  },
-	  get: function(index, notSetValue) {
-	    index = wrapIndex(this, index);
-	    if (index < 0 || index >= this.length) {
-	      return notSetValue;
-	    }
-	    index += this._origin;
-	    var node = vectorNodeFor(this, index);
-	    return node && node.array[index & MASK];
-	  },
-	  set: function(index, value) {
-	    return updateVector(this, index, value);
-	  },
-	  remove: function(index) {
-	    return updateVector(this, index, NOT_SET);
-	  },
-	  clear: function() {
-	    if (this.length === 0) {
-	      return this;
-	    }
-	    if (this.__ownerID) {
-	      this.length = this._origin = this._size = 0;
-	      this._level = SHIFT;
-	      this._root = this._tail = null;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return $Vector.empty();
-	  },
-	  push: function() {
-	    var values = arguments;
-	    var oldLength = this.length;
-	    return this.withMutations((function(vect) {
-	      setVectorBounds(vect, 0, oldLength + values.length);
-	      for (var ii = 0; ii < values.length; ii++) {
-	        vect.set(oldLength + ii, values[ii]);
-	      }
-	    }));
-	  },
-	  pop: function() {
-	    return setVectorBounds(this, 0, -1);
-	  },
-	  unshift: function() {
-	    var values = arguments;
-	    return this.withMutations((function(vect) {
-	      setVectorBounds(vect, -values.length);
-	      for (var ii = 0; ii < values.length; ii++) {
-	        vect.set(ii, values[ii]);
-	      }
-	    }));
-	  },
-	  shift: function() {
-	    return setVectorBounds(this, 1);
-	  },
-	  merge: function() {
-	    return mergeIntoVectorWith(this, null, arguments);
-	  },
-	  mergeWith: function(merger) {
-	    for (var seqs = [],
-	        $__7 = 1; $__7 < arguments.length; $__7++)
-	      seqs[$__7 - 1] = arguments[$__7];
-	    return mergeIntoVectorWith(this, merger, seqs);
-	  },
-	  mergeDeep: function() {
-	    return mergeIntoVectorWith(this, deepMerger(null), arguments);
-	  },
-	  mergeDeepWith: function(merger) {
-	    for (var seqs = [],
-	        $__8 = 1; $__8 < arguments.length; $__8++)
-	      seqs[$__8 - 1] = arguments[$__8];
-	    return mergeIntoVectorWith(this, deepMerger(merger), seqs);
-	  },
-	  setLength: function(length) {
-	    return setVectorBounds(this, 0, length);
-	  },
-	  slice: function(begin, end) {
-	    var sliceSequence = $traceurRuntime.superCall(this, $Vector.prototype, "slice", [begin, end]);
-	    if (sliceSequence !== this) {
-	      var vector = this;
-	      var length = vector.length;
-	      sliceSequence.toVector = (function() {
-	        return setVectorBounds(vector, begin < 0 ? Math.max(0, length + begin) : length ? Math.min(length, begin) : begin, end == null ? length : end < 0 ? Math.max(0, length + end) : length ? Math.min(length, end) : end);
-	      });
-	    }
-	    return sliceSequence;
-	  },
-	  __iterator: function(type, reverse) {
-	    return new VectorIterator(this, type, reverse);
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    var iterations = 0;
-	    var eachFn = (function(v) {
-	      return fn(v, iterations++, $__0);
-	    });
-	    var tailOffset = getTailOffset(this._size);
-	    if (reverse) {
-	      iterateVNode(this._tail, 0, tailOffset - this._origin, this._size - this._origin, eachFn, reverse) && iterateVNode(this._root, this._level, -this._origin, tailOffset - this._origin, eachFn, reverse);
-	    } else {
-	      iterateVNode(this._root, this._level, -this._origin, tailOffset - this._origin, eachFn, reverse) && iterateVNode(this._tail, 0, tailOffset - this._origin, this._size - this._origin, eachFn, reverse);
-	    }
-	    return iterations;
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      return this;
-	    }
-	    return makeVector(this._origin, this._size, this._level, this._root, this._tail, ownerID, this.__hash);
-	  }
-	}, {
-	  empty: function() {
-	    return EMPTY_VECT || (EMPTY_VECT = makeVector(0, 0, SHIFT));
-	  },
-	  from: function(sequence) {
-	    if (!sequence || sequence.length === 0) {
-	      return $Vector.empty();
-	    }
-	    if (sequence.constructor === $Vector) {
-	      return sequence;
-	    }
-	    var isArray = Array.isArray(sequence);
-	    if (sequence.length > 0 && sequence.length < SIZE) {
-	      return makeVector(0, sequence.length, SHIFT, null, new VNode(isArray ? arrCopy(sequence) : Sequence(sequence).toArray()));
-	    }
-	    if (!isArray) {
-	      sequence = Sequence(sequence).valueSeq();
-	    }
-	    return $Vector.empty().merge(sequence);
-	  }
-	}, IndexedSequence);
-	var VectorPrototype = Vector.prototype;
-	VectorPrototype[DELETE] = VectorPrototype.remove;
-	VectorPrototype.update = MapPrototype.update;
-	VectorPrototype.updateIn = MapPrototype.updateIn;
-	VectorPrototype.cursor = MapPrototype.cursor;
-	VectorPrototype.withMutations = MapPrototype.withMutations;
-	VectorPrototype.asMutable = MapPrototype.asMutable;
-	VectorPrototype.asImmutable = MapPrototype.asImmutable;
-	VectorPrototype.wasAltered = MapPrototype.wasAltered;
-	var VNode = function VNode(array, ownerID) {
-	  this.array = array;
-	  this.ownerID = ownerID;
-	};
-	var $VNode = VNode;
-	($traceurRuntime.createClass)(VNode, {
-	  removeBefore: function(ownerID, level, index) {
-	    if (index === level ? 1 << level : 0 || this.array.length === 0) {
-	      return this;
-	    }
-	    var originIndex = (index >>> level) & MASK;
-	    if (originIndex >= this.array.length) {
-	      return new $VNode([], ownerID);
-	    }
-	    var removingFirst = originIndex === 0;
-	    var newChild;
-	    if (level > 0) {
-	      var oldChild = this.array[originIndex];
-	      newChild = oldChild && oldChild.removeBefore(ownerID, level - SHIFT, index);
-	      if (newChild === oldChild && removingFirst) {
-	        return this;
-	      }
-	    }
-	    if (removingFirst && !newChild) {
-	      return this;
-	    }
-	    var editable = editableVNode(this, ownerID);
-	    if (!removingFirst) {
-	      for (var ii = 0; ii < originIndex; ii++) {
-	        editable.array[ii] = undefined;
-	      }
-	    }
-	    if (newChild) {
-	      editable.array[originIndex] = newChild;
-	    }
-	    return editable;
-	  },
-	  removeAfter: function(ownerID, level, index) {
-	    if (index === level ? 1 << level : 0 || this.array.length === 0) {
-	      return this;
-	    }
-	    var sizeIndex = ((index - 1) >>> level) & MASK;
-	    if (sizeIndex >= this.array.length) {
-	      return this;
-	    }
-	    var removingLast = sizeIndex === this.array.length - 1;
-	    var newChild;
-	    if (level > 0) {
-	      var oldChild = this.array[sizeIndex];
-	      newChild = oldChild && oldChild.removeAfter(ownerID, level - SHIFT, index);
-	      if (newChild === oldChild && removingLast) {
-	        return this;
-	      }
-	    }
-	    if (removingLast && !newChild) {
-	      return this;
-	    }
-	    var editable = editableVNode(this, ownerID);
-	    if (!removingLast) {
-	      editable.array.pop();
-	    }
-	    if (newChild) {
-	      editable.array[sizeIndex] = newChild;
-	    }
-	    return editable;
-	  }
-	}, {});
-	function iterateVNode(node, level, offset, max, fn, reverse) {
-	  var ii;
-	  var array = node && node.array;
-	  if (level === 0) {
-	    var from = offset < 0 ? -offset : 0;
-	    var to = max - offset;
-	    if (to > SIZE) {
-	      to = SIZE;
-	    }
-	    for (ii = from; ii < to; ii++) {
-	      if (fn(array && array[reverse ? from + to - 1 - ii : ii]) === false) {
-	        return false;
-	      }
-	    }
-	  } else {
-	    var step = 1 << level;
-	    var newLevel = level - SHIFT;
-	    for (ii = 0; ii <= MASK; ii++) {
-	      var levelIndex = reverse ? MASK - ii : ii;
-	      var newOffset = offset + (levelIndex << level);
-	      if (newOffset < max && newOffset + step > 0) {
-	        var nextNode = array && array[levelIndex];
-	        if (!iterateVNode(nextNode, newLevel, newOffset, max, fn, reverse)) {
-	          return false;
-	        }
-	      }
-	    }
-	  }
-	  return true;
-	}
-	var VectorIterator = function VectorIterator(vector, type, reverse) {
-	  this._type = type;
-	  this._reverse = !!reverse;
-	  this._maxIndex = vector.length - 1;
-	  var tailOffset = getTailOffset(vector._size);
-	  var rootStack = vectIteratorFrame(vector._root && vector._root.array, vector._level, -vector._origin, tailOffset - vector._origin - 1);
-	  var tailStack = vectIteratorFrame(vector._tail && vector._tail.array, 0, tailOffset - vector._origin, vector._size - vector._origin - 1);
-	  this._stack = reverse ? tailStack : rootStack;
-	  this._stack.__prev = reverse ? rootStack : tailStack;
-	};
-	($traceurRuntime.createClass)(VectorIterator, {next: function() {
-	    var stack = this._stack;
-	    while (stack) {
-	      var array = stack.array;
-	      var rawIndex = stack.index++;
-	      if (this._reverse) {
-	        rawIndex = MASK - rawIndex;
-	        if (rawIndex > stack.rawMax) {
-	          rawIndex = stack.rawMax;
-	          stack.index = SIZE - rawIndex;
-	        }
-	      }
-	      if (rawIndex >= 0 && rawIndex < SIZE && rawIndex <= stack.rawMax) {
-	        var value = array && array[rawIndex];
-	        if (stack.level === 0) {
-	          var type = this._type;
-	          var index;
-	          if (type !== 1) {
-	            index = stack.offset + (rawIndex << stack.level);
-	            if (this._reverse) {
-	              index = this._maxIndex - index;
-	            }
-	          }
-	          return iteratorValue(type, index, value);
-	        } else {
-	          this._stack = stack = vectIteratorFrame(value && value.array, stack.level - SHIFT, stack.offset + (rawIndex << stack.level), stack.max, stack);
-	        }
-	        continue;
-	      }
-	      stack = this._stack = this._stack.__prev;
-	    }
-	    return iteratorDone();
-	  }}, {}, Iterator);
-	function vectIteratorFrame(array, level, offset, max, prevFrame) {
-	  return {
-	    array: array,
-	    level: level,
-	    offset: offset,
-	    max: max,
-	    rawMax: ((max - offset) >> level),
-	    index: 0,
-	    __prev: prevFrame
-	  };
-	}
-	function makeVector(origin, size, level, root, tail, ownerID, hash) {
-	  var vect = Object.create(VectorPrototype);
-	  vect.length = size - origin;
-	  vect._origin = origin;
-	  vect._size = size;
-	  vect._level = level;
-	  vect._root = root;
-	  vect._tail = tail;
-	  vect.__ownerID = ownerID;
-	  vect.__hash = hash;
-	  vect.__altered = false;
-	  return vect;
-	}
-	function updateVector(vector, index, value) {
-	  index = wrapIndex(vector, index);
-	  if (index >= vector.length || index < 0) {
-	    return value === NOT_SET ? vector : vector.withMutations((function(vect) {
-	      index < 0 ? setVectorBounds(vect, index).set(0, value) : setVectorBounds(vect, 0, index + 1).set(index, value);
-	    }));
-	  }
-	  index += vector._origin;
-	  var newTail = vector._tail;
-	  var newRoot = vector._root;
-	  var didAlter = MakeRef(DID_ALTER);
-	  if (index >= getTailOffset(vector._size)) {
-	    newTail = updateVNode(newTail, vector.__ownerID, 0, index, value, didAlter);
-	  } else {
-	    newRoot = updateVNode(newRoot, vector.__ownerID, vector._level, index, value, didAlter);
-	  }
-	  if (!didAlter.value) {
-	    return vector;
-	  }
-	  if (vector.__ownerID) {
-	    vector._root = newRoot;
-	    vector._tail = newTail;
-	    vector.__hash = undefined;
-	    vector.__altered = true;
-	    return vector;
-	  }
-	  return makeVector(vector._origin, vector._size, vector._level, newRoot, newTail);
-	}
-	function updateVNode(node, ownerID, level, index, value, didAlter) {
-	  var removed = value === NOT_SET;
-	  var newNode;
-	  var idx = (index >>> level) & MASK;
-	  var nodeHas = node && idx < node.array.length;
-	  if (removed && !nodeHas) {
-	    return node;
-	  }
-	  if (level > 0) {
-	    var lowerNode = node && node.array[idx];
-	    var newLowerNode = updateVNode(lowerNode, ownerID, level - SHIFT, index, value, didAlter);
-	    if (newLowerNode === lowerNode) {
-	      return node;
-	    }
-	    newNode = editableVNode(node, ownerID);
-	    newNode.array[idx] = newLowerNode;
-	    return newNode;
-	  }
-	  if (!removed && nodeHas && node.array[idx] === value) {
-	    return node;
-	  }
-	  SetRef(didAlter);
-	  newNode = editableVNode(node, ownerID);
-	  if (removed && idx === newNode.array.length - 1) {
-	    newNode.array.pop();
-	  } else {
-	    newNode.array[idx] = removed ? undefined : value;
-	  }
-	  return newNode;
-	}
-	function editableVNode(node, ownerID) {
-	  if (ownerID && node && ownerID === node.ownerID) {
-	    return node;
-	  }
-	  return new VNode(node ? node.array.slice() : [], ownerID);
-	}
-	function vectorNodeFor(vector, rawIndex) {
-	  if (rawIndex >= getTailOffset(vector._size)) {
-	    return vector._tail;
-	  }
-	  if (rawIndex < 1 << (vector._level + SHIFT)) {
-	    var node = vector._root;
-	    var level = vector._level;
-	    while (node && level > 0) {
-	      node = node.array[(rawIndex >>> level) & MASK];
-	      level -= SHIFT;
-	    }
-	    return node;
-	  }
-	}
-	function setVectorBounds(vector, begin, end) {
-	  var owner = vector.__ownerID || new OwnerID();
-	  var oldOrigin = vector._origin;
-	  var oldSize = vector._size;
-	  var newOrigin = oldOrigin + begin;
-	  var newSize = end == null ? oldSize : end < 0 ? oldSize + end : oldOrigin + end;
-	  if (newOrigin === oldOrigin && newSize === oldSize) {
-	    return vector;
-	  }
-	  if (newOrigin >= newSize) {
-	    return vector.clear();
-	  }
-	  var newLevel = vector._level;
-	  var newRoot = vector._root;
-	  var offsetShift = 0;
-	  while (newOrigin + offsetShift < 0) {
-	    newRoot = new VNode(newRoot && newRoot.array.length ? [null, newRoot] : [], owner);
-	    newLevel += SHIFT;
-	    offsetShift += 1 << newLevel;
-	  }
-	  if (offsetShift) {
-	    newOrigin += offsetShift;
-	    oldOrigin += offsetShift;
-	    newSize += offsetShift;
-	    oldSize += offsetShift;
-	  }
-	  var oldTailOffset = getTailOffset(oldSize);
-	  var newTailOffset = getTailOffset(newSize);
-	  while (newTailOffset >= 1 << (newLevel + SHIFT)) {
-	    newRoot = new VNode(newRoot && newRoot.array.length ? [newRoot] : [], owner);
-	    newLevel += SHIFT;
-	  }
-	  var oldTail = vector._tail;
-	  var newTail = newTailOffset < oldTailOffset ? vectorNodeFor(vector, newSize - 1) : newTailOffset > oldTailOffset ? new VNode([], owner) : oldTail;
-	  if (oldTail && newTailOffset > oldTailOffset && newOrigin < oldSize && oldTail.array.length) {
-	    newRoot = editableVNode(newRoot, owner);
-	    var node = newRoot;
-	    for (var level = newLevel; level > SHIFT; level -= SHIFT) {
-	      var idx = (oldTailOffset >>> level) & MASK;
-	      node = node.array[idx] = editableVNode(node.array[idx], owner);
-	    }
-	    node.array[(oldTailOffset >>> SHIFT) & MASK] = oldTail;
-	  }
-	  if (newSize < oldSize) {
-	    newTail = newTail && newTail.removeAfter(owner, 0, newSize);
-	  }
-	  if (newOrigin >= newTailOffset) {
-	    newOrigin -= newTailOffset;
-	    newSize -= newTailOffset;
-	    newLevel = SHIFT;
-	    newRoot = null;
-	    newTail = newTail && newTail.removeBefore(owner, 0, newOrigin);
-	  } else if (newOrigin > oldOrigin || newTailOffset < oldTailOffset) {
-	    var beginIndex,
-	        endIndex;
-	    offsetShift = 0;
-	    do {
-	      beginIndex = ((newOrigin) >>> newLevel) & MASK;
-	      endIndex = ((newTailOffset - 1) >>> newLevel) & MASK;
-	      if (beginIndex === endIndex) {
-	        if (beginIndex) {
-	          offsetShift += (1 << newLevel) * beginIndex;
-	        }
-	        newLevel -= SHIFT;
-	        newRoot = newRoot && newRoot.array[beginIndex];
-	      }
-	    } while (newRoot && beginIndex === endIndex);
-	    if (newRoot && newOrigin > oldOrigin) {
-	      newRoot = newRoot && newRoot.removeBefore(owner, newLevel, newOrigin - offsetShift);
-	    }
-	    if (newRoot && newTailOffset < oldTailOffset) {
-	      newRoot = newRoot && newRoot.removeAfter(owner, newLevel, newTailOffset - offsetShift);
-	    }
-	    if (offsetShift) {
-	      newOrigin -= offsetShift;
-	      newSize -= offsetShift;
-	    }
-	  }
-	  if (vector.__ownerID) {
-	    vector.length = newSize - newOrigin;
-	    vector._origin = newOrigin;
-	    vector._size = newSize;
-	    vector._level = newLevel;
-	    vector._root = newRoot;
-	    vector._tail = newTail;
-	    vector.__hash = undefined;
-	    vector.__altered = true;
-	    return vector;
-	  }
-	  return makeVector(newOrigin, newSize, newLevel, newRoot, newTail);
-	}
-	function mergeIntoVectorWith(vector, merger, iterables) {
-	  var seqs = [];
-	  for (var ii = 0; ii < iterables.length; ii++) {
-	    var seq = iterables[ii];
-	    seq && seqs.push(Sequence(seq));
-	  }
-	  var maxLength = Math.max.apply(null, seqs.map((function(s) {
-	    return s.length || 0;
-	  })));
-	  if (maxLength > vector.length) {
-	    vector = vector.setLength(maxLength);
-	  }
-	  return mergeIntoCollectionWith(vector, merger, seqs);
-	}
-	function getTailOffset(size) {
-	  return size < SIZE ? 0 : (((size - 1) >>> SHIFT) << SHIFT);
-	}
-	var EMPTY_VECT;
-	var Stack = function Stack() {
-	  for (var values = [],
-	      $__9 = 0; $__9 < arguments.length; $__9++)
-	    values[$__9] = arguments[$__9];
-	  return $Stack.from(values);
-	};
-	var $Stack = Stack;
-	($traceurRuntime.createClass)(Stack, {
-	  toString: function() {
-	    return this.__toString('Stack [', ']');
-	  },
-	  get: function(index, notSetValue) {
-	    var head = this._head;
-	    while (head && index--) {
-	      head = head.next;
-	    }
-	    return head ? head.value : notSetValue;
-	  },
-	  peek: function() {
-	    return this._head && this._head.value;
-	  },
-	  push: function() {
-	    if (arguments.length === 0) {
-	      return this;
-	    }
-	    var newLength = this.length + arguments.length;
-	    var head = this._head;
-	    for (var ii = arguments.length - 1; ii >= 0; ii--) {
-	      head = {
-	        value: arguments[ii],
-	        next: head
-	      };
-	    }
-	    if (this.__ownerID) {
-	      this.length = newLength;
-	      this._head = head;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return makeStack(newLength, head);
-	  },
-	  pushAll: function(seq) {
-	    seq = Sequence(seq);
-	    if (seq.length === 0) {
-	      return this;
-	    }
-	    var newLength = this.length;
-	    var head = this._head;
-	    seq.reverse().forEach((function(value) {
-	      newLength++;
-	      head = {
-	        value: value,
-	        next: head
-	      };
-	    }));
-	    if (this.__ownerID) {
-	      this.length = newLength;
-	      this._head = head;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return makeStack(newLength, head);
-	  },
-	  pop: function() {
-	    return this.slice(1);
-	  },
-	  unshift: function() {
-	    return this.push.apply(this, arguments);
-	  },
-	  unshiftAll: function(seq) {
-	    return this.pushAll(seq);
-	  },
-	  shift: function() {
-	    return this.pop.apply(this, arguments);
-	  },
-	  clear: function() {
-	    if (this.length === 0) {
-	      return this;
-	    }
-	    if (this.__ownerID) {
-	      this.length = 0;
-	      this._head = undefined;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return $Stack.empty();
-	  },
-	  slice: function(begin, end) {
-	    if (wholeSlice(begin, end, this.length)) {
-	      return this;
-	    }
-	    var resolvedBegin = resolveBegin(begin, this.length);
-	    var resolvedEnd = resolveEnd(end, this.length);
-	    if (resolvedEnd !== this.length) {
-	      return $traceurRuntime.superCall(this, $Stack.prototype, "slice", [begin, end]);
-	    }
-	    var newLength = this.length - resolvedBegin;
-	    var head = this._head;
-	    while (resolvedBegin--) {
-	      head = head.next;
-	    }
-	    if (this.__ownerID) {
-	      this.length = newLength;
-	      this._head = head;
-	      this.__hash = undefined;
-	      this.__altered = true;
-	      return this;
-	    }
-	    return makeStack(newLength, head);
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      this.__altered = false;
-	      return this;
-	    }
-	    return makeStack(this.length, this._head, ownerID, this.__hash);
-	  },
-	  __iterateUncached: function(fn, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterate(fn, reverse);
-	    }
-	    var iterations = 0;
-	    var node = this._head;
-	    while (node) {
-	      if (fn(node.value, iterations++, this) === false) {
-	        break;
-	      }
-	      node = node.next;
-	    }
-	    return iterations;
-	  },
-	  __iteratorUncached: function(type, reverse) {
-	    if (reverse) {
-	      return this.cacheResult().__iterator(type, reverse);
-	    }
-	    var iterations = 0;
-	    var node = this._head;
-	    return new Iterator((function() {
-	      if (node) {
-	        var value = node.value;
-	        node = node.next;
-	        return iteratorValue(type, iterations++, value);
-	      }
-	      return iteratorDone();
-	    }));
-	  }
-	}, {
-	  empty: function() {
-	    return EMPTY_STACK || (EMPTY_STACK = makeStack(0));
-	  },
-	  from: function(sequence) {
-	    var stack = $Stack.empty();
-	    return sequence ? sequence.constructor === $Stack ? sequence : stack.unshiftAll(sequence) : stack;
-	  }
-	}, IndexedSequence);
-	var StackPrototype = Stack.prototype;
-	StackPrototype.withMutations = MapPrototype.withMutations;
-	StackPrototype.asMutable = MapPrototype.asMutable;
-	StackPrototype.asImmutable = MapPrototype.asImmutable;
-	StackPrototype.wasAltered = MapPrototype.wasAltered;
-	function makeStack(length, head, ownerID, hash) {
-	  var map = Object.create(StackPrototype);
-	  map.length = length;
-	  map._head = head;
-	  map.__ownerID = ownerID;
-	  map.__hash = hash;
-	  map.__altered = false;
-	  return map;
-	}
-	var EMPTY_STACK;
-	var Set = function Set() {
-	  for (var values = [],
-	      $__10 = 0; $__10 < arguments.length; $__10++)
-	    values[$__10] = arguments[$__10];
-	  return $Set.from(values);
-	};
-	var $Set = Set;
-	($traceurRuntime.createClass)(Set, {
-	  toString: function() {
-	    return this.__toString('Set {', '}');
-	  },
-	  get: function(value, notSetValue) {
-	    return this._map.has(value) ? value : notSetValue;
-	  },
-	  contains: function(value) {
-	    return this._map.has(value);
-	  },
-	  add: function(value) {
-	    var newMap = this._map.set(value, null);
-	    if (this.__ownerID) {
-	      this.length = newMap.length;
-	      this._map = newMap;
-	      return this;
-	    }
-	    return newMap === this._map ? this : makeSet(newMap);
-	  },
-	  remove: function(value) {
-	    var newMap = this._map.remove(value);
-	    if (this.__ownerID) {
-	      this.length = newMap.length;
-	      this._map = newMap;
-	      return this;
-	    }
-	    return newMap === this._map ? this : newMap.length === 0 ? $Set.empty() : makeSet(newMap);
-	  },
-	  clear: function() {
-	    if (this.length === 0) {
-	      return this;
-	    }
-	    if (this.__ownerID) {
-	      this.length = 0;
-	      this._map.clear();
-	      return this;
-	    }
-	    return $Set.empty();
-	  },
-	  union: function() {
-	    var seqs = arguments;
-	    if (seqs.length === 0) {
-	      return this;
-	    }
-	    return this.withMutations((function(set) {
-	      for (var ii = 0; ii < seqs.length; ii++) {
-	        Sequence(seqs[ii]).forEach((function(value) {
-	          return set.add(value);
-	        }));
-	      }
-	    }));
-	  },
-	  intersect: function() {
-	    for (var seqs = [],
-	        $__11 = 0; $__11 < arguments.length; $__11++)
-	      seqs[$__11] = arguments[$__11];
-	    if (seqs.length === 0) {
-	      return this;
-	    }
-	    seqs = seqs.map((function(seq) {
-	      return Sequence(seq);
-	    }));
-	    var originalSet = this;
-	    return this.withMutations((function(set) {
-	      originalSet.forEach((function(value) {
-	        if (!seqs.every((function(seq) {
-	          return seq.contains(value);
-	        }))) {
-	          set.remove(value);
-	        }
-	      }));
-	    }));
-	  },
-	  subtract: function() {
-	    for (var seqs = [],
-	        $__12 = 0; $__12 < arguments.length; $__12++)
-	      seqs[$__12] = arguments[$__12];
-	    if (seqs.length === 0) {
-	      return this;
-	    }
-	    seqs = seqs.map((function(seq) {
-	      return Sequence(seq);
-	    }));
-	    var originalSet = this;
-	    return this.withMutations((function(set) {
-	      originalSet.forEach((function(value) {
-	        if (seqs.some((function(seq) {
-	          return seq.contains(value);
-	        }))) {
-	          set.remove(value);
-	        }
-	      }));
-	    }));
-	  },
-	  isSubset: function(seq) {
-	    seq = Sequence(seq);
-	    return this.every((function(value) {
-	      return seq.contains(value);
-	    }));
-	  },
-	  isSuperset: function(seq) {
-	    var set = this;
-	    seq = Sequence(seq);
-	    return seq.every((function(value) {
-	      return set.contains(value);
-	    }));
-	  },
-	  merge: function() {
-	    return this.union.apply(this, arguments);
-	  },
-	  mergeWith: function(merger) {
-	    for (var seqs = [],
-	        $__13 = 1; $__13 < arguments.length; $__13++)
-	      seqs[$__13 - 1] = arguments[$__13];
-	    return this.union.apply(this, seqs);
-	  },
-	  wasAltered: function() {
-	    return this._map.wasAltered();
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    return this._map.__iterate((function(_, k) {
-	      return fn(k, k, $__0);
-	    }), reverse);
-	  },
-	  __iterator: function(type, reverse) {
-	    return this._map.map((function(_, k) {
-	      return k;
-	    })).__iterator(type, reverse);
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    var newMap = this._map.__ensureOwner(ownerID);
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      this._map = newMap;
-	      return this;
-	    }
-	    return makeSet(newMap, ownerID);
-	  }
-	}, {
-	  empty: function() {
-	    return EMPTY_SET || (EMPTY_SET = makeSet(Map.empty()));
-	  },
-	  from: function(sequence) {
-	    var set = $Set.empty();
-	    return sequence ? sequence.constructor === $Set ? sequence : set.union(sequence) : set;
-	  },
-	  fromKeys: function(sequence) {
-	    return $Set.from(Sequence(sequence).flip());
-	  }
-	}, Sequence);
-	var SetPrototype = Set.prototype;
-	SetPrototype[DELETE] = SetPrototype.remove;
-	SetPrototype[ITERATOR_SYMBOL] = SetPrototype.values;
-	SetPrototype.mergeDeep = SetPrototype.merge;
-	SetPrototype.mergeDeepWith = SetPrototype.mergeWith;
-	SetPrototype.withMutations = MapPrototype.withMutations;
-	SetPrototype.asMutable = MapPrototype.asMutable;
-	SetPrototype.asImmutable = MapPrototype.asImmutable;
-	SetPrototype.__toJS = IndexedSequencePrototype.__toJS;
-	SetPrototype.__toStringMapper = IndexedSequencePrototype.__toStringMapper;
-	function makeSet(map, ownerID) {
-	  var set = Object.create(SetPrototype);
-	  set.length = map ? map.length : 0;
-	  set._map = map;
-	  set.__ownerID = ownerID;
-	  return set;
-	}
-	var EMPTY_SET;
-	var OrderedMap = function OrderedMap(sequence) {
-	  var map = $OrderedMap.empty();
-	  return sequence ? sequence.constructor === $OrderedMap ? sequence : map.merge(sequence) : map;
-	};
-	var $OrderedMap = OrderedMap;
-	($traceurRuntime.createClass)(OrderedMap, {
-	  toString: function() {
-	    return this.__toString('OrderedMap {', '}');
-	  },
-	  get: function(k, notSetValue) {
-	    var index = this._map.get(k);
-	    return index != null ? this._vector.get(index)[1] : notSetValue;
-	  },
-	  clear: function() {
-	    if (this.length === 0) {
-	      return this;
-	    }
-	    if (this.__ownerID) {
-	      this.length = 0;
-	      this._map.clear();
-	      this._vector.clear();
-	      return this;
-	    }
-	    return $OrderedMap.empty();
-	  },
-	  set: function(k, v) {
-	    return updateOrderedMap(this, k, v);
-	  },
-	  remove: function(k) {
-	    return updateOrderedMap(this, k, NOT_SET);
-	  },
-	  wasAltered: function() {
-	    return this._map.wasAltered() || this._vector.wasAltered();
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    return this._vector.__iterate((function(entry) {
-	      return entry && fn(entry[1], entry[0], $__0);
-	    }), reverse);
-	  },
-	  __iterator: function(type, reverse) {
-	    return this._vector.fromEntrySeq().__iterator(type, reverse);
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    var newMap = this._map.__ensureOwner(ownerID);
-	    var newVector = this._vector.__ensureOwner(ownerID);
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      this._map = newMap;
-	      this._vector = newVector;
-	      return this;
-	    }
-	    return makeOrderedMap(newMap, newVector, ownerID, this.__hash);
-	  }
-	}, {empty: function() {
-	    return EMPTY_ORDERED_MAP || (EMPTY_ORDERED_MAP = makeOrderedMap(Map.empty(), Vector.empty()));
-	  }}, Map);
-	OrderedMap.from = OrderedMap;
-	OrderedMap.prototype[DELETE] = OrderedMap.prototype.remove;
-	function makeOrderedMap(map, vector, ownerID, hash) {
-	  var omap = Object.create(OrderedMap.prototype);
-	  omap.length = map ? map.length : 0;
-	  omap._map = map;
-	  omap._vector = vector;
-	  omap.__ownerID = ownerID;
-	  omap.__hash = hash;
-	  return omap;
-	}
-	function updateOrderedMap(omap, k, v) {
-	  var map = omap._map;
-	  var vector = omap._vector;
-	  var i = map.get(k);
-	  var has = i !== undefined;
-	  var removed = v === NOT_SET;
-	  if ((!has && removed) || (has && v === vector.get(i)[1])) {
-	    return omap;
-	  }
-	  if (!has) {
-	    i = vector.length;
-	  }
-	  var newMap = removed ? map.remove(k) : has ? map : map.set(k, i);
-	  var newVector = removed ? vector.remove(i) : vector.set(i, [k, v]);
-	  if (omap.__ownerID) {
-	    omap.length = newMap.length;
-	    omap._map = newMap;
-	    omap._vector = newVector;
-	    omap.__hash = undefined;
-	    return omap;
-	  }
-	  return makeOrderedMap(newMap, newVector);
-	}
-	var EMPTY_ORDERED_MAP;
-	var Record = function Record(defaultValues, name) {
-	  var RecordType = function(values) {
-	    if (!(this instanceof RecordType)) {
-	      return new RecordType(values);
-	    }
-	    this._map = Map(values);
-	  };
-	  var keys = Object.keys(defaultValues);
-	  var RecordTypePrototype = RecordType.prototype = Object.create(RecordPrototype);
-	  RecordTypePrototype.constructor = RecordType;
-	  name && (RecordTypePrototype._name = name);
-	  RecordTypePrototype._defaultValues = defaultValues;
-	  RecordTypePrototype._keys = keys;
-	  RecordTypePrototype.length = keys.length;
-	  try {
-	    Sequence(defaultValues).forEach((function(_, key) {
-	      Object.defineProperty(RecordType.prototype, key, {
-	        get: function() {
-	          return this.get(key);
-	        },
-	        set: function(value) {
-	          invariant(this.__ownerID, 'Cannot set on an immutable record.');
-	          this.set(key, value);
-	        }
-	      });
-	    }));
-	  } catch (error) {}
-	  return RecordType;
-	};
-	($traceurRuntime.createClass)(Record, {
-	  toString: function() {
-	    return this.__toString(this._name + ' {', '}');
-	  },
-	  has: function(k) {
-	    return this._defaultValues.hasOwnProperty(k);
-	  },
-	  get: function(k, notSetValue) {
-	    if (notSetValue !== undefined && !this.has(k)) {
-	      return notSetValue;
-	    }
-	    return this._map.get(k, this._defaultValues[k]);
-	  },
-	  clear: function() {
-	    if (this.__ownerID) {
-	      this._map.clear();
-	      return this;
-	    }
-	    var SuperRecord = Object.getPrototypeOf(this).constructor;
-	    return SuperRecord._empty || (SuperRecord._empty = makeRecord(this, Map.empty()));
-	  },
-	  set: function(k, v) {
-	    if (!this.has(k)) {
-	      throw new Error('Cannot set unknown key "' + k + '" on ' + this._name);
-	    }
-	    var newMap = this._map.set(k, v);
-	    if (this.__ownerID || newMap === this._map) {
-	      return this;
-	    }
-	    return makeRecord(this, newMap);
-	  },
-	  remove: function(k) {
-	    if (k == null || !this.has(k)) {
-	      return this;
-	    }
-	    var newMap = this._map.remove(k);
-	    if (this.__ownerID || newMap === this._map) {
-	      return this;
-	    }
-	    return makeRecord(this, newMap);
-	  },
-	  keys: function() {
-	    return this._map.keys();
-	  },
-	  values: function() {
-	    return this._map.values();
-	  },
-	  entries: function() {
-	    return this._map.entries();
-	  },
-	  wasAltered: function() {
-	    return this._map.wasAltered();
-	  },
-	  __iterator: function(type, reverse) {
-	    return this._map.__iterator(type, reverse);
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    return Sequence(this._defaultValues).map((function(_, k) {
-	      return $__0.get(k);
-	    })).__iterate(fn, reverse);
-	  },
-	  __ensureOwner: function(ownerID) {
-	    if (ownerID === this.__ownerID) {
-	      return this;
-	    }
-	    var newMap = this._map && this._map.__ensureOwner(ownerID);
-	    if (!ownerID) {
-	      this.__ownerID = ownerID;
-	      this._map = newMap;
-	      return this;
-	    }
-	    return makeRecord(this, newMap, ownerID);
-	  }
-	}, {}, Sequence);
-	var RecordPrototype = Record.prototype;
-	RecordPrototype._name = 'Record';
-	RecordPrototype[DELETE] = RecordPrototype.remove;
-	RecordPrototype.merge = MapPrototype.merge;
-	RecordPrototype.mergeWith = MapPrototype.mergeWith;
-	RecordPrototype.mergeDeep = MapPrototype.mergeDeep;
-	RecordPrototype.mergeDeepWith = MapPrototype.mergeDeepWith;
-	RecordPrototype.update = MapPrototype.update;
-	RecordPrototype.updateIn = MapPrototype.updateIn;
-	RecordPrototype.cursor = MapPrototype.cursor;
-	RecordPrototype.withMutations = MapPrototype.withMutations;
-	RecordPrototype.asMutable = MapPrototype.asMutable;
-	RecordPrototype.asImmutable = MapPrototype.asImmutable;
-	function makeRecord(likeRecord, map, ownerID) {
-	  var record = Object.create(Object.getPrototypeOf(likeRecord));
-	  record._map = map;
-	  record.__ownerID = ownerID;
-	  return record;
-	}
-	var Range = function Range(start, end, step) {
-	  if (!(this instanceof $Range)) {
-	    return new $Range(start, end, step);
-	  }
-	  invariant(step !== 0, 'Cannot step a Range by 0');
-	  start = start || 0;
-	  if (end == null) {
-	    end = Infinity;
-	  }
-	  if (start === end && __EMPTY_RANGE) {
-	    return __EMPTY_RANGE;
-	  }
-	  step = step == null ? 1 : Math.abs(step);
-	  if (end < start) {
-	    step = -step;
-	  }
-	  this._start = start;
-	  this._end = end;
-	  this._step = step;
-	  this.length = Math.max(0, Math.ceil((end - start) / step - 1) + 1);
-	};
-	var $Range = Range;
-	($traceurRuntime.createClass)(Range, {
-	  toString: function() {
-	    if (this.length === 0) {
-	      return 'Range []';
-	    }
-	    return 'Range [ ' + this._start + '...' + this._end + (this._step > 1 ? ' by ' + this._step : '') + ' ]';
-	  },
-	  get: function(index, notSetValue) {
-	    return this.has(index) ? this._start + wrapIndex(this, index) * this._step : notSetValue;
-	  },
-	  contains: function(searchValue) {
-	    var possibleIndex = (searchValue - this._start) / this._step;
-	    return possibleIndex >= 0 && possibleIndex < this.length && possibleIndex === Math.floor(possibleIndex);
-	  },
-	  slice: function(begin, end) {
-	    if (wholeSlice(begin, end, this.length)) {
-	      return this;
-	    }
-	    begin = resolveBegin(begin, this.length);
-	    end = resolveEnd(end, this.length);
-	    if (end <= begin) {
-	      return __EMPTY_RANGE;
-	    }
-	    return new $Range(this.get(begin, this._end), this.get(end, this._end), this._step);
-	  },
-	  indexOf: function(searchValue) {
-	    var offsetValue = searchValue - this._start;
-	    if (offsetValue % this._step === 0) {
-	      var index = offsetValue / this._step;
-	      if (index >= 0 && index < this.length) {
-	        return index;
-	      }
-	    }
-	    return -1;
-	  },
-	  lastIndexOf: function(searchValue) {
-	    return this.indexOf(searchValue);
-	  },
-	  take: function(amount) {
-	    return this.slice(0, Math.max(0, amount));
-	  },
-	  skip: function(amount) {
-	    return this.slice(Math.max(0, amount));
-	  },
-	  __iterate: function(fn, reverse) {
-	    var maxIndex = this.length - 1;
-	    var step = this._step;
-	    var value = reverse ? this._start + maxIndex * step : this._start;
-	    for (var ii = 0; ii <= maxIndex; ii++) {
-	      if (fn(value, ii, this) === false) {
-	        return ii + 1;
-	      }
-	      value += reverse ? -step : step;
-	    }
-	    return ii;
-	  },
-	  __iterator: function(type, reverse) {
-	    var maxIndex = this.length - 1;
-	    var step = this._step;
-	    var value = reverse ? this._start + maxIndex * step : this._start;
-	    var ii = 0;
-	    return new Iterator((function() {
-	      var v = value;
-	      value += reverse ? -step : step;
-	      return ii > maxIndex ? iteratorDone() : iteratorValue(type, ii++, v);
-	    }));
-	  },
-	  __deepEquals: function(other) {
-	    return other instanceof $Range ? this._start === other._start && this._end === other._end && this._step === other._step : $traceurRuntime.superCall(this, $Range.prototype, "__deepEquals", [other]);
-	  }
-	}, {}, IndexedSequence);
-	var RangePrototype = Range.prototype;
-	RangePrototype.__toJS = RangePrototype.toArray;
-	RangePrototype.first = VectorPrototype.first;
-	RangePrototype.last = VectorPrototype.last;
-	var __EMPTY_RANGE = Range(0, 0);
-	var Repeat = function Repeat(value, times) {
-	  if (times === 0 && EMPTY_REPEAT) {
-	    return EMPTY_REPEAT;
-	  }
-	  if (!(this instanceof $Repeat)) {
-	    return new $Repeat(value, times);
-	  }
-	  this._value = value;
-	  this.length = times == null ? Infinity : Math.max(0, times);
-	};
-	var $Repeat = Repeat;
-	($traceurRuntime.createClass)(Repeat, {
-	  toString: function() {
-	    if (this.length === 0) {
-	      return 'Repeat []';
-	    }
-	    return 'Repeat [ ' + this._value + ' ' + this.length + ' times ]';
-	  },
-	  get: function(index, notSetValue) {
-	    return this.has(index) ? this._value : notSetValue;
-	  },
-	  contains: function(searchValue) {
-	    return is(this._value, searchValue);
-	  },
-	  slice: function(begin, end) {
-	    var length = this.length;
-	    begin = begin < 0 ? Math.max(0, length + begin) : Math.min(length, begin);
-	    end = end == null ? length : end > 0 ? Math.min(length, end) : Math.max(0, length + end);
-	    return end > begin ? new $Repeat(this._value, end - begin) : EMPTY_REPEAT;
-	  },
-	  reverse: function() {
-	    return this;
-	  },
-	  indexOf: function(searchValue) {
-	    if (is(this._value, searchValue)) {
-	      return 0;
-	    }
-	    return -1;
-	  },
-	  lastIndexOf: function(searchValue) {
-	    if (is(this._value, searchValue)) {
-	      return this.length;
-	    }
-	    return -1;
-	  },
-	  __iterate: function(fn, reverse) {
-	    for (var ii = 0; ii < this.length; ii++) {
-	      if (fn(this._value, ii, this) === false) {
-	        return ii + 1;
-	      }
-	    }
-	    return ii;
-	  },
-	  __iterator: function(type, reverse) {
-	    var $__0 = this;
-	    var ii = 0;
-	    return new Iterator((function() {
-	      return ii < $__0.length ? iteratorValue(type, ii++, $__0._value) : iteratorDone();
-	    }));
-	  },
-	  __deepEquals: function(other) {
-	    return other instanceof $Repeat ? is(this._value, other._value) : $traceurRuntime.superCall(this, $Repeat.prototype, "__deepEquals", [other]);
-	  }
-	}, {}, IndexedSequence);
-	var RepeatPrototype = Repeat.prototype;
-	RepeatPrototype.last = RepeatPrototype.first;
-	RepeatPrototype.has = RangePrototype.has;
-	RepeatPrototype.take = RangePrototype.take;
-	RepeatPrototype.skip = RangePrototype.skip;
-	RepeatPrototype.__toJS = RangePrototype.__toJS;
-	var EMPTY_REPEAT = new Repeat(undefined, 0);
-	function fromJS(json, converter) {
-	  if (converter) {
-	    return _fromJSWith(converter, json, '', {'': json});
-	  }
-	  return _fromJSDefault(json);
-	}
-	function _fromJSWith(converter, json, key, parentJSON) {
-	  if (json && (Array.isArray(json) || json.constructor === Object)) {
-	    return converter.call(parentJSON, key, Sequence(json).map((function(v, k) {
-	      return _fromJSWith(converter, v, k, json);
-	    })));
-	  }
-	  return json;
-	}
-	function _fromJSDefault(json) {
-	  if (json) {
-	    if (Array.isArray(json)) {
-	      return Sequence(json).map(_fromJSDefault).toVector();
-	    }
-	    if (json.constructor === Object) {
-	      return Sequence(json).map(_fromJSDefault).toMap();
-	    }
-	  }
-	  return json;
-	}
-	var Cursor = function Cursor(rootData, keyPath, onChange, length) {
-	  this.length = length;
-	  this._rootData = rootData;
-	  this._keyPath = keyPath;
-	  this._onChange = onChange;
-	};
-	($traceurRuntime.createClass)(Cursor, {
-	  equals: function(second) {
-	    return is(this.deref(), second && (typeof second.deref === 'function' ? second.deref() : second));
-	  },
-	  deref: function(notSetValue) {
-	    return this._rootData.getIn(this._keyPath, notSetValue);
-	  },
-	  get: function(key, notSetValue) {
-	    if (Array.isArray(key) && key.length === 0) {
-	      return this;
-	    }
-	    var value = this._rootData.getIn(this._keyPath.concat(key), NOT_SET);
-	    return value === NOT_SET ? notSetValue : wrappedValue(this, key, value);
-	  },
-	  set: function(key, value) {
-	    return updateCursor(this, (function(m) {
-	      return m.set(key, value);
-	    }), key);
-	  },
-	  remove: function(key) {
-	    return updateCursor(this, (function(m) {
-	      return m.remove(key);
-	    }), key);
-	  },
-	  clear: function() {
-	    return updateCursor(this, (function(m) {
-	      return m.clear();
-	    }));
-	  },
-	  update: function(keyOrFn, notSetValue, updater) {
-	    return arguments.length === 1 ? updateCursor(this, keyOrFn) : updateCursor(this, (function(map) {
-	      return map.update(keyOrFn, notSetValue, updater);
-	    }), keyOrFn);
-	  },
-	  withMutations: function(fn) {
-	    return updateCursor(this, (function(m) {
-	      return (m || Map.empty()).withMutations(fn);
-	    }));
-	  },
-	  cursor: function(subKey) {
-	    return Array.isArray(subKey) && subKey.length === 0 ? this : subCursor(this, subKey);
-	  },
-	  __iterate: function(fn, reverse) {
-	    var $__0 = this;
-	    var deref = this.deref();
-	    return deref && deref.__iterate ? deref.__iterate((function(v, k) {
-	      return fn(wrappedValue($__0, k, v), k, $__0);
-	    }), reverse) : 0;
-	  },
-	  __iterator: function(type, reverse) {
-	    var $__0 = this;
-	    var deref = this.deref();
-	    var iterator = deref && deref.__iterator && deref.__iterator(ITERATE_ENTRIES, reverse);
-	    return new Iterator((function() {
-	      if (!iterator) {
-	        return iteratorDone();
-	      }
-	      var step = iterator.next();
-	      if (step.done) {
-	        return step;
-	      }
-	      var entry = step.value;
-	      var k = entry[0];
-	      var v = entry[1];
-	      return iteratorValue(type, k, wrappedValue($__0, k, v), step);
-	    }));
-	  }
-	}, {}, Sequence);
-	var CursorPrototype = Cursor.prototype;
-	CursorPrototype[DELETE] = CursorPrototype.remove;
-	CursorPrototype.getIn = CursorPrototype.get;
-	var IndexedCursor = function IndexedCursor(rootData, keyPath, onChange, length) {
-	  this.length = length;
-	  this._rootData = rootData;
-	  this._keyPath = keyPath;
-	  this._onChange = onChange;
-	};
-	($traceurRuntime.createClass)(IndexedCursor, {}, {}, IndexedSequence);
-	var IndexedCursorPrototype = IndexedCursor.prototype;
-	IndexedCursorPrototype.equals = CursorPrototype.equals;
-	IndexedCursorPrototype.deref = CursorPrototype.deref;
-	IndexedCursorPrototype.get = CursorPrototype.get;
-	IndexedCursorPrototype.getIn = CursorPrototype.getIn;
-	IndexedCursorPrototype.set = CursorPrototype.set;
-	IndexedCursorPrototype[DELETE] = IndexedCursorPrototype.remove = CursorPrototype.remove;
-	IndexedCursorPrototype.clear = CursorPrototype.clear;
-	IndexedCursorPrototype.update = CursorPrototype.update;
-	IndexedCursorPrototype.withMutations = CursorPrototype.withMutations;
-	IndexedCursorPrototype.cursor = CursorPrototype.cursor;
-	IndexedCursorPrototype.__iterate = CursorPrototype.__iterate;
-	IndexedCursorPrototype.__iterator = CursorPrototype.__iterator;
-	function makeCursor(rootData, keyPath, onChange, value) {
-	  if (arguments.length < 4) {
-	    value = rootData.getIn(keyPath);
-	  }
-	  var length = value instanceof Sequence ? value.length : null;
-	  var CursorClass = value instanceof IndexedSequence ? IndexedCursor : Cursor;
-	  return new CursorClass(rootData, keyPath, onChange, length);
-	}
-	function wrappedValue(cursor, key, value) {
-	  return value instanceof Sequence ? subCursor(cursor, key, value) : value;
-	}
-	function subCursor(cursor, key, value) {
-	  return makeCursor(cursor._rootData, cursor._keyPath.concat(key), cursor._onChange, value);
-	}
-	function updateCursor(cursor, changeFn, changeKey) {
-	  var newRootData = cursor._rootData.updateIn(cursor._keyPath, changeKey ? Map.empty() : undefined, changeFn);
-	  var keyPath = cursor._keyPath || [];
-	  cursor._onChange && cursor._onChange.call(undefined, newRootData, cursor._rootData, changeKey ? keyPath.concat(changeKey) : keyPath);
-	  return makeCursor(newRootData, cursor._keyPath, cursor._onChange);
-	}
-	var Immutable = {
-	  Sequence: Sequence,
-	  Map: Map,
-	  Vector: Vector,
-	  Stack: Stack,
-	  Set: Set,
-	  OrderedMap: OrderedMap,
-	  Record: Record,
-	  Range: Range,
-	  Repeat: Repeat,
-	  is: is,
-	  fromJS: fromJS
-	};
-
-	  return Immutable;
-	}
-	true ? module.exports = universalModule() :
-	  typeof define === 'function' && define.amd ? define(universalModule) :
-	    Immutable = universalModule();
-
-
-/***/ },
-/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4550,6 +1063,3637 @@
 	}(true ? exports : window));
 
 /***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 *  Copyright (c) 2014, Facebook, Inc.
+	 *  All rights reserved.
+	 *
+	 *  This source code is licensed under the BSD-style license found in the
+	 *  LICENSE file in the root directory of this source tree. An additional grant
+	 *  of patent rights can be found in the PATENTS file in the same directory.
+	 */
+	function universalModule() {
+	  var $Object = Object;
+
+	function createClass(ctor, methods, staticMethods, superClass) {
+	  var proto;
+	  if (superClass) {
+	    var superProto = superClass.prototype;
+	    proto = $Object.create(superProto);
+	  } else {
+	    proto = ctor.prototype;
+	  }
+	  $Object.keys(methods).forEach(function (key) {
+	    proto[key] = methods[key];
+	  });
+	  $Object.keys(staticMethods).forEach(function (key) {
+	    ctor[key] = staticMethods[key];
+	  });
+	  proto.constructor = ctor;
+	  ctor.prototype = proto;
+	  return ctor;
+	}
+
+	function superCall(self, proto, name, args) {
+	  return $Object.getPrototypeOf(proto)[name].apply(self, args);
+	}
+
+	function defaultSuperCall(self, proto, args) {
+	  superCall(self, proto, 'constructor', args);
+	}
+
+	var $traceurRuntime = {};
+	$traceurRuntime.createClass = createClass;
+	$traceurRuntime.superCall = superCall;
+	$traceurRuntime.defaultSuperCall = defaultSuperCall;
+	"use strict";
+	function is(first, second) {
+	  if (first === second) {
+	    return first !== 0 || second !== 0 || 1 / first === 1 / second;
+	  }
+	  if (first !== first) {
+	    return second !== second;
+	  }
+	  if (first && typeof first.equals === 'function') {
+	    return first.equals(second);
+	  }
+	  return false;
+	}
+	function invariant(condition, error) {
+	  if (!condition)
+	    throw new Error(error);
+	}
+	var DELETE = 'delete';
+	var SHIFT = 5;
+	var SIZE = 1 << SHIFT;
+	var MASK = SIZE - 1;
+	var NOT_SET = {};
+	var CHANGE_LENGTH = {value: false};
+	var DID_ALTER = {value: false};
+	function MakeRef(ref) {
+	  ref.value = false;
+	  return ref;
+	}
+	function SetRef(ref) {
+	  ref && (ref.value = true);
+	}
+	function OwnerID() {}
+	function arrCopy(arr, offset) {
+	  offset = offset || 0;
+	  var len = Math.max(0, arr.length - offset);
+	  var newArr = new Array(len);
+	  for (var ii = 0; ii < len; ii++) {
+	    newArr[ii] = arr[ii + offset];
+	  }
+	  return newArr;
+	}
+	function assertNotInfinite(size) {
+	  invariant(size !== Infinity, 'Cannot perform this action with an infinite size.');
+	}
+	function ensureSize(iter) {
+	  if (iter.size === undefined) {
+	    iter.size = iter.__iterate(returnTrue);
+	  }
+	  return iter.size;
+	}
+	function wrapIndex(iter, index) {
+	  return index >= 0 ? index : ensureSize(iter) + index;
+	}
+	function returnTrue() {
+	  return true;
+	}
+	function isPlainObj(value) {
+	  return value && value.constructor === Object;
+	}
+	function wholeSlice(begin, end, size) {
+	  return (begin === 0 || (size !== undefined && begin <= -size)) && (end === undefined || (size !== undefined && end >= size));
+	}
+	function resolveBegin(begin, size) {
+	  return resolveIndex(begin, size, 0);
+	}
+	function resolveEnd(end, size) {
+	  return resolveIndex(end, size, size);
+	}
+	function resolveIndex(index, size, defaultIndex) {
+	  return index === undefined ? defaultIndex : index < 0 ? Math.max(0, size + index) : size === undefined ? index : Math.min(size, index);
+	}
+	function hash(o) {
+	  if (!o) {
+	    return 0;
+	  }
+	  if (o === true) {
+	    return 1;
+	  }
+	  var type = typeof o;
+	  if (type === 'number') {
+	    if ((o | 0) === o) {
+	      return o & HASH_MAX_VAL;
+	    }
+	    o = '' + o;
+	    type = 'string';
+	  }
+	  if (type === 'string') {
+	    return o.length > STRING_HASH_CACHE_MIN_STRLEN ? cachedHashString(o) : hashString(o);
+	  }
+	  if (o.hashCode) {
+	    return hash(typeof o.hashCode === 'function' ? o.hashCode() : o.hashCode);
+	  }
+	  return hashJSObj(o);
+	}
+	function cachedHashString(string) {
+	  var hash = stringHashCache[string];
+	  if (hash === undefined) {
+	    hash = hashString(string);
+	    if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
+	      STRING_HASH_CACHE_SIZE = 0;
+	      stringHashCache = {};
+	    }
+	    STRING_HASH_CACHE_SIZE++;
+	    stringHashCache[string] = hash;
+	  }
+	  return hash;
+	}
+	function hashString(string) {
+	  var hash = 0;
+	  for (var ii = 0; ii < string.length; ii++) {
+	    hash = (31 * hash + string.charCodeAt(ii)) & HASH_MAX_VAL;
+	  }
+	  return hash;
+	}
+	function hashJSObj(obj) {
+	  var hash = weakMap && weakMap.get(obj);
+	  if (hash)
+	    return hash;
+	  hash = obj[UID_HASH_KEY];
+	  if (hash)
+	    return hash;
+	  if (!canDefineProperty) {
+	    hash = obj.propertyIsEnumerable && obj.propertyIsEnumerable[UID_HASH_KEY];
+	    if (hash)
+	      return hash;
+	    hash = getIENodeHash(obj);
+	    if (hash)
+	      return hash;
+	  }
+	  if (Object.isExtensible && !Object.isExtensible(obj)) {
+	    throw new Error('Non-extensible objects are not allowed as keys.');
+	  }
+	  hash = ++objHashUID & HASH_MAX_VAL;
+	  if (weakMap) {
+	    weakMap.set(obj, hash);
+	  } else if (canDefineProperty) {
+	    Object.defineProperty(obj, UID_HASH_KEY, {
+	      'enumerable': false,
+	      'configurable': false,
+	      'writable': false,
+	      'value': hash
+	    });
+	  } else if (obj.propertyIsEnumerable && obj.propertyIsEnumerable === obj.constructor.prototype.propertyIsEnumerable) {
+	    obj.propertyIsEnumerable = function() {
+	      return this.constructor.prototype.propertyIsEnumerable.apply(this, arguments);
+	    };
+	    obj.propertyIsEnumerable[UID_HASH_KEY] = hash;
+	  } else if (obj.nodeType) {
+	    obj[UID_HASH_KEY] = hash;
+	  } else {
+	    throw new Error('Unable to set a non-enumerable property on object.');
+	  }
+	  return hash;
+	}
+	var canDefineProperty = (function() {
+	  try {
+	    Object.defineProperty({}, 'x', {});
+	    return true;
+	  } catch (e) {
+	    return false;
+	  }
+	}());
+	function getIENodeHash(node) {
+	  if (node && node.nodeType > 0) {
+	    switch (node.nodeType) {
+	      case 1:
+	        return node.uniqueID;
+	      case 9:
+	        return node.documentElement && node.documentElement.uniqueID;
+	    }
+	  }
+	}
+	var weakMap = typeof WeakMap === 'function' && new WeakMap();
+	var HASH_MAX_VAL = 0x7FFFFFFF;
+	var objHashUID = 0;
+	var UID_HASH_KEY = '__immutablehash__';
+	if (typeof Symbol === 'function') {
+	  UID_HASH_KEY = Symbol(UID_HASH_KEY);
+	}
+	var STRING_HASH_CACHE_MIN_STRLEN = 16;
+	var STRING_HASH_CACHE_MAX_SIZE = 255;
+	var STRING_HASH_CACHE_SIZE = 0;
+	var stringHashCache = {};
+	var ITERATE_KEYS = 0;
+	var ITERATE_VALUES = 1;
+	var ITERATE_ENTRIES = 2;
+	var FAUX_ITERATOR_SYMBOL = '@@iterator';
+	var REAL_ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
+	var ITERATOR_SYMBOL = REAL_ITERATOR_SYMBOL || FAUX_ITERATOR_SYMBOL;
+	var Iterator = function Iterator(next) {
+	  this.next = next;
+	};
+	($traceurRuntime.createClass)(Iterator, {toString: function() {
+	    return '[Iterator]';
+	  }}, {});
+	Iterator.KEYS = ITERATE_KEYS;
+	Iterator.VALUES = ITERATE_VALUES;
+	Iterator.ENTRIES = ITERATE_ENTRIES;
+	var IteratorPrototype = Iterator.prototype;
+	IteratorPrototype.inspect = IteratorPrototype.toSource = function() {
+	  return this.toString();
+	};
+	IteratorPrototype[ITERATOR_SYMBOL] = function() {
+	  return this;
+	};
+	function iteratorValue(type, k, v, iteratorResult) {
+	  var value = type === 0 ? k : type === 1 ? v : [k, v];
+	  iteratorResult ? (iteratorResult.value = value) : (iteratorResult = {
+	    value: value,
+	    done: false
+	  });
+	  return iteratorResult;
+	}
+	function iteratorDone() {
+	  return {
+	    value: undefined,
+	    done: true
+	  };
+	}
+	function hasIterator(maybeIterable) {
+	  return !!_iteratorFn(maybeIterable);
+	}
+	function isIterator(maybeIterator) {
+	  return maybeIterator && typeof maybeIterator.next === 'function';
+	}
+	function getIterator(iterable) {
+	  var iteratorFn = _iteratorFn(iterable);
+	  return iteratorFn && iteratorFn.call(iterable);
+	}
+	function _iteratorFn(iterable) {
+	  var iteratorFn = iterable && ((REAL_ITERATOR_SYMBOL && iterable[REAL_ITERATOR_SYMBOL]) || iterable[FAUX_ITERATOR_SYMBOL]);
+	  if (typeof iteratorFn === 'function') {
+	    return iteratorFn;
+	  }
+	}
+	var Iterable = function Iterable(value) {
+	  return isIterable(value) ? value : Seq.apply(undefined, arguments);
+	};
+	var $Iterable = Iterable;
+	($traceurRuntime.createClass)(Iterable, {
+	  toArray: function() {
+	    assertNotInfinite(this.size);
+	    var array = new Array(this.size || 0);
+	    this.valueSeq().__iterate((function(v, i) {
+	      array[i] = v;
+	    }));
+	    return array;
+	  },
+	  toIndexedSeq: function() {
+	    return new ToIndexedSequence(this);
+	  },
+	  toJS: function() {
+	    return this.toSeq().map((function(value) {
+	      return value && typeof value.toJS === 'function' ? value.toJS() : value;
+	    })).__toJS();
+	  },
+	  toKeyedSeq: function() {
+	    return new ToKeyedSequence(this, true);
+	  },
+	  toMap: function() {
+	    assertNotInfinite(this.size);
+	    return Map(this.toKeyedSeq());
+	  },
+	  toObject: function() {
+	    assertNotInfinite(this.size);
+	    var object = {};
+	    this.__iterate((function(v, k) {
+	      object[k] = v;
+	    }));
+	    return object;
+	  },
+	  toOrderedMap: function() {
+	    assertNotInfinite(this.size);
+	    return OrderedMap(this.toKeyedSeq());
+	  },
+	  toSet: function() {
+	    assertNotInfinite(this.size);
+	    return Set(this);
+	  },
+	  toSetSeq: function() {
+	    return new ToSetSequence(this, true);
+	  },
+	  toSeq: function() {
+	    return isIndexed(this) ? this.toIndexedSeq() : isKeyed(this) ? this.toKeyedSeq() : this.toSetSeq();
+	  },
+	  toStack: function() {
+	    assertNotInfinite(this.size);
+	    return Stack(this);
+	  },
+	  toList: function() {
+	    assertNotInfinite(this.size);
+	    return List(this);
+	  },
+	  toString: function() {
+	    return '[Iterable]';
+	  },
+	  __toString: function(head, tail) {
+	    if (this.size === 0) {
+	      return head + tail;
+	    }
+	    return head + ' ' + this.toSeq().map(this.__toStringMapper).join(', ') + ' ' + tail;
+	  },
+	  concat: function() {
+	    for (var values = [],
+	        $__2 = 0; $__2 < arguments.length; $__2++)
+	      values[$__2] = arguments[$__2];
+	    return reify(this, concatFactory(this, values, true));
+	  },
+	  contains: function(searchValue) {
+	    return this.some((function(value) {
+	      return is(value, searchValue);
+	    }));
+	  },
+	  entries: function() {
+	    return this.__iterator(ITERATE_ENTRIES);
+	  },
+	  every: function(predicate, context) {
+	    var returnValue = true;
+	    this.__iterate((function(v, k, c) {
+	      if (!predicate.call(context, v, k, c)) {
+	        returnValue = false;
+	        return false;
+	      }
+	    }));
+	    return returnValue;
+	  },
+	  filter: function(predicate, context) {
+	    return reify(this, filterFactory(this, predicate, context, true));
+	  },
+	  find: function(predicate, context, notSetValue) {
+	    var foundValue = notSetValue;
+	    this.__iterate((function(v, k, c) {
+	      if (predicate.call(context, v, k, c)) {
+	        foundValue = v;
+	        return false;
+	      }
+	    }));
+	    return foundValue;
+	  },
+	  forEach: function(sideEffect, context) {
+	    return this.__iterate(context ? sideEffect.bind(context) : sideEffect);
+	  },
+	  join: function(separator) {
+	    separator = separator !== undefined ? '' + separator : ',';
+	    var joined = '';
+	    var isFirst = true;
+	    this.__iterate((function(v) {
+	      isFirst ? (isFirst = false) : (joined += separator);
+	      joined += v !== null && v !== undefined ? v : '';
+	    }));
+	    return joined;
+	  },
+	  keys: function() {
+	    return this.__iterator(ITERATE_KEYS);
+	  },
+	  map: function(mapper, context) {
+	    return reify(this, mapFactory(this, mapper, context));
+	  },
+	  reduce: function(reducer, initialReduction, context) {
+	    var reduction;
+	    var useFirst;
+	    if (arguments.length < 2) {
+	      useFirst = true;
+	    } else {
+	      reduction = initialReduction;
+	    }
+	    this.__iterate((function(v, k, c) {
+	      if (useFirst) {
+	        useFirst = false;
+	        reduction = v;
+	      } else {
+	        reduction = reducer.call(context, reduction, v, k, c);
+	      }
+	    }));
+	    return reduction;
+	  },
+	  reduceRight: function(reducer, initialReduction, context) {
+	    var reversed = this.toKeyedSeq().reverse();
+	    return reversed.reduce.apply(reversed, arguments);
+	  },
+	  reverse: function() {
+	    return reify(this, reverseFactory(this, true));
+	  },
+	  slice: function(begin, end) {
+	    if (wholeSlice(begin, end, this.size)) {
+	      return this;
+	    }
+	    var resolvedBegin = resolveBegin(begin, this.size);
+	    var resolvedEnd = resolveEnd(end, this.size);
+	    if (resolvedBegin !== resolvedBegin || resolvedEnd !== resolvedEnd) {
+	      return this.toSeq().cacheResult().slice(begin, end);
+	    }
+	    var skipped = resolvedBegin === 0 ? this : this.skip(resolvedBegin);
+	    return reify(this, resolvedEnd === undefined || resolvedEnd === this.size ? skipped : skipped.take(resolvedEnd - resolvedBegin));
+	  },
+	  some: function(predicate, context) {
+	    return !this.every(not(predicate), context);
+	  },
+	  sort: function(comparator) {
+	    return this.sortBy(valueMapper, comparator);
+	  },
+	  values: function() {
+	    return this.__iterator(ITERATE_VALUES);
+	  },
+	  butLast: function() {
+	    return this.slice(0, -1);
+	  },
+	  count: function(predicate, context) {
+	    return ensureSize(predicate ? this.toSeq().filter(predicate, context) : this);
+	  },
+	  countBy: function(grouper, context) {
+	    return countByFactory(this, grouper, context);
+	  },
+	  equals: function(other) {
+	    if (this === other) {
+	      return true;
+	    }
+	    if (!other || typeof other.equals !== 'function') {
+	      return false;
+	    }
+	    if (this.size !== undefined && other.size !== undefined) {
+	      if (this.size !== other.size) {
+	        return false;
+	      }
+	      if (this.size === 0 && other.size === 0) {
+	        return true;
+	      }
+	    }
+	    if (this.__hash !== undefined && other.__hash !== undefined && this.__hash !== other.__hash) {
+	      return false;
+	    }
+	    return this.__deepEquals(other);
+	  },
+	  __deepEquals: function(other) {
+	    var entries = this.entries();
+	    return typeof other.every === 'function' && other.every((function(v, k) {
+	      var entry = entries.next().value;
+	      return entry && is(entry[0], k) && is(entry[1], v);
+	    })) && entries.next().done;
+	  },
+	  entrySeq: function() {
+	    var iterable = this;
+	    if (iterable._cache) {
+	      return new ArraySeq(iterable._cache);
+	    }
+	    var entriesSequence = iterable.toSeq().map(entryMapper).toIndexedSeq();
+	    entriesSequence.fromEntrySeq = (function() {
+	      return iterable.toSeq();
+	    });
+	    return entriesSequence;
+	  },
+	  filterNot: function(predicate, context) {
+	    return this.filter(not(predicate), context);
+	  },
+	  findLast: function(predicate, context, notSetValue) {
+	    return this.toKeyedSeq().reverse().find(predicate, context, notSetValue);
+	  },
+	  first: function() {
+	    return this.find(returnTrue);
+	  },
+	  flatMap: function(mapper, context) {
+	    return reify(this, flatMapFactory(this, mapper, context));
+	  },
+	  flatten: function(depth) {
+	    return reify(this, flattenFactory(this, depth, true));
+	  },
+	  fromEntrySeq: function() {
+	    return new FromEntriesSequence(this);
+	  },
+	  get: function(searchKey, notSetValue) {
+	    return this.find((function(_, key) {
+	      return is(key, searchKey);
+	    }), undefined, notSetValue);
+	  },
+	  getIn: function(searchKeyPath, notSetValue) {
+	    var nested = this;
+	    if (searchKeyPath) {
+	      for (var ii = 0; ii < searchKeyPath.length; ii++) {
+	        nested = nested && nested.get ? nested.get(searchKeyPath[ii], NOT_SET) : NOT_SET;
+	        if (nested === NOT_SET) {
+	          return notSetValue;
+	        }
+	      }
+	    }
+	    return nested;
+	  },
+	  groupBy: function(grouper, context) {
+	    return groupByFactory(this, grouper, context);
+	  },
+	  has: function(searchKey) {
+	    return this.get(searchKey, NOT_SET) !== NOT_SET;
+	  },
+	  isSubset: function(iter) {
+	    iter = typeof iter.contains === 'function' ? iter : $Iterable(iter);
+	    return this.every((function(value) {
+	      return iter.contains(value);
+	    }));
+	  },
+	  isSuperset: function(iter) {
+	    return iter.isSubset(this);
+	  },
+	  keySeq: function() {
+	    return this.toSeq().map(keyMapper).toIndexedSeq();
+	  },
+	  last: function() {
+	    return this.toSeq().reverse().first();
+	  },
+	  max: function(comparator) {
+	    return this.maxBy(valueMapper, comparator);
+	  },
+	  maxBy: function(mapper, comparator) {
+	    var $__0 = this;
+	    comparator = comparator || defaultComparator;
+	    var maxEntry = this.entrySeq().reduce((function(max, next) {
+	      return comparator(mapper(next[1], next[0], $__0), mapper(max[1], max[0], $__0)) > 0 ? next : max;
+	    }));
+	    return maxEntry && maxEntry[1];
+	  },
+	  min: function(comparator) {
+	    return this.minBy(valueMapper, comparator);
+	  },
+	  minBy: function(mapper, comparator) {
+	    var $__0 = this;
+	    comparator = comparator || defaultComparator;
+	    var minEntry = this.entrySeq().reduce((function(min, next) {
+	      return comparator(mapper(next[1], next[0], $__0), mapper(min[1], min[0], $__0)) < 0 ? next : min;
+	    }));
+	    return minEntry && minEntry[1];
+	  },
+	  rest: function() {
+	    return this.slice(1);
+	  },
+	  skip: function(amount) {
+	    return reify(this, skipFactory(this, amount, true));
+	  },
+	  skipLast: function(amount) {
+	    return reify(this, this.toSeq().reverse().skip(amount).reverse());
+	  },
+	  skipWhile: function(predicate, context) {
+	    return reify(this, skipWhileFactory(this, predicate, context, true));
+	  },
+	  skipUntil: function(predicate, context) {
+	    return this.skipWhile(not(predicate), context);
+	  },
+	  sortBy: function(mapper, comparator) {
+	    var $__0 = this;
+	    comparator = comparator || defaultComparator;
+	    return reify(this, new ArraySeq(this.entrySeq().entrySeq().toArray().sort((function(a, b) {
+	      return comparator(mapper(a[1][1], a[1][0], $__0), mapper(b[1][1], b[1][0], $__0)) || a[0] - b[0];
+	    }))).fromEntrySeq().valueSeq().fromEntrySeq());
+	  },
+	  take: function(amount) {
+	    return reify(this, takeFactory(this, amount));
+	  },
+	  takeLast: function(amount) {
+	    return reify(this, this.toSeq().reverse().take(amount).reverse());
+	  },
+	  takeWhile: function(predicate, context) {
+	    return reify(this, takeWhileFactory(this, predicate, context));
+	  },
+	  takeUntil: function(predicate, context) {
+	    return this.takeWhile(not(predicate), context);
+	  },
+	  valueSeq: function() {
+	    return this.toIndexedSeq();
+	  },
+	  hashCode: function() {
+	    return this.__hash || (this.__hash = this.size === Infinity ? 0 : this.reduce((function(h, v, k) {
+	      return (h + (hash(v) ^ (v === k ? 0 : hash(k)))) & HASH_MAX_VAL;
+	    }), 0));
+	  }
+	}, {});
+	var IS_ITERABLE_SENTINEL = '@@__IMMUTABLE_ITERABLE__@@';
+	var IS_KEYED_SENTINEL = '@@__IMMUTABLE_KEYED__@@';
+	var IS_INDEXED_SENTINEL = '@@__IMMUTABLE_INDEXED__@@';
+	var IterablePrototype = Iterable.prototype;
+	IterablePrototype[IS_ITERABLE_SENTINEL] = true;
+	IterablePrototype[ITERATOR_SYMBOL] = IterablePrototype.values;
+	IterablePrototype.toJSON = IterablePrototype.toJS;
+	IterablePrototype.__toJS = IterablePrototype.toArray;
+	IterablePrototype.__toStringMapper = quoteString;
+	IterablePrototype.inspect = IterablePrototype.toSource = function() {
+	  return this.toString();
+	};
+	IterablePrototype.chain = IterablePrototype.flatMap;
+	(function() {
+	  try {
+	    Object.defineProperty(IterablePrototype, 'length', {get: function() {
+	        if (!Iterable.noLengthWarning) {
+	          var stack;
+	          try {
+	            throw new Error();
+	          } catch (error) {
+	            stack = error.stack;
+	          }
+	          if (stack.indexOf('_wrapObject') === -1) {
+	            console && console.warn && console.warn('iterable.length has been deprecated, ' + 'use iterable.size or iterable.count(). ' + 'This warning will become a silent error in a future version. ' + stack);
+	            return this.size;
+	          }
+	        }
+	      }});
+	  } catch (e) {}
+	})();
+	var KeyedIterable = function KeyedIterable(value) {
+	  return isKeyed(value) ? value : KeyedSeq.apply(undefined, arguments);
+	};
+	($traceurRuntime.createClass)(KeyedIterable, {
+	  flip: function() {
+	    return reify(this, flipFactory(this));
+	  },
+	  findKey: function(predicate, context) {
+	    var foundKey;
+	    this.__iterate((function(v, k, c) {
+	      if (predicate.call(context, v, k, c)) {
+	        foundKey = k;
+	        return false;
+	      }
+	    }));
+	    return foundKey;
+	  },
+	  findLastKey: function(predicate, context) {
+	    return this.toSeq().reverse().findKey(predicate, context);
+	  },
+	  keyOf: function(searchValue) {
+	    return this.findKey((function(value) {
+	      return is(value, searchValue);
+	    }));
+	  },
+	  lastKeyOf: function(searchValue) {
+	    return this.toSeq().reverse().keyOf(searchValue);
+	  },
+	  mapEntries: function(mapper, context) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    return reify(this, this.toSeq().map((function(v, k) {
+	      return mapper.call(context, [k, v], iterations++, $__0);
+	    })).fromEntrySeq());
+	  },
+	  mapKeys: function(mapper, context) {
+	    var $__0 = this;
+	    return reify(this, this.toSeq().flip().map((function(k, v) {
+	      return mapper.call(context, k, v, $__0);
+	    })).flip());
+	  }
+	}, {}, Iterable);
+	var KeyedIterablePrototype = KeyedIterable.prototype;
+	KeyedIterablePrototype[IS_KEYED_SENTINEL] = true;
+	KeyedIterablePrototype[ITERATOR_SYMBOL] = IterablePrototype.entries;
+	KeyedIterablePrototype.__toJS = IterablePrototype.toObject;
+	KeyedIterablePrototype.__toStringMapper = (function(v, k) {
+	  return k + ': ' + quoteString(v);
+	});
+	var IndexedIterable = function IndexedIterable(value) {
+	  return isIndexed(value) ? value : IndexedSeq.apply(undefined, arguments);
+	};
+	($traceurRuntime.createClass)(IndexedIterable, {
+	  toKeyedSeq: function() {
+	    return new ToKeyedSequence(this, false);
+	  },
+	  concat: function() {
+	    for (var values = [],
+	        $__3 = 0; $__3 < arguments.length; $__3++)
+	      values[$__3] = arguments[$__3];
+	    return reify(this, concatFactory(this, values, false));
+	  },
+	  filter: function(predicate, context) {
+	    return reify(this, filterFactory(this, predicate, context, false));
+	  },
+	  findIndex: function(predicate, context) {
+	    var key = this.toKeyedSeq().findKey(predicate, context);
+	    return key === undefined ? -1 : key;
+	  },
+	  indexOf: function(searchValue) {
+	    var key = this.toKeyedSeq().keyOf(searchValue);
+	    return key === undefined ? -1 : key;
+	  },
+	  lastIndexOf: function(searchValue) {
+	    var key = this.toKeyedSeq().lastKeyOf(searchValue);
+	    return key === undefined ? -1 : key;
+	  },
+	  reverse: function() {
+	    return reify(this, reverseFactory(this, false));
+	  },
+	  splice: function(index, removeNum) {
+	    var numArgs = arguments.length;
+	    removeNum = Math.max(removeNum | 0, 0);
+	    if (numArgs === 0 || (numArgs === 2 && !removeNum)) {
+	      return this;
+	    }
+	    index = resolveBegin(index, this.size);
+	    var spliced = this.slice(0, index);
+	    return reify(this, numArgs === 1 ? spliced : spliced.concat(arrCopy(arguments, 2), this.slice(index + removeNum)));
+	  },
+	  findLastIndex: function(predicate, context) {
+	    var key = this.toKeyedSeq().findLastKey(predicate, context);
+	    return key === undefined ? -1 : key;
+	  },
+	  first: function() {
+	    return this.get(0);
+	  },
+	  flatten: function(depth) {
+	    return reify(this, flattenFactory(this, depth, false));
+	  },
+	  get: function(index, notSetValue) {
+	    index = wrapIndex(this, index);
+	    return (index < 0 || (this.size === Infinity || (this.size !== undefined && index > this.size))) ? notSetValue : this.find((function(_, key) {
+	      return key === index;
+	    }), undefined, notSetValue);
+	  },
+	  has: function(index) {
+	    index = wrapIndex(this, index);
+	    return index >= 0 && (this.size !== undefined ? this.size === Infinity || index < this.size : this.indexOf(index) !== -1);
+	  },
+	  interpose: function(separator) {
+	    return reify(this, interposeFactory(this, separator));
+	  },
+	  last: function() {
+	    return this.get(-1);
+	  },
+	  skip: function(amount) {
+	    var iter = this;
+	    var skipSeq = skipFactory(iter, amount, false);
+	    if (isSeq(iter) && skipSeq !== iter) {
+	      skipSeq.get = function(index, notSetValue) {
+	        index = wrapIndex(this, index);
+	        return index >= 0 ? iter.get(index + amount, notSetValue) : notSetValue;
+	      };
+	    }
+	    return reify(this, skipSeq);
+	  },
+	  skipWhile: function(predicate, context) {
+	    return reify(this, skipWhileFactory(this, predicate, context, false));
+	  },
+	  sortBy: function(mapper, comparator) {
+	    var $__0 = this;
+	    comparator = comparator || defaultComparator;
+	    return reify(this, new ArraySeq(this.entrySeq().toArray().sort((function(a, b) {
+	      return comparator(mapper(a[1], a[0], $__0), mapper(b[1], b[0], $__0)) || a[0] - b[0];
+	    }))).fromEntrySeq().valueSeq());
+	  },
+	  take: function(amount) {
+	    var iter = this;
+	    var takeSeq = takeFactory(iter, amount);
+	    if (isSeq(iter) && takeSeq !== iter) {
+	      takeSeq.get = function(index, notSetValue) {
+	        index = wrapIndex(this, index);
+	        return index >= 0 && index < amount ? iter.get(index, notSetValue) : notSetValue;
+	      };
+	    }
+	    return reify(this, takeSeq);
+	  }
+	}, {}, Iterable);
+	IndexedIterable.prototype[IS_INDEXED_SENTINEL] = true;
+	var SetIterable = function SetIterable(value) {
+	  return isIterable(value) && !isAssociative(value) ? value : SetSeq.apply(undefined, arguments);
+	};
+	($traceurRuntime.createClass)(SetIterable, {
+	  get: function(value, notSetValue) {
+	    return this.has(value) ? value : notSetValue;
+	  },
+	  contains: function(value) {
+	    return this.has(value);
+	  },
+	  keySeq: function() {
+	    return this.valueSeq();
+	  }
+	}, {}, Iterable);
+	SetIterable.prototype.has = IterablePrototype.contains;
+	function isIterable(maybeIterable) {
+	  return !!(maybeIterable && maybeIterable[IS_ITERABLE_SENTINEL]);
+	}
+	function isKeyed(maybeKeyed) {
+	  return !!(maybeKeyed && maybeKeyed[IS_KEYED_SENTINEL]);
+	}
+	function isIndexed(maybeIndexed) {
+	  return !!(maybeIndexed && maybeIndexed[IS_INDEXED_SENTINEL]);
+	}
+	function isAssociative(maybeAssociative) {
+	  return isKeyed(maybeAssociative) || isIndexed(maybeAssociative);
+	}
+	Iterable.isIterable = isIterable;
+	Iterable.isKeyed = isKeyed;
+	Iterable.isIndexed = isIndexed;
+	Iterable.isAssociative = isAssociative;
+	Iterable.Keyed = KeyedIterable;
+	Iterable.Indexed = IndexedIterable;
+	Iterable.Set = SetIterable;
+	Iterable.Iterator = Iterator;
+	function valueMapper(v) {
+	  return v;
+	}
+	function keyMapper(v, k) {
+	  return k;
+	}
+	function entryMapper(v, k) {
+	  return [k, v];
+	}
+	function not(predicate) {
+	  return function() {
+	    return !predicate.apply(this, arguments);
+	  };
+	}
+	function quoteString(value) {
+	  return typeof value === 'string' ? JSON.stringify(value) : value;
+	}
+	function defaultComparator(a, b) {
+	  return a > b ? 1 : a < b ? -1 : 0;
+	}
+	function mixin(ctor, methods) {
+	  var proto = ctor.prototype;
+	  Object.keys(methods).forEach(function(key) {
+	    proto[key] = methods[key];
+	  });
+	  return ctor;
+	}
+	var Seq = function Seq(value) {
+	  return arguments.length === 0 ? emptySequence() : (isIterable(value) ? value : seqFromValue(value, false)).toSeq();
+	};
+	var $Seq = Seq;
+	($traceurRuntime.createClass)(Seq, {
+	  toSeq: function() {
+	    return this;
+	  },
+	  toString: function() {
+	    return this.__toString('Seq {', '}');
+	  },
+	  cacheResult: function() {
+	    if (!this._cache && this.__iterateUncached) {
+	      this._cache = this.entrySeq().toArray();
+	      this.size = this._cache.length;
+	    }
+	    return this;
+	  },
+	  __iterate: function(fn, reverse) {
+	    return seqIterate(this, fn, reverse, true);
+	  },
+	  __iterator: function(type, reverse) {
+	    return seqIterator(this, type, reverse, true);
+	  }
+	}, {of: function() {
+	    return $Seq(arguments);
+	  }}, Iterable);
+	var KeyedSeq = function KeyedSeq(value) {
+	  if (arguments.length === 0) {
+	    return emptySequence().toKeyedSeq();
+	  }
+	  if (!isIterable(value)) {
+	    value = seqFromValue(value, false);
+	  }
+	  return isKeyed(value) ? value.toSeq() : value.fromEntrySeq();
+	};
+	var $KeyedSeq = KeyedSeq;
+	($traceurRuntime.createClass)(KeyedSeq, {
+	  toKeyedSeq: function() {
+	    return this;
+	  },
+	  toSeq: function() {
+	    return this;
+	  }
+	}, {of: function() {
+	    return $KeyedSeq(arguments);
+	  }}, Seq);
+	mixin(KeyedSeq, KeyedIterable.prototype);
+	var IndexedSeq = function IndexedSeq(value) {
+	  return arguments.length === 0 ? emptySequence() : (isIterable(value) ? value : seqFromValue(value, false)).toIndexedSeq();
+	};
+	var $IndexedSeq = IndexedSeq;
+	($traceurRuntime.createClass)(IndexedSeq, {
+	  toIndexedSeq: function() {
+	    return this;
+	  },
+	  toString: function() {
+	    return this.__toString('Seq [', ']');
+	  },
+	  __iterate: function(fn, reverse) {
+	    return seqIterate(this, fn, reverse, false);
+	  },
+	  __iterator: function(type, reverse) {
+	    return seqIterator(this, type, reverse, false);
+	  }
+	}, {of: function() {
+	    return $IndexedSeq(arguments);
+	  }}, Seq);
+	mixin(IndexedSeq, IndexedIterable.prototype);
+	var SetSeq = function SetSeq(value) {
+	  return arguments.length === 0 ? emptySequence().toSetSeq() : (isIterable(value) ? value : seqFromValue(value, false)).toSetSeq();
+	};
+	var $SetSeq = SetSeq;
+	($traceurRuntime.createClass)(SetSeq, {toSetSeq: function() {
+	    return this;
+	  }}, {of: function() {
+	    return $SetSeq(arguments);
+	  }}, Seq);
+	mixin(SetSeq, SetIterable.prototype);
+	Seq.isSeq = isSeq;
+	Seq.Keyed = KeyedSeq;
+	Seq.Set = SetSeq;
+	Seq.Indexed = IndexedSeq;
+	var IS_SEQ_SENTINEL = '@@__IMMUTABLE_SEQ__@@';
+	Seq.prototype[IS_SEQ_SENTINEL] = true;
+	var ArraySeq = function ArraySeq(array) {
+	  this._array = array;
+	  this.size = array.length;
+	};
+	($traceurRuntime.createClass)(ArraySeq, {
+	  get: function(index, notSetValue) {
+	    return this.has(index) ? this._array[wrapIndex(this, index)] : notSetValue;
+	  },
+	  __iterate: function(fn, reverse) {
+	    var array = this._array;
+	    var maxIndex = array.length - 1;
+	    for (var ii = 0; ii <= maxIndex; ii++) {
+	      if (fn(array[reverse ? maxIndex - ii : ii], ii, this) === false) {
+	        return ii + 1;
+	      }
+	    }
+	    return ii;
+	  },
+	  __iterator: function(type, reverse) {
+	    var array = this._array;
+	    var maxIndex = array.length - 1;
+	    var ii = 0;
+	    return new Iterator((function() {
+	      return ii > maxIndex ? iteratorDone() : iteratorValue(type, ii, array[reverse ? maxIndex - ii++ : ii++]);
+	    }));
+	  }
+	}, {}, IndexedSeq);
+	var ObjectSeq = function ObjectSeq(object) {
+	  var keys = Object.keys(object);
+	  this._object = object;
+	  this._keys = keys;
+	  this.size = keys.length;
+	};
+	($traceurRuntime.createClass)(ObjectSeq, {
+	  get: function(key, notSetValue) {
+	    if (notSetValue !== undefined && !this.has(key)) {
+	      return notSetValue;
+	    }
+	    return this._object[key];
+	  },
+	  has: function(key) {
+	    return this._object.hasOwnProperty(key);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var object = this._object;
+	    var keys = this._keys;
+	    var maxIndex = keys.length - 1;
+	    for (var ii = 0; ii <= maxIndex; ii++) {
+	      var key = keys[reverse ? maxIndex - ii : ii];
+	      if (fn(object[key], key, this) === false) {
+	        return ii + 1;
+	      }
+	    }
+	    return ii;
+	  },
+	  __iterator: function(type, reverse) {
+	    var object = this._object;
+	    var keys = this._keys;
+	    var maxIndex = keys.length - 1;
+	    var ii = 0;
+	    return new Iterator((function() {
+	      var key = keys[reverse ? maxIndex - ii : ii];
+	      return ii++ > maxIndex ? iteratorDone() : iteratorValue(type, key, object[key]);
+	    }));
+	  }
+	}, {}, KeyedSeq);
+	var IterableSeq = function IterableSeq(iterable) {
+	  this._iterable = iterable;
+	  this.size = iterable.length || iterable.size;
+	};
+	($traceurRuntime.createClass)(IterableSeq, {
+	  __iterateUncached: function(fn, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var iterable = this._iterable;
+	    var iterator = getIterator(iterable);
+	    var iterations = 0;
+	    if (isIterator(iterator)) {
+	      var step;
+	      while (!(step = iterator.next()).done) {
+	        if (fn(step.value, iterations++, this) === false) {
+	          break;
+	        }
+	      }
+	    }
+	    return iterations;
+	  },
+	  __iteratorUncached: function(type, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterable = this._iterable;
+	    var iterator = getIterator(iterable);
+	    if (!isIterator(iterator)) {
+	      return new Iterator(iteratorDone);
+	    }
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      var step = iterator.next();
+	      return step.done ? step : iteratorValue(type, iterations++, step.value);
+	    }));
+	  }
+	}, {}, IndexedSeq);
+	var IteratorSeq = function IteratorSeq(iterator) {
+	  this._iterator = iterator;
+	  this._iteratorCache = [];
+	};
+	($traceurRuntime.createClass)(IteratorSeq, {
+	  __iterateUncached: function(fn, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var iterator = this._iterator;
+	    var cache = this._iteratorCache;
+	    var iterations = 0;
+	    while (iterations < cache.length) {
+	      if (fn(cache[iterations], iterations++, this) === false) {
+	        return iterations;
+	      }
+	    }
+	    var step;
+	    while (!(step = iterator.next()).done) {
+	      var val = step.value;
+	      cache[iterations] = val;
+	      if (fn(val, iterations++, this) === false) {
+	        break;
+	      }
+	    }
+	    return iterations;
+	  },
+	  __iteratorUncached: function(type, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterator = this._iterator;
+	    var cache = this._iteratorCache;
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      if (iterations >= cache.length) {
+	        var step = iterator.next();
+	        if (step.done) {
+	          return step;
+	        }
+	        cache[iterations] = step.value;
+	      }
+	      return iteratorValue(type, iterations, cache[iterations++]);
+	    }));
+	  }
+	}, {}, IndexedSeq);
+	function isSeq(maybeSeq) {
+	  return !!(maybeSeq && maybeSeq[IS_SEQ_SENTINEL]);
+	}
+	var EMPTY_SEQ;
+	function emptySequence() {
+	  return EMPTY_SEQ || (EMPTY_SEQ = new ArraySeq([]));
+	}
+	function maybeSeqFromValue(value, maybeSingleton) {
+	  return (maybeSingleton && typeof value === 'string' ? undefined : isArrayLike(value) ? new ArraySeq(value) : isIterator(value) ? new IteratorSeq(value) : hasIterator(value) ? new IterableSeq(value) : (maybeSingleton ? isPlainObj(value) : typeof value === 'object') ? new ObjectSeq(value) : undefined);
+	}
+	function seqFromValue(value, maybeSingleton) {
+	  var seq = maybeSeqFromValue(value, maybeSingleton);
+	  if (seq === undefined) {
+	    if (maybeSingleton) {
+	      seq = new ArraySeq([value]);
+	    } else {
+	      throw new TypeError('Expected iterable: ' + value);
+	    }
+	  }
+	  return seq;
+	}
+	function isArrayLike(value) {
+	  return value && typeof value.length === 'number';
+	}
+	function seqIterate(seq, fn, reverse, useKeys) {
+	  assertNotInfinite(seq.size);
+	  var cache = seq._cache;
+	  if (cache) {
+	    var maxIndex = cache.length - 1;
+	    for (var ii = 0; ii <= maxIndex; ii++) {
+	      var entry = cache[reverse ? maxIndex - ii : ii];
+	      if (fn(entry[1], useKeys ? entry[0] : ii, seq) === false) {
+	        return ii + 1;
+	      }
+	    }
+	    return ii;
+	  }
+	  return seq.__iterateUncached(fn, reverse);
+	}
+	function seqIterator(seq, type, reverse, useKeys) {
+	  var cache = seq._cache;
+	  if (cache) {
+	    var maxIndex = cache.length - 1;
+	    var ii = 0;
+	    return new Iterator((function() {
+	      var entry = cache[reverse ? maxIndex - ii : ii];
+	      return ii++ > maxIndex ? iteratorDone() : iteratorValue(type, useKeys ? entry[0] : ii - 1, entry[1]);
+	    }));
+	  }
+	  return seq.__iteratorUncached(type, reverse);
+	}
+	function fromJS(json, converter) {
+	  if (converter) {
+	    return _fromJSWith(converter, json, '', {'': json});
+	  }
+	  return _fromJSDefault(json);
+	}
+	function _fromJSWith(converter, json, key, parentJSON) {
+	  if (Array.isArray(json) || isPlainObj(json)) {
+	    return converter.call(parentJSON, key, Iterable(json).map((function(v, k) {
+	      return _fromJSWith(converter, v, k, json);
+	    })));
+	  }
+	  return json;
+	}
+	function _fromJSDefault(json) {
+	  if (json && typeof json === 'object') {
+	    if (Array.isArray(json)) {
+	      return Iterable(json).map(_fromJSDefault).toList();
+	    }
+	    if (json.constructor === Object) {
+	      return Iterable(json).map(_fromJSDefault).toMap();
+	    }
+	  }
+	  return json;
+	}
+	var Collection = function Collection() {
+	  throw TypeError('Abstract');
+	};
+	($traceurRuntime.createClass)(Collection, {}, {}, Iterable);
+	var KeyedCollection = function KeyedCollection() {
+	  $traceurRuntime.defaultSuperCall(this, $KeyedCollection.prototype, arguments);
+	};
+	var $KeyedCollection = KeyedCollection;
+	($traceurRuntime.createClass)(KeyedCollection, {}, {}, Collection);
+	mixin(KeyedCollection, KeyedIterable.prototype);
+	var IndexedCollection = function IndexedCollection() {
+	  $traceurRuntime.defaultSuperCall(this, $IndexedCollection.prototype, arguments);
+	};
+	var $IndexedCollection = IndexedCollection;
+	($traceurRuntime.createClass)(IndexedCollection, {}, {}, Collection);
+	mixin(IndexedCollection, IndexedIterable.prototype);
+	var SetCollection = function SetCollection() {
+	  $traceurRuntime.defaultSuperCall(this, $SetCollection.prototype, arguments);
+	};
+	var $SetCollection = SetCollection;
+	($traceurRuntime.createClass)(SetCollection, {}, {}, Collection);
+	mixin(SetCollection, SetIterable.prototype);
+	Collection.Keyed = KeyedCollection;
+	Collection.Indexed = IndexedCollection;
+	Collection.Set = SetCollection;
+	var Map = function Map(value) {
+	  return arguments.length === 0 ? emptyMap() : value && value.constructor === $Map ? value : emptyMap().merge(KeyedIterable(value));
+	};
+	var $Map = Map;
+	($traceurRuntime.createClass)(Map, {
+	  toString: function() {
+	    return this.__toString('Map {', '}');
+	  },
+	  get: function(k, notSetValue) {
+	    return this._root ? this._root.get(0, hash(k), k, notSetValue) : notSetValue;
+	  },
+	  set: function(k, v) {
+	    return updateMap(this, k, v);
+	  },
+	  setIn: function(keyPath, v) {
+	    invariant(keyPath.length > 0, 'Requires non-empty key path.');
+	    return this.updateIn(keyPath, (function() {
+	      return v;
+	    }));
+	  },
+	  remove: function(k) {
+	    return updateMap(this, k, NOT_SET);
+	  },
+	  removeIn: function(keyPath) {
+	    invariant(keyPath.length > 0, 'Requires non-empty key path.');
+	    return this.updateIn(keyPath, (function() {
+	      return NOT_SET;
+	    }));
+	  },
+	  update: function(k, notSetValue, updater) {
+	    return arguments.length === 1 ? k(this) : this.updateIn([k], notSetValue, updater);
+	  },
+	  updateIn: function(keyPath, notSetValue, updater) {
+	    if (!updater) {
+	      updater = notSetValue;
+	      notSetValue = undefined;
+	    }
+	    return keyPath.length === 0 ? updater(this) : updateInDeepMap(this, keyPath, notSetValue, updater, 0);
+	  },
+	  clear: function() {
+	    if (this.size === 0) {
+	      return this;
+	    }
+	    if (this.__ownerID) {
+	      this.size = 0;
+	      this._root = null;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return emptyMap();
+	  },
+	  merge: function() {
+	    return mergeIntoMapWith(this, undefined, arguments);
+	  },
+	  mergeWith: function(merger) {
+	    for (var iters = [],
+	        $__4 = 1; $__4 < arguments.length; $__4++)
+	      iters[$__4 - 1] = arguments[$__4];
+	    return mergeIntoMapWith(this, merger, iters);
+	  },
+	  mergeDeep: function() {
+	    return mergeIntoMapWith(this, deepMerger(undefined), arguments);
+	  },
+	  mergeDeepWith: function(merger) {
+	    for (var iters = [],
+	        $__5 = 1; $__5 < arguments.length; $__5++)
+	      iters[$__5 - 1] = arguments[$__5];
+	    return mergeIntoMapWith(this, deepMerger(merger), iters);
+	  },
+	  withMutations: function(fn) {
+	    var mutable = this.asMutable();
+	    fn(mutable);
+	    return mutable.wasAltered() ? mutable.__ensureOwner(this.__ownerID) : this;
+	  },
+	  asMutable: function() {
+	    return this.__ownerID ? this : this.__ensureOwner(new OwnerID());
+	  },
+	  asImmutable: function() {
+	    return this.__ensureOwner();
+	  },
+	  wasAltered: function() {
+	    return this.__altered;
+	  },
+	  __iterator: function(type, reverse) {
+	    return new MapIterator(this, type, reverse);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    this._root && this._root.iterate((function(entry) {
+	      iterations++;
+	      return fn(entry[1], entry[0], $__0);
+	    }), reverse);
+	    return iterations;
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      this.__altered = false;
+	      return this;
+	    }
+	    return makeMap(this.size, this._root, ownerID, this.__hash);
+	  }
+	}, {}, KeyedCollection);
+	function isMap(maybeMap) {
+	  return !!(maybeMap && maybeMap[IS_MAP_SENTINEL]);
+	}
+	Map.isMap = isMap;
+	var IS_MAP_SENTINEL = '@@__IMMUTABLE_MAP__@@';
+	var MapPrototype = Map.prototype;
+	MapPrototype[IS_MAP_SENTINEL] = true;
+	MapPrototype[DELETE] = MapPrototype.remove;
+	var BitmapIndexedNode = function BitmapIndexedNode(ownerID, bitmap, nodes) {
+	  this.ownerID = ownerID;
+	  this.bitmap = bitmap;
+	  this.nodes = nodes;
+	};
+	var $BitmapIndexedNode = BitmapIndexedNode;
+	($traceurRuntime.createClass)(BitmapIndexedNode, {
+	  get: function(shift, hash, key, notSetValue) {
+	    var bit = (1 << ((shift === 0 ? hash : hash >>> shift) & MASK));
+	    var bitmap = this.bitmap;
+	    return (bitmap & bit) === 0 ? notSetValue : this.nodes[popCount(bitmap & (bit - 1))].get(shift + SHIFT, hash, key, notSetValue);
+	  },
+	  update: function(ownerID, shift, hash, key, value, didChangeSize, didAlter) {
+	    var hashFrag = (shift === 0 ? hash : hash >>> shift) & MASK;
+	    var bit = 1 << hashFrag;
+	    var bitmap = this.bitmap;
+	    var exists = (bitmap & bit) !== 0;
+	    if (!exists && value === NOT_SET) {
+	      return this;
+	    }
+	    var idx = popCount(bitmap & (bit - 1));
+	    var nodes = this.nodes;
+	    var node = exists ? nodes[idx] : undefined;
+	    var newNode = updateNode(node, ownerID, shift + SHIFT, hash, key, value, didChangeSize, didAlter);
+	    if (newNode === node) {
+	      return this;
+	    }
+	    if (!exists && newNode && nodes.length >= MAX_BITMAP_SIZE) {
+	      return expandNodes(ownerID, nodes, bitmap, hashFrag, newNode);
+	    }
+	    if (exists && !newNode && nodes.length === 2 && isLeafNode(nodes[idx ^ 1])) {
+	      return nodes[idx ^ 1];
+	    }
+	    if (exists && newNode && nodes.length === 1 && isLeafNode(newNode)) {
+	      return newNode;
+	    }
+	    var isEditable = ownerID && ownerID === this.ownerID;
+	    var newBitmap = exists ? newNode ? bitmap : bitmap ^ bit : bitmap | bit;
+	    var newNodes = exists ? newNode ? setIn(nodes, idx, newNode, isEditable) : spliceOut(nodes, idx, isEditable) : spliceIn(nodes, idx, newNode, isEditable);
+	    if (isEditable) {
+	      this.bitmap = newBitmap;
+	      this.nodes = newNodes;
+	      return this;
+	    }
+	    return new $BitmapIndexedNode(ownerID, newBitmap, newNodes);
+	  },
+	  iterate: function(fn, reverse) {
+	    var nodes = this.nodes;
+	    for (var ii = 0,
+	        maxIndex = nodes.length - 1; ii <= maxIndex; ii++) {
+	      if (nodes[reverse ? maxIndex - ii : ii].iterate(fn, reverse) === false) {
+	        return false;
+	      }
+	    }
+	  }
+	}, {});
+	var ArrayNode = function ArrayNode(ownerID, count, nodes) {
+	  this.ownerID = ownerID;
+	  this.count = count;
+	  this.nodes = nodes;
+	};
+	var $ArrayNode = ArrayNode;
+	($traceurRuntime.createClass)(ArrayNode, {
+	  get: function(shift, hash, key, notSetValue) {
+	    var idx = (shift === 0 ? hash : hash >>> shift) & MASK;
+	    var node = this.nodes[idx];
+	    return node ? node.get(shift + SHIFT, hash, key, notSetValue) : notSetValue;
+	  },
+	  update: function(ownerID, shift, hash, key, value, didChangeSize, didAlter) {
+	    var idx = (shift === 0 ? hash : hash >>> shift) & MASK;
+	    var removed = value === NOT_SET;
+	    var nodes = this.nodes;
+	    var node = nodes[idx];
+	    if (removed && !node) {
+	      return this;
+	    }
+	    var newNode = updateNode(node, ownerID, shift + SHIFT, hash, key, value, didChangeSize, didAlter);
+	    if (newNode === node) {
+	      return this;
+	    }
+	    var newCount = this.count;
+	    if (!node) {
+	      newCount++;
+	    } else if (!newNode) {
+	      newCount--;
+	      if (newCount < MIN_ARRAY_SIZE) {
+	        return packNodes(ownerID, nodes, newCount, idx);
+	      }
+	    }
+	    var isEditable = ownerID && ownerID === this.ownerID;
+	    var newNodes = setIn(nodes, idx, newNode, isEditable);
+	    if (isEditable) {
+	      this.count = newCount;
+	      this.nodes = newNodes;
+	      return this;
+	    }
+	    return new $ArrayNode(ownerID, newCount, newNodes);
+	  },
+	  iterate: function(fn, reverse) {
+	    var nodes = this.nodes;
+	    for (var ii = 0,
+	        maxIndex = nodes.length - 1; ii <= maxIndex; ii++) {
+	      var node = nodes[reverse ? maxIndex - ii : ii];
+	      if (node && node.iterate(fn, reverse) === false) {
+	        return false;
+	      }
+	    }
+	  }
+	}, {});
+	var HashCollisionNode = function HashCollisionNode(ownerID, hash, entries) {
+	  this.ownerID = ownerID;
+	  this.hash = hash;
+	  this.entries = entries;
+	};
+	var $HashCollisionNode = HashCollisionNode;
+	($traceurRuntime.createClass)(HashCollisionNode, {
+	  get: function(shift, hash, key, notSetValue) {
+	    var entries = this.entries;
+	    for (var ii = 0,
+	        len = entries.length; ii < len; ii++) {
+	      if (is(key, entries[ii][0])) {
+	        return entries[ii][1];
+	      }
+	    }
+	    return notSetValue;
+	  },
+	  update: function(ownerID, shift, hash, key, value, didChangeSize, didAlter) {
+	    var removed = value === NOT_SET;
+	    if (hash !== this.hash) {
+	      if (removed) {
+	        return this;
+	      }
+	      SetRef(didAlter);
+	      SetRef(didChangeSize);
+	      return mergeIntoNode(this, ownerID, shift, hash, [key, value]);
+	    }
+	    var entries = this.entries;
+	    var idx = 0;
+	    for (var len = entries.length; idx < len; idx++) {
+	      if (is(key, entries[idx][0])) {
+	        break;
+	      }
+	    }
+	    var exists = idx < len;
+	    if (removed && !exists) {
+	      return this;
+	    }
+	    SetRef(didAlter);
+	    (removed || !exists) && SetRef(didChangeSize);
+	    if (removed && len === 2) {
+	      return new ValueNode(ownerID, this.hash, entries[idx ^ 1]);
+	    }
+	    var isEditable = ownerID && ownerID === this.ownerID;
+	    var newEntries = isEditable ? entries : arrCopy(entries);
+	    if (exists) {
+	      if (removed) {
+	        idx === len - 1 ? newEntries.pop() : (newEntries[idx] = newEntries.pop());
+	      } else {
+	        newEntries[idx] = [key, value];
+	      }
+	    } else {
+	      newEntries.push([key, value]);
+	    }
+	    if (isEditable) {
+	      this.entries = newEntries;
+	      return this;
+	    }
+	    return new $HashCollisionNode(ownerID, this.hash, newEntries);
+	  },
+	  iterate: function(fn, reverse) {
+	    var entries = this.entries;
+	    for (var ii = 0,
+	        maxIndex = entries.length - 1; ii <= maxIndex; ii++) {
+	      if (fn(entries[reverse ? maxIndex - ii : ii]) === false) {
+	        return false;
+	      }
+	    }
+	  }
+	}, {});
+	var ValueNode = function ValueNode(ownerID, hash, entry) {
+	  this.ownerID = ownerID;
+	  this.hash = hash;
+	  this.entry = entry;
+	};
+	var $ValueNode = ValueNode;
+	($traceurRuntime.createClass)(ValueNode, {
+	  get: function(shift, hash, key, notSetValue) {
+	    return is(key, this.entry[0]) ? this.entry[1] : notSetValue;
+	  },
+	  update: function(ownerID, shift, hash, key, value, didChangeSize, didAlter) {
+	    var removed = value === NOT_SET;
+	    var keyMatch = is(key, this.entry[0]);
+	    if (keyMatch ? value === this.entry[1] : removed) {
+	      return this;
+	    }
+	    SetRef(didAlter);
+	    if (removed) {
+	      SetRef(didChangeSize);
+	      return;
+	    }
+	    if (keyMatch) {
+	      if (ownerID && ownerID === this.ownerID) {
+	        this.entry[1] = value;
+	        return this;
+	      }
+	      return new $ValueNode(ownerID, hash, [key, value]);
+	    }
+	    SetRef(didChangeSize);
+	    return mergeIntoNode(this, ownerID, shift, hash, [key, value]);
+	  },
+	  iterate: function(fn) {
+	    return fn(this.entry);
+	  }
+	}, {});
+	var MapIterator = function MapIterator(map, type, reverse) {
+	  this._type = type;
+	  this._reverse = reverse;
+	  this._stack = map._root && mapIteratorFrame(map._root);
+	};
+	($traceurRuntime.createClass)(MapIterator, {next: function() {
+	    var type = this._type;
+	    var stack = this._stack;
+	    while (stack) {
+	      var node = stack.node;
+	      var index = stack.index++;
+	      var maxIndex;
+	      if (node.entry) {
+	        if (index === 0) {
+	          return mapIteratorValue(type, node.entry);
+	        }
+	      } else if (node.entries) {
+	        maxIndex = node.entries.length - 1;
+	        if (index <= maxIndex) {
+	          return mapIteratorValue(type, node.entries[this._reverse ? maxIndex - index : index]);
+	        }
+	      } else {
+	        maxIndex = node.nodes.length - 1;
+	        if (index <= maxIndex) {
+	          var subNode = node.nodes[this._reverse ? maxIndex - index : index];
+	          if (subNode) {
+	            if (subNode.entry) {
+	              return mapIteratorValue(type, subNode.entry);
+	            }
+	            stack = this._stack = mapIteratorFrame(subNode, stack);
+	          }
+	          continue;
+	        }
+	      }
+	      stack = this._stack = this._stack.__prev;
+	    }
+	    return iteratorDone();
+	  }}, {}, Iterator);
+	function mapIteratorValue(type, entry) {
+	  return iteratorValue(type, entry[0], entry[1]);
+	}
+	function mapIteratorFrame(node, prev) {
+	  return {
+	    node: node,
+	    index: 0,
+	    __prev: prev
+	  };
+	}
+	function makeMap(size, root, ownerID, hash) {
+	  var map = Object.create(MapPrototype);
+	  map.size = size;
+	  map._root = root;
+	  map.__ownerID = ownerID;
+	  map.__hash = hash;
+	  map.__altered = false;
+	  return map;
+	}
+	var EMPTY_MAP;
+	function emptyMap() {
+	  return EMPTY_MAP || (EMPTY_MAP = makeMap(0));
+	}
+	function updateMap(map, k, v) {
+	  var didChangeSize = MakeRef(CHANGE_LENGTH);
+	  var didAlter = MakeRef(DID_ALTER);
+	  var newRoot = updateNode(map._root, map.__ownerID, 0, hash(k), k, v, didChangeSize, didAlter);
+	  if (!didAlter.value) {
+	    return map;
+	  }
+	  var newSize = map.size + (didChangeSize.value ? v === NOT_SET ? -1 : 1 : 0);
+	  if (map.__ownerID) {
+	    map.size = newSize;
+	    map._root = newRoot;
+	    map.__hash = undefined;
+	    map.__altered = true;
+	    return map;
+	  }
+	  return newRoot ? makeMap(newSize, newRoot) : emptyMap();
+	}
+	function updateNode(node, ownerID, shift, hash, key, value, didChangeSize, didAlter) {
+	  if (!node) {
+	    if (value === NOT_SET) {
+	      return node;
+	    }
+	    SetRef(didAlter);
+	    SetRef(didChangeSize);
+	    return new ValueNode(ownerID, hash, [key, value]);
+	  }
+	  return node.update(ownerID, shift, hash, key, value, didChangeSize, didAlter);
+	}
+	function isLeafNode(node) {
+	  return node.constructor === ValueNode || node.constructor === HashCollisionNode;
+	}
+	function mergeIntoNode(node, ownerID, shift, hash, entry) {
+	  if (node.hash === hash) {
+	    return new HashCollisionNode(ownerID, hash, [node.entry, entry]);
+	  }
+	  var idx1 = (shift === 0 ? node.hash : node.hash >>> shift) & MASK;
+	  var idx2 = (shift === 0 ? hash : hash >>> shift) & MASK;
+	  var newNode;
+	  var nodes = idx1 === idx2 ? [mergeIntoNode(node, ownerID, shift + SHIFT, hash, entry)] : ((newNode = new ValueNode(ownerID, hash, entry)), idx1 < idx2 ? [node, newNode] : [newNode, node]);
+	  return new BitmapIndexedNode(ownerID, (1 << idx1) | (1 << idx2), nodes);
+	}
+	function packNodes(ownerID, nodes, count, excluding) {
+	  var bitmap = 0;
+	  var packedII = 0;
+	  var packedNodes = new Array(count);
+	  for (var ii = 0,
+	      bit = 1,
+	      len = nodes.length; ii < len; ii++, bit <<= 1) {
+	    var node = nodes[ii];
+	    if (node !== undefined && ii !== excluding) {
+	      bitmap |= bit;
+	      packedNodes[packedII++] = node;
+	    }
+	  }
+	  return new BitmapIndexedNode(ownerID, bitmap, packedNodes);
+	}
+	function expandNodes(ownerID, nodes, bitmap, including, node) {
+	  var count = 0;
+	  var expandedNodes = new Array(SIZE);
+	  for (var ii = 0; bitmap !== 0; ii++, bitmap >>>= 1) {
+	    expandedNodes[ii] = bitmap & 1 ? nodes[count++] : undefined;
+	  }
+	  expandedNodes[including] = node;
+	  return new ArrayNode(ownerID, count + 1, expandedNodes);
+	}
+	function mergeIntoMapWith(map, merger, iterables) {
+	  var iters = [];
+	  for (var ii = 0; ii < iterables.length; ii++) {
+	    var value = iterables[ii];
+	    var iter = KeyedIterable(value);
+	    if (!isIterable(value)) {
+	      iter = iter.map((function(v) {
+	        return fromJS(v);
+	      }));
+	    }
+	    iters.push(iter);
+	  }
+	  return mergeIntoCollectionWith(map, merger, iters);
+	}
+	function deepMerger(merger) {
+	  return (function(existing, value) {
+	    return existing && existing.mergeDeepWith && isIterable(value) ? existing.mergeDeepWith(merger, value) : merger ? merger(existing, value) : value;
+	  });
+	}
+	function mergeIntoCollectionWith(collection, merger, iters) {
+	  if (iters.length === 0) {
+	    return collection;
+	  }
+	  return collection.withMutations((function(collection) {
+	    var mergeIntoMap = merger ? (function(value, key) {
+	      collection.update(key, NOT_SET, (function(existing) {
+	        return existing === NOT_SET ? value : merger(existing, value);
+	      }));
+	    }) : (function(value, key) {
+	      collection.set(key, value);
+	    });
+	    for (var ii = 0; ii < iters.length; ii++) {
+	      iters[ii].forEach(mergeIntoMap);
+	    }
+	  }));
+	}
+	function updateInDeepMap(collection, keyPath, notSetValue, updater, offset) {
+	  invariant(!collection || collection.set, 'updateIn with invalid keyPath');
+	  var key = keyPath[offset];
+	  var existing = collection ? collection.get(key, NOT_SET) : NOT_SET;
+	  var existingValue = existing === NOT_SET ? undefined : existing;
+	  var value = offset === keyPath.length - 1 ? updater(existing === NOT_SET ? notSetValue : existing) : updateInDeepMap(existingValue, keyPath, notSetValue, updater, offset + 1);
+	  return value === existingValue ? collection : value === NOT_SET ? collection && collection.remove(key) : (collection || emptyMap()).set(key, value);
+	}
+	function popCount(x) {
+	  x = x - ((x >> 1) & 0x55555555);
+	  x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+	  x = (x + (x >> 4)) & 0x0f0f0f0f;
+	  x = x + (x >> 8);
+	  x = x + (x >> 16);
+	  return x & 0x7f;
+	}
+	function setIn(array, idx, val, canEdit) {
+	  var newArray = canEdit ? array : arrCopy(array);
+	  newArray[idx] = val;
+	  return newArray;
+	}
+	function spliceIn(array, idx, val, canEdit) {
+	  var newLen = array.length + 1;
+	  if (canEdit && idx + 1 === newLen) {
+	    array[idx] = val;
+	    return array;
+	  }
+	  var newArray = new Array(newLen);
+	  var after = 0;
+	  for (var ii = 0; ii < newLen; ii++) {
+	    if (ii === idx) {
+	      newArray[ii] = val;
+	      after = -1;
+	    } else {
+	      newArray[ii] = array[ii + after];
+	    }
+	  }
+	  return newArray;
+	}
+	function spliceOut(array, idx, canEdit) {
+	  var newLen = array.length - 1;
+	  if (canEdit && idx === newLen) {
+	    array.pop();
+	    return array;
+	  }
+	  var newArray = new Array(newLen);
+	  var after = 0;
+	  for (var ii = 0; ii < newLen; ii++) {
+	    if (ii === idx) {
+	      after = 1;
+	    }
+	    newArray[ii] = array[ii + after];
+	  }
+	  return newArray;
+	}
+	var MAX_BITMAP_SIZE = SIZE / 2;
+	var MIN_ARRAY_SIZE = SIZE / 4;
+	var ToKeyedSequence = function ToKeyedSequence(indexed, useKeys) {
+	  this._iter = indexed;
+	  this._useKeys = useKeys;
+	  this.size = indexed.size;
+	};
+	($traceurRuntime.createClass)(ToKeyedSequence, {
+	  get: function(key, notSetValue) {
+	    return this._iter.get(key, notSetValue);
+	  },
+	  has: function(key) {
+	    return this._iter.has(key);
+	  },
+	  valueSeq: function() {
+	    return this._iter.valueSeq();
+	  },
+	  reverse: function() {
+	    var $__0 = this;
+	    var reversedSequence = reverseFactory(this, true);
+	    if (!this._useKeys) {
+	      reversedSequence.valueSeq = (function() {
+	        return $__0._iter.toSeq().reverse();
+	      });
+	    }
+	    return reversedSequence;
+	  },
+	  map: function(mapper, context) {
+	    var $__0 = this;
+	    var mappedSequence = mapFactory(this, mapper, context);
+	    if (!this._useKeys) {
+	      mappedSequence.valueSeq = (function() {
+	        return $__0._iter.toSeq().map(mapper, context);
+	      });
+	    }
+	    return mappedSequence;
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    var ii;
+	    return this._iter.__iterate(this._useKeys ? (function(v, k) {
+	      return fn(v, k, $__0);
+	    }) : ((ii = reverse ? resolveSize(this) : 0), (function(v) {
+	      return fn(v, reverse ? --ii : ii++, $__0);
+	    })), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    if (this._useKeys) {
+	      return this._iter.__iterator(type, reverse);
+	    }
+	    var iterator = this._iter.__iterator(ITERATE_VALUES, reverse);
+	    var ii = reverse ? resolveSize(this) : 0;
+	    return new Iterator((function() {
+	      var step = iterator.next();
+	      return step.done ? step : iteratorValue(type, reverse ? --ii : ii++, step.value, step);
+	    }));
+	  }
+	}, {}, KeyedSeq);
+	var ToIndexedSequence = function ToIndexedSequence(iter) {
+	  this._iter = iter;
+	  this.size = iter.size;
+	};
+	($traceurRuntime.createClass)(ToIndexedSequence, {
+	  contains: function(value) {
+	    return this._iter.contains(value);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    return this._iter.__iterate((function(v) {
+	      return fn(v, iterations++, $__0);
+	    }), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    var iterator = this._iter.__iterator(ITERATE_VALUES, reverse);
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      var step = iterator.next();
+	      return step.done ? step : iteratorValue(type, iterations++, step.value, step);
+	    }));
+	  }
+	}, {}, IndexedSeq);
+	var ToSetSequence = function ToSetSequence(iter) {
+	  this._iter = iter;
+	  this.size = iter.size;
+	};
+	($traceurRuntime.createClass)(ToSetSequence, {
+	  has: function(key) {
+	    return this._iter.contains(key);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    return this._iter.__iterate((function(v) {
+	      return fn(v, v, $__0);
+	    }), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    var iterator = this._iter.__iterator(ITERATE_VALUES, reverse);
+	    return new Iterator((function() {
+	      var step = iterator.next();
+	      return step.done ? step : iteratorValue(type, step.value, step.value, step);
+	    }));
+	  }
+	}, {}, SetSeq);
+	var FromEntriesSequence = function FromEntriesSequence(entries) {
+	  this._iter = entries;
+	  this.size = entries.size;
+	};
+	($traceurRuntime.createClass)(FromEntriesSequence, {
+	  entrySeq: function() {
+	    return this._iter.toSeq();
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    return this._iter.__iterate((function(entry) {
+	      if (entry) {
+	        validateEntry(entry);
+	        return fn(entry[1], entry[0], $__0);
+	      }
+	    }), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    var iterator = this._iter.__iterator(ITERATE_VALUES, reverse);
+	    return new Iterator((function() {
+	      while (true) {
+	        var step = iterator.next();
+	        if (step.done) {
+	          return step;
+	        }
+	        var entry = step.value;
+	        if (entry) {
+	          validateEntry(entry);
+	          return type === ITERATE_ENTRIES ? step : iteratorValue(type, entry[0], entry[1], step);
+	        }
+	      }
+	    }));
+	  }
+	}, {}, KeyedSeq);
+	ToIndexedSequence.prototype.cacheResult = ToKeyedSequence.prototype.cacheResult = ToSetSequence.prototype.cacheResult = FromEntriesSequence.prototype.cacheResult = cacheResultThrough;
+	function flipFactory(iterable) {
+	  var flipSequence = makeSequence(iterable);
+	  flipSequence._iter = iterable;
+	  flipSequence.size = iterable.size;
+	  flipSequence.flip = (function() {
+	    return iterable;
+	  });
+	  flipSequence.reverse = function() {
+	    var reversedSequence = iterable.reverse.apply(this);
+	    reversedSequence.flip = (function() {
+	      return iterable.reverse();
+	    });
+	    return reversedSequence;
+	  };
+	  flipSequence.has = (function(key) {
+	    return iterable.contains(key);
+	  });
+	  flipSequence.contains = (function(key) {
+	    return iterable.has(key);
+	  });
+	  flipSequence.cacheResult = cacheResultThrough;
+	  flipSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    return iterable.__iterate((function(v, k) {
+	      return fn(k, v, $__0) !== false;
+	    }), reverse);
+	  };
+	  flipSequence.__iteratorUncached = function(type, reverse) {
+	    if (type === ITERATE_ENTRIES) {
+	      var iterator = iterable.__iterator(type, reverse);
+	      return new Iterator((function() {
+	        var step = iterator.next();
+	        if (!step.done) {
+	          var k = step.value[0];
+	          step.value[0] = step.value[1];
+	          step.value[1] = k;
+	        }
+	        return step;
+	      }));
+	    }
+	    return iterable.__iterator(type === ITERATE_VALUES ? ITERATE_KEYS : ITERATE_VALUES, reverse);
+	  };
+	  return flipSequence;
+	}
+	function mapFactory(iterable, mapper, context) {
+	  var mappedSequence = makeSequence(iterable);
+	  mappedSequence.size = iterable.size;
+	  mappedSequence.has = (function(key) {
+	    return iterable.has(key);
+	  });
+	  mappedSequence.get = (function(key, notSetValue) {
+	    var v = iterable.get(key, NOT_SET);
+	    return v === NOT_SET ? notSetValue : mapper.call(context, v, key, iterable);
+	  });
+	  mappedSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    return iterable.__iterate((function(v, k, c) {
+	      return fn(mapper.call(context, v, k, c), k, $__0) !== false;
+	    }), reverse);
+	  };
+	  mappedSequence.__iteratorUncached = function(type, reverse) {
+	    var iterator = iterable.__iterator(ITERATE_ENTRIES, reverse);
+	    return new Iterator((function() {
+	      var step = iterator.next();
+	      if (step.done) {
+	        return step;
+	      }
+	      var entry = step.value;
+	      var key = entry[0];
+	      return iteratorValue(type, key, mapper.call(context, entry[1], key, iterable), step);
+	    }));
+	  };
+	  return mappedSequence;
+	}
+	function reverseFactory(iterable, useKeys) {
+	  var reversedSequence = makeSequence(iterable);
+	  reversedSequence._iter = iterable;
+	  reversedSequence.size = iterable.size;
+	  reversedSequence.reverse = (function() {
+	    return iterable;
+	  });
+	  if (iterable.flip) {
+	    reversedSequence.flip = function() {
+	      var flipSequence = flipFactory(iterable);
+	      flipSequence.reverse = (function() {
+	        return iterable.flip();
+	      });
+	      return flipSequence;
+	    };
+	  }
+	  reversedSequence.get = (function(key, notSetValue) {
+	    return iterable.get(useKeys ? key : -1 - key, notSetValue);
+	  });
+	  reversedSequence.has = (function(key) {
+	    return iterable.has(useKeys ? key : -1 - key);
+	  });
+	  reversedSequence.contains = (function(value) {
+	    return iterable.contains(value);
+	  });
+	  reversedSequence.cacheResult = cacheResultThrough;
+	  reversedSequence.__iterate = function(fn, reverse) {
+	    var $__0 = this;
+	    return iterable.__iterate((function(v, k) {
+	      return fn(v, k, $__0);
+	    }), !reverse);
+	  };
+	  reversedSequence.__iterator = (function(type, reverse) {
+	    return iterable.__iterator(type, !reverse);
+	  });
+	  return reversedSequence;
+	}
+	function filterFactory(iterable, predicate, context, useKeys) {
+	  var filterSequence = makeSequence(iterable);
+	  if (useKeys) {
+	    filterSequence.has = (function(key) {
+	      var v = iterable.get(key, NOT_SET);
+	      return v !== NOT_SET && !!predicate.call(context, v, key, iterable);
+	    });
+	    filterSequence.get = (function(key, notSetValue) {
+	      var v = iterable.get(key, NOT_SET);
+	      return v !== NOT_SET && predicate.call(context, v, key, iterable) ? v : notSetValue;
+	    });
+	  }
+	  filterSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k, c) {
+	      if (predicate.call(context, v, k, c)) {
+	        iterations++;
+	        return fn(v, useKeys ? k : iterations - 1, $__0);
+	      }
+	    }), reverse);
+	    return iterations;
+	  };
+	  filterSequence.__iteratorUncached = function(type, reverse) {
+	    var iterator = iterable.__iterator(ITERATE_ENTRIES, reverse);
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      while (true) {
+	        var step = iterator.next();
+	        if (step.done) {
+	          return step;
+	        }
+	        var entry = step.value;
+	        var key = entry[0];
+	        var value = entry[1];
+	        if (predicate.call(context, value, key, iterable)) {
+	          return iteratorValue(type, useKeys ? key : iterations++, value, step);
+	        }
+	      }
+	    }));
+	  };
+	  return filterSequence;
+	}
+	function countByFactory(iterable, grouper, context) {
+	  var groups = Map().asMutable();
+	  iterable.__iterate((function(v, k) {
+	    groups.update(grouper.call(context, v, k, iterable), 0, (function(a) {
+	      return a + 1;
+	    }));
+	  }));
+	  return groups.asImmutable();
+	}
+	function groupByFactory(iterable, grouper, context) {
+	  var isKeyedIter = isKeyed(iterable);
+	  var groups = Map().asMutable();
+	  iterable.__iterate((function(v, k) {
+	    groups.update(grouper.call(context, v, k, iterable), [], (function(a) {
+	      return (a.push(isKeyedIter ? [k, v] : v), a);
+	    }));
+	  }));
+	  var coerce = iterableClass(iterable);
+	  return groups.map((function(arr) {
+	    return reify(iterable, coerce(arr));
+	  }));
+	}
+	function takeFactory(iterable, amount) {
+	  if (amount > iterable.size) {
+	    return iterable;
+	  }
+	  if (amount < 0) {
+	    amount = 0;
+	  }
+	  var takeSequence = makeSequence(iterable);
+	  takeSequence.size = iterable.size && Math.min(iterable.size, amount);
+	  takeSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    if (amount === 0) {
+	      return 0;
+	    }
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k) {
+	      return ++iterations && fn(v, k, $__0) !== false && iterations < amount;
+	    }));
+	    return iterations;
+	  };
+	  takeSequence.__iteratorUncached = function(type, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterator = amount && iterable.__iterator(type, reverse);
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      if (iterations++ > amount) {
+	        return iteratorDone();
+	      }
+	      return iterator.next();
+	    }));
+	  };
+	  return takeSequence;
+	}
+	function takeWhileFactory(iterable, predicate, context) {
+	  var takeSequence = makeSequence(iterable);
+	  takeSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k, c) {
+	      return predicate.call(context, v, k, c) && ++iterations && fn(v, k, $__0);
+	    }));
+	    return iterations;
+	  };
+	  takeSequence.__iteratorUncached = function(type, reverse) {
+	    var $__0 = this;
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterator = iterable.__iterator(ITERATE_ENTRIES, reverse);
+	    var iterating = true;
+	    return new Iterator((function() {
+	      if (!iterating) {
+	        return iteratorDone();
+	      }
+	      var step = iterator.next();
+	      if (step.done) {
+	        return step;
+	      }
+	      var entry = step.value;
+	      var k = entry[0];
+	      var v = entry[1];
+	      if (!predicate.call(context, v, k, $__0)) {
+	        iterating = false;
+	        return iteratorDone();
+	      }
+	      return type === ITERATE_ENTRIES ? step : iteratorValue(type, k, v, step);
+	    }));
+	  };
+	  return takeSequence;
+	}
+	function skipFactory(iterable, amount, useKeys) {
+	  if (amount <= 0) {
+	    return iterable;
+	  }
+	  var skipSequence = makeSequence(iterable);
+	  skipSequence.size = iterable.size && Math.max(0, iterable.size - amount);
+	  skipSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var skipped = 0;
+	    var isSkipping = true;
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k) {
+	      if (!(isSkipping && (isSkipping = skipped++ < amount))) {
+	        iterations++;
+	        return fn(v, useKeys ? k : iterations - 1, $__0);
+	      }
+	    }));
+	    return iterations;
+	  };
+	  skipSequence.__iteratorUncached = function(type, reverse) {
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterator = amount && iterable.__iterator(type, reverse);
+	    var skipped = 0;
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      while (skipped < amount) {
+	        skipped++;
+	        iterator.next();
+	      }
+	      var step = iterator.next();
+	      if (useKeys || type === ITERATE_VALUES) {
+	        return step;
+	      } else if (type === ITERATE_KEYS) {
+	        return iteratorValue(type, iterations++, undefined, step);
+	      } else {
+	        return iteratorValue(type, iterations++, step.value[1], step);
+	      }
+	    }));
+	  };
+	  return skipSequence;
+	}
+	function skipWhileFactory(iterable, predicate, context, useKeys) {
+	  var skipSequence = makeSequence(iterable);
+	  skipSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    if (reverse) {
+	      return this.cacheResult().__iterate(fn, reverse);
+	    }
+	    var isSkipping = true;
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k, c) {
+	      if (!(isSkipping && (isSkipping = predicate.call(context, v, k, c)))) {
+	        iterations++;
+	        return fn(v, useKeys ? k : iterations - 1, $__0);
+	      }
+	    }));
+	    return iterations;
+	  };
+	  skipSequence.__iteratorUncached = function(type, reverse) {
+	    var $__0 = this;
+	    if (reverse) {
+	      return this.cacheResult().__iterator(type, reverse);
+	    }
+	    var iterator = iterable.__iterator(ITERATE_ENTRIES, reverse);
+	    var skipping = true;
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      var step,
+	          k,
+	          v;
+	      do {
+	        step = iterator.next();
+	        if (step.done) {
+	          if (useKeys || type === ITERATE_VALUES) {
+	            return step;
+	          } else if (type === ITERATE_KEYS) {
+	            return iteratorValue(type, iterations++, undefined, step);
+	          } else {
+	            return iteratorValue(type, iterations++, step.value[1], step);
+	          }
+	        }
+	        var entry = step.value;
+	        k = entry[0];
+	        v = entry[1];
+	        skipping && (skipping = predicate.call(context, v, k, $__0));
+	      } while (skipping);
+	      return type === ITERATE_ENTRIES ? step : iteratorValue(type, k, v, step);
+	    }));
+	  };
+	  return skipSequence;
+	}
+	function concatFactory(iterable, values, useKeys) {
+	  var isKeyedIter = isKeyed(iterable);
+	  var iters = new ArraySeq([iterable].concat(values)).map((function(v) {
+	    if (!isIterable(v)) {
+	      v = seqFromValue(v, true);
+	    }
+	    if (isKeyedIter) {
+	      v = KeyedIterable(v);
+	    }
+	    return v;
+	  }));
+	  if (isKeyedIter) {
+	    iters = iters.toKeyedSeq();
+	  } else if (!isIndexed(iterable)) {
+	    iters = iters.toSetSeq();
+	  }
+	  var flat = iters.flatten(true);
+	  flat.size = iters.reduce((function(sum, seq) {
+	    if (sum !== undefined) {
+	      var size = seq.size;
+	      if (size !== undefined) {
+	        return sum + size;
+	      }
+	    }
+	  }), 0);
+	  return flat;
+	}
+	function flattenFactory(iterable, depth, useKeys) {
+	  var flatSequence = makeSequence(iterable);
+	  flatSequence.__iterateUncached = function(fn, reverse) {
+	    var iterations = 0;
+	    var stopped = false;
+	    function flatDeep(iter, currentDepth) {
+	      var $__0 = this;
+	      iter.__iterate((function(v, k) {
+	        if ((!depth || currentDepth < depth) && isIterable(v)) {
+	          flatDeep(v, currentDepth + 1);
+	        } else if (fn(v, useKeys ? k : iterations++, $__0) === false) {
+	          stopped = true;
+	        }
+	        return !stopped;
+	      }), reverse);
+	    }
+	    flatDeep(iterable, 0);
+	    return iterations;
+	  };
+	  flatSequence.__iteratorUncached = function(type, reverse) {
+	    var iterator = iterable.__iterator(type, reverse);
+	    var stack = [];
+	    var iterations = 0;
+	    return new Iterator((function() {
+	      while (iterator) {
+	        var step = iterator.next();
+	        if (step.done !== false) {
+	          iterator = stack.pop();
+	          continue;
+	        }
+	        var v = step.value;
+	        if (type === ITERATE_ENTRIES) {
+	          v = v[1];
+	        }
+	        if ((!depth || stack.length < depth) && isIterable(v)) {
+	          stack.push(iterator);
+	          iterator = v.__iterator(type, reverse);
+	        } else {
+	          return useKeys ? step : iteratorValue(type, iterations++, v, step);
+	        }
+	      }
+	      return iteratorDone();
+	    }));
+	  };
+	  return flatSequence;
+	}
+	function flatMapFactory(iterable, mapper, context) {
+	  var coerce = iterableClass(iterable);
+	  return iterable.toSeq().map((function(v, k) {
+	    return coerce(mapper.call(context, v, k, iterable));
+	  })).flatten(true);
+	}
+	function interposeFactory(iterable, separator) {
+	  var interposedSequence = makeSequence(iterable);
+	  interposedSequence.size = iterable.size && iterable.size * 2 - 1;
+	  interposedSequence.__iterateUncached = function(fn, reverse) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    iterable.__iterate((function(v, k) {
+	      return (!iterations || fn(separator, iterations++, $__0) !== false) && fn(v, iterations++, $__0) !== false;
+	    }), reverse);
+	    return iterations;
+	  };
+	  interposedSequence.__iteratorUncached = function(type, reverse) {
+	    var iterator = iterable.__iterator(ITERATE_VALUES, reverse);
+	    var iterations = 0;
+	    var step;
+	    return new Iterator((function() {
+	      if (!step || iterations % 2) {
+	        step = iterator.next();
+	        if (step.done) {
+	          return step;
+	        }
+	      }
+	      return iterations % 2 ? iteratorValue(type, iterations++, separator) : iteratorValue(type, iterations++, step.value, step);
+	    }));
+	  };
+	  return interposedSequence;
+	}
+	function reify(iter, seq) {
+	  return isSeq(iter) ? seq : iter.constructor(seq);
+	}
+	function validateEntry(entry) {
+	  if (entry !== Object(entry)) {
+	    throw new TypeError('Expected [K, V] tuple: ' + entry);
+	  }
+	}
+	function resolveSize(iter) {
+	  assertNotInfinite(iter.size);
+	  return ensureSize(iter);
+	}
+	function iterableClass(iterable) {
+	  return isKeyed(iterable) ? KeyedIterable : isIndexed(iterable) ? IndexedIterable : SetIterable;
+	}
+	function makeSequence(iterable) {
+	  return Object.create((isKeyed(iterable) ? KeyedSeq : isIndexed(iterable) ? IndexedSeq : SetSeq).prototype);
+	}
+	function cacheResultThrough() {
+	  if (this._iter.cacheResult) {
+	    this._iter.cacheResult();
+	    this.size = this._iter.size;
+	    return this;
+	  } else {
+	    return Seq.prototype.cacheResult.call(this);
+	  }
+	}
+	var List = function List(value) {
+	  var empty = emptyList();
+	  if (arguments.length === 0) {
+	    return empty;
+	  }
+	  if (value && value.constructor === $List) {
+	    return value;
+	  }
+	  value = Iterable(value);
+	  var size = value.size;
+	  if (size === 0) {
+	    return empty;
+	  }
+	  if (size > 0 && size < SIZE) {
+	    return makeList(0, size, SHIFT, null, new VNode(value.toArray()));
+	  }
+	  return empty.merge(value);
+	};
+	var $List = List;
+	($traceurRuntime.createClass)(List, {
+	  toString: function() {
+	    return this.__toString('List [', ']');
+	  },
+	  get: function(index, notSetValue) {
+	    index = wrapIndex(this, index);
+	    if (index < 0 || index >= this.size) {
+	      return notSetValue;
+	    }
+	    index += this._origin;
+	    var node = listNodeFor(this, index);
+	    return node && node.array[index & MASK];
+	  },
+	  set: function(index, value) {
+	    return updateList(this, index, value);
+	  },
+	  remove: function(index) {
+	    return !this.has(index) ? this : index === 0 ? this.shift() : index === this.size - 1 ? this.pop() : this.splice(index, 1);
+	  },
+	  clear: function() {
+	    if (this.size === 0) {
+	      return this;
+	    }
+	    if (this.__ownerID) {
+	      this.size = this._origin = this._capacity = 0;
+	      this._level = SHIFT;
+	      this._root = this._tail = null;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return emptyList();
+	  },
+	  push: function() {
+	    var values = arguments;
+	    var oldSize = this.size;
+	    return this.withMutations((function(list) {
+	      setListBounds(list, 0, oldSize + values.length);
+	      for (var ii = 0; ii < values.length; ii++) {
+	        list.set(oldSize + ii, values[ii]);
+	      }
+	    }));
+	  },
+	  pop: function() {
+	    return setListBounds(this, 0, -1);
+	  },
+	  unshift: function() {
+	    var values = arguments;
+	    return this.withMutations((function(list) {
+	      setListBounds(list, -values.length);
+	      for (var ii = 0; ii < values.length; ii++) {
+	        list.set(ii, values[ii]);
+	      }
+	    }));
+	  },
+	  shift: function() {
+	    return setListBounds(this, 1);
+	  },
+	  merge: function() {
+	    return mergeIntoListWith(this, undefined, arguments);
+	  },
+	  mergeWith: function(merger) {
+	    for (var iters = [],
+	        $__6 = 1; $__6 < arguments.length; $__6++)
+	      iters[$__6 - 1] = arguments[$__6];
+	    return mergeIntoListWith(this, merger, iters);
+	  },
+	  mergeDeep: function() {
+	    return mergeIntoListWith(this, deepMerger(undefined), arguments);
+	  },
+	  mergeDeepWith: function(merger) {
+	    for (var iters = [],
+	        $__7 = 1; $__7 < arguments.length; $__7++)
+	      iters[$__7 - 1] = arguments[$__7];
+	    return mergeIntoListWith(this, deepMerger(merger), iters);
+	  },
+	  setSize: function(size) {
+	    return setListBounds(this, 0, size);
+	  },
+	  slice: function(begin, end) {
+	    var size = this.size;
+	    if (wholeSlice(begin, end, size)) {
+	      return this;
+	    }
+	    return setListBounds(this, resolveBegin(begin, size), resolveEnd(end, size));
+	  },
+	  __iterator: function(type, reverse) {
+	    return new ListIterator(this, type, reverse);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    var iterations = 0;
+	    var eachFn = (function(v) {
+	      return fn(v, iterations++, $__0);
+	    });
+	    var tailOffset = getTailOffset(this._capacity);
+	    if (reverse) {
+	      iterateVNode(this._tail, 0, tailOffset - this._origin, this._capacity - this._origin, eachFn, reverse) && iterateVNode(this._root, this._level, -this._origin, tailOffset - this._origin, eachFn, reverse);
+	    } else {
+	      iterateVNode(this._root, this._level, -this._origin, tailOffset - this._origin, eachFn, reverse) && iterateVNode(this._tail, 0, tailOffset - this._origin, this._capacity - this._origin, eachFn, reverse);
+	    }
+	    return iterations;
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      return this;
+	    }
+	    return makeList(this._origin, this._capacity, this._level, this._root, this._tail, ownerID, this.__hash);
+	  }
+	}, {of: function() {
+	    return this(arguments);
+	  }}, IndexedCollection);
+	function isList(maybeList) {
+	  return !!(maybeList && maybeList[IS_LIST_SENTINEL]);
+	}
+	List.isList = isList;
+	var IS_LIST_SENTINEL = '@@__IMMUTABLE_LIST__@@';
+	var ListPrototype = List.prototype;
+	ListPrototype[IS_LIST_SENTINEL] = true;
+	ListPrototype[DELETE] = ListPrototype.remove;
+	ListPrototype.setIn = MapPrototype.setIn;
+	ListPrototype.removeIn = MapPrototype.removeIn;
+	ListPrototype.update = MapPrototype.update;
+	ListPrototype.updateIn = MapPrototype.updateIn;
+	ListPrototype.withMutations = MapPrototype.withMutations;
+	ListPrototype.asMutable = MapPrototype.asMutable;
+	ListPrototype.asImmutable = MapPrototype.asImmutable;
+	ListPrototype.wasAltered = MapPrototype.wasAltered;
+	var VNode = function VNode(array, ownerID) {
+	  this.array = array;
+	  this.ownerID = ownerID;
+	};
+	var $VNode = VNode;
+	($traceurRuntime.createClass)(VNode, {
+	  removeBefore: function(ownerID, level, index) {
+	    if (index === level ? 1 << level : 0 || this.array.length === 0) {
+	      return this;
+	    }
+	    var originIndex = (index >>> level) & MASK;
+	    if (originIndex >= this.array.length) {
+	      return new $VNode([], ownerID);
+	    }
+	    var removingFirst = originIndex === 0;
+	    var newChild;
+	    if (level > 0) {
+	      var oldChild = this.array[originIndex];
+	      newChild = oldChild && oldChild.removeBefore(ownerID, level - SHIFT, index);
+	      if (newChild === oldChild && removingFirst) {
+	        return this;
+	      }
+	    }
+	    if (removingFirst && !newChild) {
+	      return this;
+	    }
+	    var editable = editableVNode(this, ownerID);
+	    if (!removingFirst) {
+	      for (var ii = 0; ii < originIndex; ii++) {
+	        editable.array[ii] = undefined;
+	      }
+	    }
+	    if (newChild) {
+	      editable.array[originIndex] = newChild;
+	    }
+	    return editable;
+	  },
+	  removeAfter: function(ownerID, level, index) {
+	    if (index === level ? 1 << level : 0 || this.array.length === 0) {
+	      return this;
+	    }
+	    var sizeIndex = ((index - 1) >>> level) & MASK;
+	    if (sizeIndex >= this.array.length) {
+	      return this;
+	    }
+	    var removingLast = sizeIndex === this.array.length - 1;
+	    var newChild;
+	    if (level > 0) {
+	      var oldChild = this.array[sizeIndex];
+	      newChild = oldChild && oldChild.removeAfter(ownerID, level - SHIFT, index);
+	      if (newChild === oldChild && removingLast) {
+	        return this;
+	      }
+	    }
+	    if (removingLast && !newChild) {
+	      return this;
+	    }
+	    var editable = editableVNode(this, ownerID);
+	    if (!removingLast) {
+	      editable.array.pop();
+	    }
+	    if (newChild) {
+	      editable.array[sizeIndex] = newChild;
+	    }
+	    return editable;
+	  }
+	}, {});
+	function iterateVNode(node, level, offset, max, fn, reverse) {
+	  var ii;
+	  var array = node && node.array;
+	  if (level === 0) {
+	    var from = offset < 0 ? -offset : 0;
+	    var to = max - offset;
+	    if (to > SIZE) {
+	      to = SIZE;
+	    }
+	    for (ii = from; ii < to; ii++) {
+	      if (fn(array && array[reverse ? from + to - 1 - ii : ii]) === false) {
+	        return false;
+	      }
+	    }
+	  } else {
+	    var step = 1 << level;
+	    var newLevel = level - SHIFT;
+	    for (ii = 0; ii <= MASK; ii++) {
+	      var levelIndex = reverse ? MASK - ii : ii;
+	      var newOffset = offset + (levelIndex << level);
+	      if (newOffset < max && newOffset + step > 0) {
+	        var nextNode = array && array[levelIndex];
+	        if (!iterateVNode(nextNode, newLevel, newOffset, max, fn, reverse)) {
+	          return false;
+	        }
+	      }
+	    }
+	  }
+	  return true;
+	}
+	var ListIterator = function ListIterator(list, type, reverse) {
+	  this._type = type;
+	  this._reverse = !!reverse;
+	  this._maxIndex = list.size - 1;
+	  var tailOffset = getTailOffset(list._capacity);
+	  var rootStack = listIteratorFrame(list._root && list._root.array, list._level, -list._origin, tailOffset - list._origin - 1);
+	  var tailStack = listIteratorFrame(list._tail && list._tail.array, 0, tailOffset - list._origin, list._capacity - list._origin - 1);
+	  this._stack = reverse ? tailStack : rootStack;
+	  this._stack.__prev = reverse ? rootStack : tailStack;
+	};
+	($traceurRuntime.createClass)(ListIterator, {next: function() {
+	    var stack = this._stack;
+	    while (stack) {
+	      var array = stack.array;
+	      var rawIndex = stack.index++;
+	      if (this._reverse) {
+	        rawIndex = MASK - rawIndex;
+	        if (rawIndex > stack.rawMax) {
+	          rawIndex = stack.rawMax;
+	          stack.index = SIZE - rawIndex;
+	        }
+	      }
+	      if (rawIndex >= 0 && rawIndex < SIZE && rawIndex <= stack.rawMax) {
+	        var value = array && array[rawIndex];
+	        if (stack.level === 0) {
+	          var type = this._type;
+	          var index;
+	          if (type !== 1) {
+	            index = stack.offset + (rawIndex << stack.level);
+	            if (this._reverse) {
+	              index = this._maxIndex - index;
+	            }
+	          }
+	          return iteratorValue(type, index, value);
+	        } else {
+	          this._stack = stack = listIteratorFrame(value && value.array, stack.level - SHIFT, stack.offset + (rawIndex << stack.level), stack.max, stack);
+	        }
+	        continue;
+	      }
+	      stack = this._stack = this._stack.__prev;
+	    }
+	    return iteratorDone();
+	  }}, {}, Iterator);
+	function listIteratorFrame(array, level, offset, max, prevFrame) {
+	  return {
+	    array: array,
+	    level: level,
+	    offset: offset,
+	    max: max,
+	    rawMax: ((max - offset) >> level),
+	    index: 0,
+	    __prev: prevFrame
+	  };
+	}
+	function makeList(origin, capacity, level, root, tail, ownerID, hash) {
+	  var list = Object.create(ListPrototype);
+	  list.size = capacity - origin;
+	  list._origin = origin;
+	  list._capacity = capacity;
+	  list._level = level;
+	  list._root = root;
+	  list._tail = tail;
+	  list.__ownerID = ownerID;
+	  list.__hash = hash;
+	  list.__altered = false;
+	  return list;
+	}
+	var EMPTY_LIST;
+	function emptyList() {
+	  return EMPTY_LIST || (EMPTY_LIST = makeList(0, 0, SHIFT));
+	}
+	function updateList(list, index, value) {
+	  index = wrapIndex(list, index);
+	  if (index >= list.size || index < 0) {
+	    return list.withMutations((function(list) {
+	      index < 0 ? setListBounds(list, index).set(0, value) : setListBounds(list, 0, index + 1).set(index, value);
+	    }));
+	  }
+	  index += list._origin;
+	  var newTail = list._tail;
+	  var newRoot = list._root;
+	  var didAlter = MakeRef(DID_ALTER);
+	  if (index >= getTailOffset(list._capacity)) {
+	    newTail = updateVNode(newTail, list.__ownerID, 0, index, value, didAlter);
+	  } else {
+	    newRoot = updateVNode(newRoot, list.__ownerID, list._level, index, value, didAlter);
+	  }
+	  if (!didAlter.value) {
+	    return list;
+	  }
+	  if (list.__ownerID) {
+	    list._root = newRoot;
+	    list._tail = newTail;
+	    list.__hash = undefined;
+	    list.__altered = true;
+	    return list;
+	  }
+	  return makeList(list._origin, list._capacity, list._level, newRoot, newTail);
+	}
+	function updateVNode(node, ownerID, level, index, value, didAlter) {
+	  var idx = (index >>> level) & MASK;
+	  var nodeHas = node && idx < node.array.length;
+	  if (!nodeHas && value === undefined) {
+	    return node;
+	  }
+	  var newNode;
+	  if (level > 0) {
+	    var lowerNode = node && node.array[idx];
+	    var newLowerNode = updateVNode(lowerNode, ownerID, level - SHIFT, index, value, didAlter);
+	    if (newLowerNode === lowerNode) {
+	      return node;
+	    }
+	    newNode = editableVNode(node, ownerID);
+	    newNode.array[idx] = newLowerNode;
+	    return newNode;
+	  }
+	  if (nodeHas && node.array[idx] === value) {
+	    return node;
+	  }
+	  SetRef(didAlter);
+	  newNode = editableVNode(node, ownerID);
+	  if (value === undefined && idx === newNode.array.length - 1) {
+	    newNode.array.pop();
+	  } else {
+	    newNode.array[idx] = value;
+	  }
+	  return newNode;
+	}
+	function editableVNode(node, ownerID) {
+	  if (ownerID && node && ownerID === node.ownerID) {
+	    return node;
+	  }
+	  return new VNode(node ? node.array.slice() : [], ownerID);
+	}
+	function listNodeFor(list, rawIndex) {
+	  if (rawIndex >= getTailOffset(list._capacity)) {
+	    return list._tail;
+	  }
+	  if (rawIndex < 1 << (list._level + SHIFT)) {
+	    var node = list._root;
+	    var level = list._level;
+	    while (node && level > 0) {
+	      node = node.array[(rawIndex >>> level) & MASK];
+	      level -= SHIFT;
+	    }
+	    return node;
+	  }
+	}
+	function setListBounds(list, begin, end) {
+	  var owner = list.__ownerID || new OwnerID();
+	  var oldOrigin = list._origin;
+	  var oldCapacity = list._capacity;
+	  var newOrigin = oldOrigin + begin;
+	  var newCapacity = end === undefined ? oldCapacity : end < 0 ? oldCapacity + end : oldOrigin + end;
+	  if (newOrigin === oldOrigin && newCapacity === oldCapacity) {
+	    return list;
+	  }
+	  if (newOrigin >= newCapacity) {
+	    return list.clear();
+	  }
+	  var newLevel = list._level;
+	  var newRoot = list._root;
+	  var offsetShift = 0;
+	  while (newOrigin + offsetShift < 0) {
+	    newRoot = new VNode(newRoot && newRoot.array.length ? [undefined, newRoot] : [], owner);
+	    newLevel += SHIFT;
+	    offsetShift += 1 << newLevel;
+	  }
+	  if (offsetShift) {
+	    newOrigin += offsetShift;
+	    oldOrigin += offsetShift;
+	    newCapacity += offsetShift;
+	    oldCapacity += offsetShift;
+	  }
+	  var oldTailOffset = getTailOffset(oldCapacity);
+	  var newTailOffset = getTailOffset(newCapacity);
+	  while (newTailOffset >= 1 << (newLevel + SHIFT)) {
+	    newRoot = new VNode(newRoot && newRoot.array.length ? [newRoot] : [], owner);
+	    newLevel += SHIFT;
+	  }
+	  var oldTail = list._tail;
+	  var newTail = newTailOffset < oldTailOffset ? listNodeFor(list, newCapacity - 1) : newTailOffset > oldTailOffset ? new VNode([], owner) : oldTail;
+	  if (oldTail && newTailOffset > oldTailOffset && newOrigin < oldCapacity && oldTail.array.length) {
+	    newRoot = editableVNode(newRoot, owner);
+	    var node = newRoot;
+	    for (var level = newLevel; level > SHIFT; level -= SHIFT) {
+	      var idx = (oldTailOffset >>> level) & MASK;
+	      node = node.array[idx] = editableVNode(node.array[idx], owner);
+	    }
+	    node.array[(oldTailOffset >>> SHIFT) & MASK] = oldTail;
+	  }
+	  if (newCapacity < oldCapacity) {
+	    newTail = newTail && newTail.removeAfter(owner, 0, newCapacity);
+	  }
+	  if (newOrigin >= newTailOffset) {
+	    newOrigin -= newTailOffset;
+	    newCapacity -= newTailOffset;
+	    newLevel = SHIFT;
+	    newRoot = null;
+	    newTail = newTail && newTail.removeBefore(owner, 0, newOrigin);
+	  } else if (newOrigin > oldOrigin || newTailOffset < oldTailOffset) {
+	    offsetShift = 0;
+	    while (newRoot) {
+	      var beginIndex = (newOrigin >>> newLevel) & MASK;
+	      if (beginIndex !== (newTailOffset >>> newLevel) & MASK) {
+	        break;
+	      }
+	      if (beginIndex) {
+	        offsetShift += (1 << newLevel) * beginIndex;
+	      }
+	      newLevel -= SHIFT;
+	      newRoot = newRoot.array[beginIndex];
+	    }
+	    if (newRoot && newOrigin > oldOrigin) {
+	      newRoot = newRoot.removeBefore(owner, newLevel, newOrigin - offsetShift);
+	    }
+	    if (newRoot && newTailOffset < oldTailOffset) {
+	      newRoot = newRoot.removeAfter(owner, newLevel, newTailOffset - offsetShift);
+	    }
+	    if (offsetShift) {
+	      newOrigin -= offsetShift;
+	      newCapacity -= offsetShift;
+	    }
+	  }
+	  if (list.__ownerID) {
+	    list.size = newCapacity - newOrigin;
+	    list._origin = newOrigin;
+	    list._capacity = newCapacity;
+	    list._level = newLevel;
+	    list._root = newRoot;
+	    list._tail = newTail;
+	    list.__hash = undefined;
+	    list.__altered = true;
+	    return list;
+	  }
+	  return makeList(newOrigin, newCapacity, newLevel, newRoot, newTail);
+	}
+	function mergeIntoListWith(list, merger, iterables) {
+	  var iters = [];
+	  var maxSize = 0;
+	  for (var ii = 0; ii < iterables.length; ii++) {
+	    var value = iterables[ii];
+	    var iter = Iterable(value);
+	    if (iter.size > maxSize) {
+	      maxSize = iter.size;
+	    }
+	    if (!isIterable(value)) {
+	      iter = iter.map((function(v) {
+	        return fromJS(v);
+	      }));
+	    }
+	    iters.push(iter);
+	  }
+	  if (maxSize > list.size) {
+	    list = list.setSize(maxSize);
+	  }
+	  return mergeIntoCollectionWith(list, merger, iters);
+	}
+	function getTailOffset(size) {
+	  return size < SIZE ? 0 : (((size - 1) >>> SHIFT) << SHIFT);
+	}
+	var Stack = function Stack(value) {
+	  return arguments.length === 0 ? emptyStack() : value && value.constructor === $Stack ? value : emptyStack().unshiftAll(value);
+	};
+	var $Stack = Stack;
+	($traceurRuntime.createClass)(Stack, {
+	  toString: function() {
+	    return this.__toString('Stack [', ']');
+	  },
+	  get: function(index, notSetValue) {
+	    var head = this._head;
+	    while (head && index--) {
+	      head = head.next;
+	    }
+	    return head ? head.value : notSetValue;
+	  },
+	  peek: function() {
+	    return this._head && this._head.value;
+	  },
+	  push: function() {
+	    if (arguments.length === 0) {
+	      return this;
+	    }
+	    var newSize = this.size + arguments.length;
+	    var head = this._head;
+	    for (var ii = arguments.length - 1; ii >= 0; ii--) {
+	      head = {
+	        value: arguments[ii],
+	        next: head
+	      };
+	    }
+	    if (this.__ownerID) {
+	      this.size = newSize;
+	      this._head = head;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return makeStack(newSize, head);
+	  },
+	  pushAll: function(iter) {
+	    iter = Iterable(iter);
+	    if (iter.size === 0) {
+	      return this;
+	    }
+	    var newSize = this.size;
+	    var head = this._head;
+	    iter.reverse().forEach((function(value) {
+	      newSize++;
+	      head = {
+	        value: value,
+	        next: head
+	      };
+	    }));
+	    if (this.__ownerID) {
+	      this.size = newSize;
+	      this._head = head;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return makeStack(newSize, head);
+	  },
+	  pop: function() {
+	    return this.slice(1);
+	  },
+	  unshift: function() {
+	    return this.push.apply(this, arguments);
+	  },
+	  unshiftAll: function(iter) {
+	    return this.pushAll(iter);
+	  },
+	  shift: function() {
+	    return this.pop.apply(this, arguments);
+	  },
+	  clear: function() {
+	    if (this.size === 0) {
+	      return this;
+	    }
+	    if (this.__ownerID) {
+	      this.size = 0;
+	      this._head = undefined;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return emptyStack();
+	  },
+	  slice: function(begin, end) {
+	    if (wholeSlice(begin, end, this.size)) {
+	      return this;
+	    }
+	    var resolvedBegin = resolveBegin(begin, this.size);
+	    var resolvedEnd = resolveEnd(end, this.size);
+	    if (resolvedEnd !== this.size) {
+	      return $traceurRuntime.superCall(this, $Stack.prototype, "slice", [begin, end]);
+	    }
+	    var newSize = this.size - resolvedBegin;
+	    var head = this._head;
+	    while (resolvedBegin--) {
+	      head = head.next;
+	    }
+	    if (this.__ownerID) {
+	      this.size = newSize;
+	      this._head = head;
+	      this.__hash = undefined;
+	      this.__altered = true;
+	      return this;
+	    }
+	    return makeStack(newSize, head);
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      this.__altered = false;
+	      return this;
+	    }
+	    return makeStack(this.size, this._head, ownerID, this.__hash);
+	  },
+	  __iterate: function(fn, reverse) {
+	    if (reverse) {
+	      return this.toSeq().cacheResult.__iterate(fn, reverse);
+	    }
+	    var iterations = 0;
+	    var node = this._head;
+	    while (node) {
+	      if (fn(node.value, iterations++, this) === false) {
+	        break;
+	      }
+	      node = node.next;
+	    }
+	    return iterations;
+	  },
+	  __iterator: function(type, reverse) {
+	    if (reverse) {
+	      return this.toSeq().cacheResult().__iterator(type, reverse);
+	    }
+	    var iterations = 0;
+	    var node = this._head;
+	    return new Iterator((function() {
+	      if (node) {
+	        var value = node.value;
+	        node = node.next;
+	        return iteratorValue(type, iterations++, value);
+	      }
+	      return iteratorDone();
+	    }));
+	  }
+	}, {of: function() {
+	    return this(arguments);
+	  }}, IndexedCollection);
+	function isStack(maybeStack) {
+	  return !!(maybeStack && maybeStack[IS_STACK_SENTINEL]);
+	}
+	Stack.isStack = isStack;
+	var IS_STACK_SENTINEL = '@@__IMMUTABLE_STACK__@@';
+	var StackPrototype = Stack.prototype;
+	StackPrototype[IS_STACK_SENTINEL] = true;
+	StackPrototype.withMutations = MapPrototype.withMutations;
+	StackPrototype.asMutable = MapPrototype.asMutable;
+	StackPrototype.asImmutable = MapPrototype.asImmutable;
+	StackPrototype.wasAltered = MapPrototype.wasAltered;
+	function makeStack(size, head, ownerID, hash) {
+	  var map = Object.create(StackPrototype);
+	  map.size = size;
+	  map._head = head;
+	  map.__ownerID = ownerID;
+	  map.__hash = hash;
+	  map.__altered = false;
+	  return map;
+	}
+	var EMPTY_STACK;
+	function emptyStack() {
+	  return EMPTY_STACK || (EMPTY_STACK = makeStack(0));
+	}
+	var Set = function Set(value) {
+	  return arguments.length === 0 ? emptySet() : value && value.constructor === $Set ? value : emptySet().union(value);
+	};
+	var $Set = Set;
+	($traceurRuntime.createClass)(Set, {
+	  toString: function() {
+	    return this.__toString('Set {', '}');
+	  },
+	  has: function(value) {
+	    return this._map.has(value);
+	  },
+	  add: function(value) {
+	    var newMap = this._map.set(value, true);
+	    if (this.__ownerID) {
+	      this.size = newMap.size;
+	      this._map = newMap;
+	      return this;
+	    }
+	    return newMap === this._map ? this : makeSet(newMap);
+	  },
+	  remove: function(value) {
+	    var newMap = this._map.remove(value);
+	    if (this.__ownerID) {
+	      this.size = newMap.size;
+	      this._map = newMap;
+	      return this;
+	    }
+	    return newMap === this._map ? this : newMap.size === 0 ? emptySet() : makeSet(newMap);
+	  },
+	  clear: function() {
+	    if (this.size === 0) {
+	      return this;
+	    }
+	    if (this.__ownerID) {
+	      this.size = 0;
+	      this._map.clear();
+	      return this;
+	    }
+	    return emptySet();
+	  },
+	  union: function() {
+	    var iters = arguments;
+	    if (iters.length === 0) {
+	      return this;
+	    }
+	    return this.withMutations((function(set) {
+	      for (var ii = 0; ii < iters.length; ii++) {
+	        Iterable(iters[ii]).forEach((function(value) {
+	          return set.add(value);
+	        }));
+	      }
+	    }));
+	  },
+	  intersect: function() {
+	    for (var iters = [],
+	        $__8 = 0; $__8 < arguments.length; $__8++)
+	      iters[$__8] = arguments[$__8];
+	    if (iters.length === 0) {
+	      return this;
+	    }
+	    iters = iters.map((function(iter) {
+	      return Iterable(iter);
+	    }));
+	    var originalSet = this;
+	    return this.withMutations((function(set) {
+	      originalSet.forEach((function(value) {
+	        if (!iters.every((function(iter) {
+	          return iter.contains(value);
+	        }))) {
+	          set.remove(value);
+	        }
+	      }));
+	    }));
+	  },
+	  subtract: function() {
+	    for (var iters = [],
+	        $__9 = 0; $__9 < arguments.length; $__9++)
+	      iters[$__9] = arguments[$__9];
+	    if (iters.length === 0) {
+	      return this;
+	    }
+	    iters = iters.map((function(iter) {
+	      return Iterable(iter);
+	    }));
+	    var originalSet = this;
+	    return this.withMutations((function(set) {
+	      originalSet.forEach((function(value) {
+	        if (iters.some((function(iter) {
+	          return iter.contains(value);
+	        }))) {
+	          set.remove(value);
+	        }
+	      }));
+	    }));
+	  },
+	  merge: function() {
+	    return this.union.apply(this, arguments);
+	  },
+	  mergeWith: function(merger) {
+	    for (var iters = [],
+	        $__10 = 1; $__10 < arguments.length; $__10++)
+	      iters[$__10 - 1] = arguments[$__10];
+	    return this.union.apply(this, iters);
+	  },
+	  wasAltered: function() {
+	    return this._map.wasAltered();
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    return this._map.__iterate((function(_, k) {
+	      return fn(k, k, $__0);
+	    }), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    return this._map.map((function(_, k) {
+	      return k;
+	    })).__iterator(type, reverse);
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    var newMap = this._map.__ensureOwner(ownerID);
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      this._map = newMap;
+	      return this;
+	    }
+	    return makeSet(newMap, ownerID);
+	  }
+	}, {
+	  of: function() {
+	    return this(arguments);
+	  },
+	  fromKeys: function(value) {
+	    return this(KeyedSeq(value).flip());
+	  }
+	}, SetCollection);
+	function isSet(maybeSet) {
+	  return !!(maybeSet && maybeSet[IS_SET_SENTINEL]);
+	}
+	Set.isSet = isSet;
+	var IS_SET_SENTINEL = '@@__IMMUTABLE_SET__@@';
+	var SetPrototype = Set.prototype;
+	SetPrototype[IS_SET_SENTINEL] = true;
+	SetPrototype[DELETE] = SetPrototype.remove;
+	SetPrototype.mergeDeep = SetPrototype.merge;
+	SetPrototype.mergeDeepWith = SetPrototype.mergeWith;
+	SetPrototype.withMutations = MapPrototype.withMutations;
+	SetPrototype.asMutable = MapPrototype.asMutable;
+	SetPrototype.asImmutable = MapPrototype.asImmutable;
+	function makeSet(map, ownerID) {
+	  var set = Object.create(SetPrototype);
+	  set.size = map ? map.size : 0;
+	  set._map = map;
+	  set.__ownerID = ownerID;
+	  return set;
+	}
+	var EMPTY_SET;
+	function emptySet() {
+	  return EMPTY_SET || (EMPTY_SET = makeSet(emptyMap()));
+	}
+	var OrderedMap = function OrderedMap(value) {
+	  return arguments.length === 0 ? emptyOrderedMap() : value && value.constructor === $OrderedMap ? value : emptyOrderedMap().merge(KeyedIterable(value));
+	};
+	var $OrderedMap = OrderedMap;
+	($traceurRuntime.createClass)(OrderedMap, {
+	  toString: function() {
+	    return this.__toString('OrderedMap {', '}');
+	  },
+	  get: function(k, notSetValue) {
+	    var index = this._map.get(k);
+	    return index !== undefined ? this._list.get(index)[1] : notSetValue;
+	  },
+	  clear: function() {
+	    if (this.size === 0) {
+	      return this;
+	    }
+	    if (this.__ownerID) {
+	      this.size = 0;
+	      this._map.clear();
+	      this._list.clear();
+	      return this;
+	    }
+	    return emptyOrderedMap();
+	  },
+	  set: function(k, v) {
+	    return updateOrderedMap(this, k, v);
+	  },
+	  remove: function(k) {
+	    return updateOrderedMap(this, k, NOT_SET);
+	  },
+	  wasAltered: function() {
+	    return this._map.wasAltered() || this._list.wasAltered();
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    return this._list.__iterate((function(entry) {
+	      return fn(entry[1], entry[0], $__0);
+	    }), reverse);
+	  },
+	  __iterator: function(type, reverse) {
+	    return this._list.fromEntrySeq().__iterator(type, reverse);
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    var newMap = this._map.__ensureOwner(ownerID);
+	    var newList = this._list.__ensureOwner(ownerID);
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      this._map = newMap;
+	      this._list = newList;
+	      return this;
+	    }
+	    return makeOrderedMap(newMap, newList, ownerID, this.__hash);
+	  }
+	}, {of: function() {
+	    return this(arguments);
+	  }}, Map);
+	function isOrderedMap(maybeOrderedMap) {
+	  return !!(maybeOrderedMap && maybeOrderedMap[IS_ORDERED_MAP_SENTINEL]);
+	}
+	OrderedMap.isOrderedMap = isOrderedMap;
+	var IS_ORDERED_MAP_SENTINEL = '@@__IMMUTABLE_ORDERED_MAP__@@';
+	OrderedMap.prototype[IS_ORDERED_MAP_SENTINEL] = true;
+	OrderedMap.prototype[DELETE] = OrderedMap.prototype.remove;
+	function makeOrderedMap(map, list, ownerID, hash) {
+	  var omap = Object.create(OrderedMap.prototype);
+	  omap.size = map ? map.size : 0;
+	  omap._map = map;
+	  omap._list = list;
+	  omap.__ownerID = ownerID;
+	  omap.__hash = hash;
+	  return omap;
+	}
+	var EMPTY_ORDERED_MAP;
+	function emptyOrderedMap() {
+	  return EMPTY_ORDERED_MAP || (EMPTY_ORDERED_MAP = makeOrderedMap(emptyMap(), emptyList()));
+	}
+	function updateOrderedMap(omap, k, v) {
+	  var map = omap._map;
+	  var list = omap._list;
+	  var i = map.get(k);
+	  var has = i !== undefined;
+	  var removed = v === NOT_SET;
+	  if ((!has && removed) || (has && v === list.get(i)[1])) {
+	    return omap;
+	  }
+	  if (!has) {
+	    i = list.size;
+	  }
+	  var newMap = removed ? map.remove(k) : has ? map : map.set(k, i);
+	  var newList = removed ? list.remove(i) : list.set(i, [k, v]);
+	  if (omap.__ownerID) {
+	    omap.size = newMap.size;
+	    omap._map = newMap;
+	    omap._list = newList;
+	    omap.__hash = undefined;
+	    return omap;
+	  }
+	  return makeOrderedMap(newMap, newList);
+	}
+	var Record = function Record(defaultValues, name) {
+	  var RecordType = function(values) {
+	    if (!(this instanceof RecordType)) {
+	      return new RecordType(values);
+	    }
+	    this._map = arguments.length === 0 ? Map() : Map(values);
+	  };
+	  var keys = Object.keys(defaultValues);
+	  var RecordTypePrototype = RecordType.prototype = Object.create(RecordPrototype);
+	  RecordTypePrototype.constructor = RecordType;
+	  name && (RecordTypePrototype._name = name);
+	  RecordTypePrototype._defaultValues = defaultValues;
+	  RecordTypePrototype._keys = keys;
+	  RecordTypePrototype.size = keys.length;
+	  try {
+	    Iterable(defaultValues).forEach((function(_, key) {
+	      Object.defineProperty(RecordType.prototype, key, {
+	        get: function() {
+	          return this.get(key);
+	        },
+	        set: function(value) {
+	          invariant(this.__ownerID, 'Cannot set on an immutable record.');
+	          this.set(key, value);
+	        }
+	      });
+	    }));
+	  } catch (error) {}
+	  return RecordType;
+	};
+	($traceurRuntime.createClass)(Record, {
+	  toString: function() {
+	    return this.__toString(this._name + ' {', '}');
+	  },
+	  has: function(k) {
+	    return this._defaultValues.hasOwnProperty(k);
+	  },
+	  get: function(k, notSetValue) {
+	    if (notSetValue !== undefined && !this.has(k)) {
+	      return notSetValue;
+	    }
+	    return this._map.get(k, this._defaultValues[k]);
+	  },
+	  clear: function() {
+	    if (this.__ownerID) {
+	      this._map.clear();
+	      return this;
+	    }
+	    var SuperRecord = Object.getPrototypeOf(this).constructor;
+	    return SuperRecord._empty || (SuperRecord._empty = makeRecord(this, emptyMap()));
+	  },
+	  set: function(k, v) {
+	    if (!this.has(k)) {
+	      throw new Error('Cannot set unknown key "' + k + '" on ' + this._name);
+	    }
+	    var newMap = this._map.set(k, v);
+	    if (this.__ownerID || newMap === this._map) {
+	      return this;
+	    }
+	    return makeRecord(this, newMap);
+	  },
+	  remove: function(k) {
+	    if (!this.has(k)) {
+	      return this;
+	    }
+	    var newMap = this._map.remove(k);
+	    if (this.__ownerID || newMap === this._map) {
+	      return this;
+	    }
+	    return makeRecord(this, newMap);
+	  },
+	  keys: function() {
+	    return this._map.keys();
+	  },
+	  values: function() {
+	    return this._map.values();
+	  },
+	  entries: function() {
+	    return this._map.entries();
+	  },
+	  wasAltered: function() {
+	    return this._map.wasAltered();
+	  },
+	  __iterator: function(type, reverse) {
+	    return this._map.__iterator(type, reverse);
+	  },
+	  __iterate: function(fn, reverse) {
+	    var $__0 = this;
+	    return Iterable(this._defaultValues).map((function(_, k) {
+	      return $__0.get(k);
+	    })).__iterate(fn, reverse);
+	  },
+	  __ensureOwner: function(ownerID) {
+	    if (ownerID === this.__ownerID) {
+	      return this;
+	    }
+	    var newMap = this._map && this._map.__ensureOwner(ownerID);
+	    if (!ownerID) {
+	      this.__ownerID = ownerID;
+	      this._map = newMap;
+	      return this;
+	    }
+	    return makeRecord(this, newMap, ownerID);
+	  }
+	}, {}, KeyedCollection);
+	var RecordPrototype = Record.prototype;
+	RecordPrototype._name = 'Record';
+	RecordPrototype[DELETE] = RecordPrototype.remove;
+	RecordPrototype.merge = MapPrototype.merge;
+	RecordPrototype.mergeWith = MapPrototype.mergeWith;
+	RecordPrototype.mergeDeep = MapPrototype.mergeDeep;
+	RecordPrototype.mergeDeepWith = MapPrototype.mergeDeepWith;
+	RecordPrototype.update = MapPrototype.update;
+	RecordPrototype.updateIn = MapPrototype.updateIn;
+	RecordPrototype.withMutations = MapPrototype.withMutations;
+	RecordPrototype.asMutable = MapPrototype.asMutable;
+	RecordPrototype.asImmutable = MapPrototype.asImmutable;
+	function makeRecord(likeRecord, map, ownerID) {
+	  var record = Object.create(Object.getPrototypeOf(likeRecord));
+	  record._map = map;
+	  record.__ownerID = ownerID;
+	  return record;
+	}
+	var Range = function Range(start, end, step) {
+	  if (!(this instanceof $Range)) {
+	    return new $Range(start, end, step);
+	  }
+	  invariant(step !== 0, 'Cannot step a Range by 0');
+	  start = start || 0;
+	  if (end === undefined) {
+	    end = Infinity;
+	  }
+	  if (start === end && __EMPTY_RANGE) {
+	    return __EMPTY_RANGE;
+	  }
+	  step = step === undefined ? 1 : Math.abs(step);
+	  if (end < start) {
+	    step = -step;
+	  }
+	  this._start = start;
+	  this._end = end;
+	  this._step = step;
+	  this.size = Math.max(0, Math.ceil((end - start) / step - 1) + 1);
+	};
+	var $Range = Range;
+	($traceurRuntime.createClass)(Range, {
+	  toString: function() {
+	    if (this.size === 0) {
+	      return 'Range []';
+	    }
+	    return 'Range [ ' + this._start + '...' + this._end + (this._step > 1 ? ' by ' + this._step : '') + ' ]';
+	  },
+	  get: function(index, notSetValue) {
+	    return this.has(index) ? this._start + wrapIndex(this, index) * this._step : notSetValue;
+	  },
+	  contains: function(searchValue) {
+	    var possibleIndex = (searchValue - this._start) / this._step;
+	    return possibleIndex >= 0 && possibleIndex < this.size && possibleIndex === Math.floor(possibleIndex);
+	  },
+	  slice: function(begin, end) {
+	    if (wholeSlice(begin, end, this.size)) {
+	      return this;
+	    }
+	    begin = resolveBegin(begin, this.size);
+	    end = resolveEnd(end, this.size);
+	    if (end <= begin) {
+	      return __EMPTY_RANGE;
+	    }
+	    return new $Range(this.get(begin, this._end), this.get(end, this._end), this._step);
+	  },
+	  indexOf: function(searchValue) {
+	    var offsetValue = searchValue - this._start;
+	    if (offsetValue % this._step === 0) {
+	      var index = offsetValue / this._step;
+	      if (index >= 0 && index < this.size) {
+	        return index;
+	      }
+	    }
+	    return -1;
+	  },
+	  lastIndexOf: function(searchValue) {
+	    return this.indexOf(searchValue);
+	  },
+	  take: function(amount) {
+	    return this.slice(0, Math.max(0, amount));
+	  },
+	  skip: function(amount) {
+	    return this.slice(Math.max(0, amount));
+	  },
+	  __iterate: function(fn, reverse) {
+	    var maxIndex = this.size - 1;
+	    var step = this._step;
+	    var value = reverse ? this._start + maxIndex * step : this._start;
+	    for (var ii = 0; ii <= maxIndex; ii++) {
+	      if (fn(value, ii, this) === false) {
+	        return ii + 1;
+	      }
+	      value += reverse ? -step : step;
+	    }
+	    return ii;
+	  },
+	  __iterator: function(type, reverse) {
+	    var maxIndex = this.size - 1;
+	    var step = this._step;
+	    var value = reverse ? this._start + maxIndex * step : this._start;
+	    var ii = 0;
+	    return new Iterator((function() {
+	      var v = value;
+	      value += reverse ? -step : step;
+	      return ii > maxIndex ? iteratorDone() : iteratorValue(type, ii++, v);
+	    }));
+	  },
+	  __deepEquals: function(other) {
+	    return other instanceof $Range ? this._start === other._start && this._end === other._end && this._step === other._step : $traceurRuntime.superCall(this, $Range.prototype, "__deepEquals", [other]);
+	  }
+	}, {}, IndexedSeq);
+	var RangePrototype = Range.prototype;
+	RangePrototype.__toJS = RangePrototype.toArray;
+	RangePrototype.first = ListPrototype.first;
+	RangePrototype.last = ListPrototype.last;
+	var __EMPTY_RANGE = Range(0, 0);
+	var Repeat = function Repeat(value, times) {
+	  if (times <= 0 && EMPTY_REPEAT) {
+	    return EMPTY_REPEAT;
+	  }
+	  if (!(this instanceof $Repeat)) {
+	    return new $Repeat(value, times);
+	  }
+	  this._value = value;
+	  this.size = times === undefined ? Infinity : Math.max(0, times);
+	  if (this.size === 0) {
+	    EMPTY_REPEAT = this;
+	  }
+	};
+	var $Repeat = Repeat;
+	($traceurRuntime.createClass)(Repeat, {
+	  toString: function() {
+	    if (this.size === 0) {
+	      return 'Repeat []';
+	    }
+	    return 'Repeat [ ' + this._value + ' ' + this.size + ' times ]';
+	  },
+	  get: function(index, notSetValue) {
+	    return this.has(index) ? this._value : notSetValue;
+	  },
+	  contains: function(searchValue) {
+	    return is(this._value, searchValue);
+	  },
+	  slice: function(begin, end) {
+	    var size = this.size;
+	    return wholeSlice(begin, end, size) ? this : new $Repeat(this._value, resolveEnd(end, size) - resolveBegin(begin, size));
+	  },
+	  reverse: function() {
+	    return this;
+	  },
+	  indexOf: function(searchValue) {
+	    if (is(this._value, searchValue)) {
+	      return 0;
+	    }
+	    return -1;
+	  },
+	  lastIndexOf: function(searchValue) {
+	    if (is(this._value, searchValue)) {
+	      return this.size;
+	    }
+	    return -1;
+	  },
+	  __iterate: function(fn, reverse) {
+	    for (var ii = 0; ii < this.size; ii++) {
+	      if (fn(this._value, ii, this) === false) {
+	        return ii + 1;
+	      }
+	    }
+	    return ii;
+	  },
+	  __iterator: function(type, reverse) {
+	    var $__0 = this;
+	    var ii = 0;
+	    return new Iterator((function() {
+	      return ii < $__0.size ? iteratorValue(type, ii++, $__0._value) : iteratorDone();
+	    }));
+	  },
+	  __deepEquals: function(other) {
+	    return other instanceof $Repeat ? is(this._value, other._value) : $traceurRuntime.superCall(this, $Repeat.prototype, "__deepEquals", [other]);
+	  }
+	}, {}, IndexedSeq);
+	var RepeatPrototype = Repeat.prototype;
+	RepeatPrototype.last = RepeatPrototype.first;
+	RepeatPrototype.has = RangePrototype.has;
+	RepeatPrototype.take = RangePrototype.take;
+	RepeatPrototype.skip = RangePrototype.skip;
+	RepeatPrototype.__toJS = RangePrototype.__toJS;
+	var EMPTY_REPEAT;
+	var Immutable = {
+	  Iterable: Iterable,
+	  Seq: Seq,
+	  Collection: Collection,
+	  Map: Map,
+	  List: List,
+	  Stack: Stack,
+	  Set: Set,
+	  OrderedMap: OrderedMap,
+	  Record: Record,
+	  Range: Range,
+	  Repeat: Repeat,
+	  is: is,
+	  fromJS: fromJS
+	};
+
+	  return Immutable;
+	}
+	true ? module.exports = universalModule() :
+	  typeof define === 'function' && define.amd ? define(universalModule) :
+	    Immutable = universalModule();
+
+
+/***/ },
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -4558,13 +4702,12 @@
 	 * @namespace
 	 * @classdesc Morearty main module. Exposes [createContext]{@link Morearty.createContext} function.
 	 */
-	var Util     = __webpack_require__(18);
-	var Binding  = __webpack_require__(19);
-	var History  = __webpack_require__(20);
-	var Callback = __webpack_require__(22);
-	var DOM      = __webpack_require__(21);
-	var Immutable = __webpack_require__(4);
-	var Imm = Immutable;
+	var Imm      = __webpack_require__(5);
+	var Util     = __webpack_require__(8);
+	var Binding  = __webpack_require__(9);
+	var History  = __webpack_require__(10);
+	var Callback = __webpack_require__(12);
+	var DOM      = __webpack_require__(11);
 
 	var MERGE_STRATEGY = Object.freeze({
 	  OVERWRITE: 'overwrite',
@@ -4584,20 +4727,18 @@
 	  }
 	};
 
-	bindingChanged = function (binding, previousState) {
-	  var currentValue = binding.val();
-	  var previousValue = previousState ? binding.withBackingValue(previousState).val() : null;
-	  return currentValue !== previousValue;
+	bindingChanged = function (binding, context) {
+	  return (context._stateChanged && binding.isChanged(context._previousState)) ||
+	    (context._metaChanged && context._metaBinding.sub(binding.getPath()).isChanged(context._previousMetaState));
 	};
 
 	stateChanged = function (context, state) {
-	  var previousState = context._previousState;
 	  if (state instanceof Binding) {
-	    return bindingChanged(state, previousState);
+	    return bindingChanged(state, context);
 	  } else {
 	    var bindings = Util.getPropertyValues(state);
 	    return !!Util.find(bindings, function (binding) {
-	      return binding && bindingChanged(binding, previousState);
+	      return binding && bindingChanged(binding, context);
 	    });
 	  }
 	};
@@ -4617,7 +4758,7 @@
 	      case MERGE_STRATEGY.OVERWRITE_EMPTY:
 	        tx = tx.update(function (currentState) {
 	          var empty = Util.undefinedOrNull(currentState) ||
-	            (currentState instanceof Imm.Sequence && currentState.count() === 0);
+	            (currentState instanceof Imm.Iterable && currentState.count() === 0);
 	          return empty ? defaultState : currentState;
 	        });
 	        break;
@@ -4632,11 +4773,12 @@
 	    }
 	  }
 
-	  tx.commit(false);
+	  tx.commit({ notify: false });
 	};
 
 	/** Morearty context constructor.
-	 * @param {IMap} initialState initial state
+	 * @param {Immutable.Map} initialState initial state
+	 * @param {Immutable.Map} initialMetaState initial meta-state
 	 * @param {Object} configuration configuration
 	 * @public
 	 * @class Context
@@ -4648,21 +4790,26 @@
 	 *   <li>[History]{@link History};</li>
 	 *   <li>[Callback]{@link Callback};</li>
 	 *   <li>[DOM]{@link DOM}.</li>
-	 * </ul>
-	 */
-	var Context = function (initialState, configuration) {
+	 * </ul> */
+	var Context = function (initialState, initialMetaState, configuration) {
+	  /** @private */
+	  this._initialMetaState = initialMetaState;
+	  /** @private */
+	  this._previousMetaState = null;
+	  /** @private */
+	  this._metaBinding = Binding.init(initialMetaState);
+	  /** @private */
+	  this._metaChanged = false;
+
 	  /** @private */
 	  this._initialState = initialState;
-
-	  /** State before current render.
-	   * @protected
+	  /** @protected
 	   * @ignore */
 	  this._previousState = null;
-	  /** State during current render.
-	   * @private */
-	  this._currentState = initialState;
 	  /** @private */
-	  this._currentStateBinding = Binding.init(initialState);
+	  this._stateBinding = Binding.init(initialState, this._metaBinding);
+	  /** @private */
+	  this._stateChanged = false;
 
 	  /** @private */
 	  this._configuration = configuration;
@@ -4679,45 +4826,88 @@
 	   * @return {Binding} state binding
 	   * @see Binding */
 	  getBinding: function () {
-	    return this._currentStateBinding;
+	    return this._stateBinding;
+	  },
+
+	  /** Get meta binding.
+	   * @return {Binding} meta binding
+	   * @see Binding */
+	  getMetaBinding: function () {
+	    return this._metaBinding;
 	  },
 
 	  /** Get current state.
-	   * @return {IMap} current state */
+	   * @return {Immutable.Map} current state */
 	  getCurrentState: function () {
-	    return this.getBinding().val();
+	    return this.getBinding().get();
 	  },
 
-	  /** Get previous state.
-	   * @return {IMap} previous state */
+	  /** Get previous state (before last render).
+	   * @return {Immutable.Map} previous state */
 	  getPreviousState: function () {
 	    return this._previousState;
 	  },
 
+	  /** Get current meta state.
+	   * @returns {Immutable.Map} current meta state */
+	  getCurrentMeta: function () {
+	    var metaBinding = this.getMetaBinding();
+	    return metaBinding ? metaBinding.get() : undefined;
+	  },
+
+	  /** Get previous meta state (before last render).
+	   * @return {Immutable.Map} previous meta state */
+	  getPreviousMeta: function () {
+	    return this._previousMetaState;
+	  },
+
 	  /** Revert to initial state.
-	   * @param {Boolean} [notifyListeners] should listeners be notified;
-	   *                                    true by default, set to false to disable notification
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers */
-	  resetState: function (notifyListeners, subpath) {
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification;</li>
+	   *   <li>resetMeta - should meta state be reverted, true by default, set to false to disable.</li>
+	   * </ul> */
+	  resetState: function (subpath, options) {
 	    var args = Util.resolveArgs(
 	      arguments,
-	      function (x) { return typeof x === 'boolean' ? 'notifyListeners' : null; }, '?subpath'
+	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?options'
 	    );
-	    var notify = args.notifyListeners !== false;
-	    if (args.subpath) {
-	      var pathAsArray = Binding.asArrayPath(args.subpath);
-	      this.getBinding().atomically().set(pathAsArray, this._initialState.getIn(pathAsArray)).commit(notify);
-	    } else {
-	      this._currentStateBinding.setBackingValue(this._initialState, notify);
+
+	    var pathAsArray = args.subpath ? Binding.asArrayPath(args.subpath) : [];
+
+	    var tx = this.getBinding().atomically();
+	    tx.set(pathAsArray, this._initialState.getIn(pathAsArray));
+
+	    var effectiveOptions = args.options || {};
+	    if (effectiveOptions.resetMeta !== false) {
+	      tx.set(this.getMetaBinding(), pathAsArray, this._initialMetaState.getIn(pathAsArray));
 	    }
+
+	    tx.commit({ notify: effectiveOptions.notify });
 	  },
 
 	  /** Replace whole state with new value.
-	   * @param {IMap} newState
-	   * @param {Boolean} [notifyListeners] should listeners be notified;
-	   *                                    true by default, set to false to disable notification */
-	  replaceState: function (newState, notifyListeners) {
-	    this._currentStateBinding.setBackingValue(newState, notifyListeners);
+	   * @param {Immutable.Map} newState new state
+	   * @param {Immutable.Map} [newMetaState] new meta state
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	   * </ul> */
+	  replaceState: function (newState, newMetaState, options) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'newState', function (x) { return x instanceof Imm.Map ? 'newMetaState' : null; }, '?options'
+	    );
+
+	    var effectiveOptions = args.options || {};
+
+	    var tx = this.getBinding().atomically();
+	    tx.set(newState);
+
+	    if (args.newMetaState) tx.set(this.getMetaBinding(), args.newMetaState);
+
+	    tx.commit({ notify: effectiveOptions.notify });
 	  },
 
 	  /** Check if binding value was changed on last re-render.
@@ -4729,14 +4919,8 @@
 	      arguments,
 	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?compare'
 	    );
-	    var currentValue = args.binding.withBackingValue(this._currentState).val(args.subpath);
-	    var previousValue = args.binding.withBackingValue(this._previousState).val(args.subpath);
 
-	    if (typeof args.compare === 'function') {
-	      return !args.compare(currentValue, previousValue);
-	    } else {
-	      return !Imm.is(currentValue, previousValue);
-	    }
+	    return !args.binding.sub(args.subpath).isChanged(this._previousState, args.compare || Imm.is);
 	  },
 
 	  /** Initialize rendering.
@@ -4746,10 +4930,21 @@
 	    var requestAnimationFrameEnabled = self._configuration.requestAnimationFrameEnabled;
 	    var requestAnimationFrame = window && window.requestAnimationFrame;
 
-	    var render = function (newValue, oldValue) {
+	    var render = function (changes, stateChanged, metaChanged) {
 	      if (rootComp.isMounted()) {
-	        self._currentState = newValue;
-	        self._previousState = oldValue;
+
+	        self._stateChanged = stateChanged;
+	        if (stateChanged) {
+	          self._currentState = self._stateBinding.get();
+	          self._previousState = changes.getPreviousValue();
+	        }
+
+	        self._metaChanged = metaChanged;
+	        if (metaChanged) {
+	          self._currentMetaState = self._metaBinding.get();
+	          self._previousMetaState = changes.getPreviousMeta();
+	        }
+
 	        try {
 	          if (self._fullUpdateQueued) {
 	            self._fullUpdateInProgress = true;
@@ -4770,12 +4965,17 @@
 	      }
 	    };
 
-	    self._currentStateBinding.addGlobalListener(function (newValue, oldValue) {
-	      if (requestAnimationFrameEnabled && requestAnimationFrame) {
-	        requestAnimationFrame(render.bind(self, newValue, oldValue), null);
-	      } else {
-	        render(newValue, oldValue);
+	    self._stateBinding.addGlobalListener(function (changes) {
+	      var stateChanged = changes.isValueChanged(), metaChanged = changes.isMetaChanged();
+
+	      if (stateChanged || metaChanged) {
+	        if (requestAnimationFrameEnabled && requestAnimationFrame) {
+	          requestAnimationFrame(render.bind(null, changes, stateChanged, metaChanged), null);
+	        } else {
+	          render(changes, stateChanged, metaChanged);
+	        }
 	      }
+
 	    });
 	  },
 
@@ -4872,7 +5072,7 @@
 	     * @return {Binding} previous component state value */
 	    getPreviousState: function (name) {
 	      var context = this.getMoreartyContext();
-	      return getBinding(context, this, name).withBackingValue(context._previousState).val();
+	      return getBinding(context, this, name).withBackingValue(context._previousState).get();
 	    },
 
 	    componentWillMount: function () {
@@ -4884,7 +5084,7 @@
 	          var mergeStrategy =
 	              typeof this.getMergeStrategy === 'function' ? this.getMergeStrategy() : MERGE_STRATEGY.MERGE_PRESERVE;
 
-	          var immutableInstance = defaultState instanceof Imm.Sequence;
+	          var immutableInstance = defaultState instanceof Imm.Iterable;
 
 	          if (binding instanceof Binding) {
 	            var effectiveDefaultState = immutableInstance ? defaultState : defaultState['default'];
@@ -4909,17 +5109,18 @@
 	    },
 
 	    shouldComponentUpdate: function (nextProps, nextState) {
+	      var self = this;
+	      var context = self.getMoreartyContext();
 	      var shouldComponentUpdate = function () {
-	        var context = this.getMoreartyContext();
 	        if (context._fullUpdateInProgress) {
 	          return true;
 	        } else {
-	          var binding = getBinding(context, this);
+	          var binding = getBinding(context, self);
 	          return !binding || stateChanged(context, binding);
 	        }
-	      }.bind(this);
+	      };
 
-	      var shouldComponentUpdateOverride = this.shouldComponentUpdateOverride;
+	      var shouldComponentUpdateOverride = self.shouldComponentUpdateOverride;
 	      return shouldComponentUpdateOverride ?
 	        shouldComponentUpdateOverride(shouldComponentUpdate, nextProps, nextState) :
 	        shouldComponentUpdate();
@@ -4927,8 +5128,9 @@
 	  },
 
 	  /** Create Morearty context.
-	   * @param {IMap|Object} initialState initial state
-	   * @param {Object} [configuration] Morearty configuration. Supported parameters:
+	   * @param {Immutable.Map|Object} initialState initial state
+	   * @param {Immutable.Map|Object} initialMetaState initial meta-state
+	   * @param {Object} [options] Morearty configuration. Supported parameters:
 	   * <ul>
 	   *   <li>bindingPropertyName - name of the property holding component's binding, 'binding' by default;</li>
 	   *   <li>requestAnimationFrameEnabled - enable rendering in requestAnimationFrame, false by default;</li>
@@ -4936,14 +5138,18 @@
 	   * </ul>
 	   * @return {Context}
 	   * @memberOf Morearty */
-	  createContext: function (initialState, configuration) {
-	    var Sequence = Immutable.Sequence;
-	    var state = initialState instanceof Sequence ? initialState : Immutable.fromJS(initialState);
-	    var conf = configuration || {};
-	    return new Context(state, {
-	      bindingPropertyName: conf.bindingPropertyName || 'binding',
-	      requestAnimationFrameEnabled: conf.requestAnimationFrameEnabled || false,
-	      stopOnRenderError: conf.stopOnRenderError || false
+	  createContext: function (initialState, initialMetaState, options) {
+	    var ensureImmutable = function (state) {
+	      return state instanceof Imm.Iterable ? state : Imm.fromJS(state);
+	    };
+
+	    var state = ensureImmutable(initialState);
+	    var metaState = initialMetaState ? ensureImmutable(initialMetaState) : Imm.Map();
+	    var effectiveOptions = options || {};
+	    return new Context(state, metaState, {
+	      bindingPropertyName: effectiveOptions.bindingPropertyName || 'binding',
+	      requestAnimationFrameEnabled: effectiveOptions.requestAnimationFrameEnabled || false,
+	      stopOnRenderError: effectiveOptions.stopOnRenderError || false
 	    });
 	  }
 
@@ -4955,19 +5161,12 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactWithAddons
 	 */
@@ -4981,16 +5180,17 @@
 
 	"use strict";
 
-	var LinkedStateMixin = __webpack_require__(8);
-	var React = __webpack_require__(9);
+	var LinkedStateMixin = __webpack_require__(13);
+	var React = __webpack_require__(14);
 	var ReactComponentWithPureRenderMixin =
-	  __webpack_require__(10);
-	var ReactCSSTransitionGroup = __webpack_require__(11);
-	var ReactTransitionGroup = __webpack_require__(12);
+	  __webpack_require__(15);
+	var ReactCSSTransitionGroup = __webpack_require__(16);
+	var ReactTransitionGroup = __webpack_require__(17);
+	var ReactUpdates = __webpack_require__(18);
 
-	var cx = __webpack_require__(13);
-	var cloneWithProps = __webpack_require__(14);
-	var update = __webpack_require__(15);
+	var cx = __webpack_require__(19);
+	var cloneWithProps = __webpack_require__(20);
+	var update = __webpack_require__(21);
 
 	React.addons = {
 	  CSSTransitionGroup: ReactCSSTransitionGroup,
@@ -4998,39 +5198,1325 @@
 	  PureRenderMixin: ReactComponentWithPureRenderMixin,
 	  TransitionGroup: ReactTransitionGroup,
 
+	  batchedUpdates: ReactUpdates.batchedUpdates,
 	  classSet: cx,
 	  cloneWithProps: cloneWithProps,
 	  update: update
 	};
 
 	if ("production" !== process.env.NODE_ENV) {
-	  React.addons.Perf = __webpack_require__(16);
-	  React.addons.TestUtils = __webpack_require__(17);
+	  React.addons.Perf = __webpack_require__(22);
+	  React.addons.TestUtils = __webpack_require__(23);
 	}
 
 	module.exports = React;
-
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * @name Util
+	 * @namespace
+	 * @classdesc Miscellaneous util functions.
+	 */
+
+	/* ---------------- */
+	/* Private helpers. */
+	/* ---------------- */
+
+	// resolveArgs
+
+	var isRequired, findTurningPoint, prepare;
+
+	isRequired = function (spec) {
+	  return typeof spec === 'string' && spec.charAt(0) !== '?';
+	};
+
+	findTurningPoint = function (arr, pred) {
+	  var first = pred(arr[0]);
+	  for (var i = 1; i < arr.length; i++) {
+	    if (pred(arr[i]) !== first) return i;
+	  }
+	  return null;
+	};
+
+	prepare = function (arr, splitAt) {
+	  return arr.slice(splitAt).reverse().concat(arr.slice(0, splitAt));
+	};
+
+	module.exports = {
+
+	  /** Identity function. Returns its first argument.
+	   * @param {*} x argument to return
+	   * @return {*} its first argument
+	   * @memberOf Util */
+	  identity: function (x) {
+	    return x;
+	  },
+
+	  /** 'Not' function returning logical not of its argument.
+	   * @param {*} x argument
+	   * @returns {*} !x
+	   * @memberOf Util */
+	  not: function (x) {
+	    return !x;
+	  },
+
+	  /** Create constant function (always returning x).
+	   * @param {*} x constant function return value
+	   * @return {Function} function always returning x
+	   * @memberOf Util */
+	  constantly: function (x) {
+	    return function () { return x; };
+	  },
+
+	  /** Execute function asynchronously.
+	   * @param {Function} f function */
+	  async: function (f) {
+	    setTimeout(f, 0);
+	  },
+
+	  /** Execute function f, then function cont. If f returns a promise, cont is executed when the promise resolves.
+	   * @param {Function} f function to execute first
+	   * @param {Function} cont function to execute after f
+	   * @memberOf Util */
+	  afterComplete: function (f, cont) {
+	    var result = f();
+	    if (result && typeof result.always === 'function') {
+	      result.always(cont);
+	    } else {
+	      cont();
+	    }
+	  },
+
+	  /** Check if argument is undefined or null.
+	   * @param {*} x argument to check
+	   * @returns {Boolean}
+	   * @memberOf Util */
+	  undefinedOrNull: function (x) {
+	    return x === undefined || x === null;
+	  },
+
+	  /** Get values of object properties.
+	   * @param {Object} obj object
+	   * @return {Array} object's properties values
+	   * @memberOf Util */
+	  getPropertyValues: function (obj) {
+	    return Object.keys(obj).map(function (key) { return obj[key]; });
+	  },
+
+	  /** Find array element satisfying the predicate.
+	   * @param {Array} arr array
+	   * @param {Function} pred predicate accepting current value, index, original array
+	   * @return {*} found value or null
+	   * @memberOf Util */
+	  find: function (arr, pred) {
+	    for (var i = 0; i < arr.length; i++) {
+	      var value = arr[i];
+	      if (pred(value, i, arr)) {
+	        return value;
+	      }
+	    }
+	    return null;
+	  },
+
+	  /** Resolve arguments. Acceptable spec formats:
+	   * <ul>
+	   *   <li>'foo' - required argument 'foo';</li>
+	   *   <li>'?foo' - optional argument 'foo';</li>
+	   *   <li>function (arg) { return arg instanceof MyClass ? 'foo' : null; } - checked optional argument.</li>
+	   * </ul>
+	   * Specs can only switch optional flag once in the list. This invariant isn't checked by the method,
+	   * its violation will produce indeterminate results.
+	   * <p>Optional arguments are matched in order, left to right. Provide check function if you need to allow to skip
+	   * one optional argument and use sebsequent optional arguments instead.
+	   * <p>Returned arguments descriptor contains argument names mapped to resolved values.
+	   * @param {Array} args arguments 'array'
+	   * @param {*} var_args arguments specs as a var-args list or array, see method description
+	   * @returns {Object} arguments descriptor object
+	   * @memberOf Util */
+	  resolveArgs: function (args, var_args) {
+	    var result = {};
+	    if (arguments.length > 1) {
+	      var specs = Array.isArray(var_args) ? var_args : Array.prototype.slice.call(arguments, 1);
+	      var preparedSpecs, preparedArgs;
+	      var turningPoint;
+
+	      if (isRequired(specs[0]) || !(turningPoint = findTurningPoint(specs, isRequired))) {
+	        preparedSpecs = specs;
+	        preparedArgs = args;
+	      } else {
+	        var effectiveArgs = Array.isArray(args) ? args : Array.prototype.slice.call(args);
+	        preparedSpecs = prepare(specs, turningPoint);
+	        preparedArgs = prepare(effectiveArgs, effectiveArgs.length - (specs.length - turningPoint));
+	      }
+
+	      for (var specIndex = 0, argIndex = 0;
+	           specIndex < preparedSpecs.length && argIndex < preparedArgs.length; specIndex++) {
+	        var spec = preparedSpecs[specIndex], arg = preparedArgs[argIndex];
+	        if (isRequired(spec)) {
+	          result[spec] = arg;
+	          argIndex++;
+	        } else {
+	          var name = typeof spec === 'function' ? spec(arg) : (spec.charAt(0) !== '?' ? spec : spec.substring(1));
+	          if (name || arg === undefined) {
+	            result[name] = arg;
+	            argIndex++;
+	          }
+	        }
+	      }
+	    }
+
+	    return result;
+	  },
+
+	  /** Check if argument can be valid binding subpath.
+	   * @param {*} x
+	   * @returns {Boolean}
+	   * @memberOf Util */
+	  canRepresentSubpath: function (x) {
+	    var type = typeof x;
+	    return type === 'string' || type === 'number' || Array.isArray(x);
+	  },
+
+	  /** ES6 Object.assign.
+	   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign */
+	  assign: function (target, firstSource) {
+	    if (target === undefined || target === null) {
+	      throw new TypeError('Cannot convert first argument to object');
+	    }
+
+	    var to = Object(target);
+
+	    var hasPendingException = false;
+	    var pendingException;
+
+	    for (var i = 1; i < arguments.length; i++) {
+	      var nextSource = arguments[i];
+	      if (nextSource === undefined || nextSource === null)
+	        continue;
+
+	      var keysArray = Object.keys(Object(nextSource));
+	      for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
+	        var nextKey = keysArray[nextIndex];
+	        try {
+	          var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+	          if (desc !== undefined && desc.enumerable)
+	            to[nextKey] = nextSource[nextKey];
+	        } catch (e) {
+	          if (!hasPendingException) {
+	            hasPendingException = true;
+	            pendingException = e;
+	          }
+	        }
+	      }
+
+	      if (hasPendingException)
+	        throw pendingException;
+	    }
+	    return to;
+	  }
+
+	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Imm = __webpack_require__(5);
+	var Util = __webpack_require__(8);
+	var Holder = __webpack_require__(25);
+	var ChangesDescriptor = __webpack_require__(26);
+
+	/* ---------------- */
+	/* Private helpers. */
+	/* ---------------- */
+
+	var UNSET_VALUE = {};
+
+	var copyBinding, getBackingValue, setBackingValue;
+
+	copyBinding = function (binding, backingValueHolder, metaBinding, path) {
+	  return new Binding(
+	    backingValueHolder, metaBinding, path, binding._options, {
+	      regCountHolder: binding._regCountHolder,
+	      listeners: binding._listeners,
+	      cache: binding._cache
+	    }
+	  );
+	};
+
+	getBackingValue = function (binding) {
+	  return binding._backingValueHolder.getValue();
+	};
+
+	setBackingValue = function (binding, newBackingValue) {
+	  binding._backingValueHolder.setValue(newBackingValue);
+	};
+
+	var EMPTY_PATH, PATH_SEPARATOR, META_NODE, getPathElements, joinPaths, getMetaPath, getValueAtPath;
+
+	EMPTY_PATH = [];
+	PATH_SEPARATOR = '.';
+	META_NODE = '__meta__';
+
+	getPathElements = function (path) {
+	  return path ? path.split(PATH_SEPARATOR).map(function (s) { return isNaN(s) ? s : +s; }) : [];
+	};
+
+	joinPaths = function (path1, path2) {
+	  return path1.length === 0 ? path2 :
+	    (path2.length === 0 ? path1 : path1.concat(path2));
+	};
+
+	getMetaPath = function (subpath, key) {
+	  return joinPaths(subpath, [META_NODE, key]);
+	};
+
+	getValueAtPath = function (backingValue, path) {
+	  return backingValue && path.length > 0 ? backingValue.getIn(path) : backingValue;
+	};
+
+	var asArrayPath, asStringPath;
+
+	asArrayPath = function (path) {
+	  switch (typeof path) {
+	    case 'string':
+	      return getPathElements(path);
+	    case 'number':
+	      return [path];
+	    default:
+	      return Util.undefinedOrNull(path) ? [] : path;
+	  }
+	};
+
+	asStringPath = function (path) {
+	  switch (typeof path) {
+	    case 'string':
+	      return path;
+	    case 'number':
+	      return path.toString();
+	    default:
+	      return Util.undefinedOrNull(path) ? '' : path.join(PATH_SEPARATOR);
+	  }
+	};
+
+	var setOrUpdate, updateValue, deleteValue, clear;
+
+	setOrUpdate = function (rootValue, effectivePath, f) {
+	  return rootValue.updateIn(effectivePath, UNSET_VALUE, function (value) {
+	    return value === UNSET_VALUE ? f() : f(value);
+	  });
+	};
+
+	updateValue = function (binding, subpath, f) {
+	  var effectivePath = joinPaths(binding._path, subpath);
+	  var newBackingValue = setOrUpdate(getBackingValue(binding), effectivePath, f);
+	  setBackingValue(binding, newBackingValue);
+	  return effectivePath;
+	};
+
+	deleteValue = function (binding, subpath) {
+	  var effectivePath = joinPaths(binding._path, subpath);
+	  var backingValue = getBackingValue(binding);
+
+	  var len = effectivePath.length;
+	  switch (len) {
+	    case 0:
+	      throw new Error('Cannot delete root value');
+	    default:
+	      var pathTo = effectivePath.slice(0, len - 1);
+	      if (backingValue.has(pathTo[0]) || len === 1) {
+	        var newBackingValue = backingValue.updateIn(pathTo, function (coll) {
+	          var key = effectivePath[len - 1];
+	          if (coll instanceof Imm.List) {
+	            return coll.splice(key, 1);
+	          } else {
+	            return coll && coll.delete(key);
+	          }
+	        });
+
+	        setBackingValue(binding, newBackingValue);
+	      }
+
+	      return pathTo;
+	  }
+	};
+
+	clear = function (value) {
+	  return value instanceof Imm.Iterable ? value.clear() : null;
+	};
+
+	var notifySamePathListeners, notifyGlobalListeners, startsWith, isPathAffected, notifyNonGlobalListeners, notifyAllListeners;
+
+	notifySamePathListeners =
+	  function (binding, samePathListeners, listenerPath, path, previousBackingValue, previousMeta) {
+	    if (previousBackingValue || previousMeta) {
+	      Util.getPropertyValues(samePathListeners).forEach(function (listenerDescriptor) {
+	        if (!listenerDescriptor.disabled) {
+	          listenerDescriptor.cb(
+	            new ChangesDescriptor(
+	              binding, path, asArrayPath(listenerPath), previousBackingValue, previousMeta
+	            )
+	          );
+	        }
+	      });
+	    }
+	  };
+
+	notifyGlobalListeners =
+	  function (binding, path, previousBackingValue, previousMeta) {
+	    var listeners = binding._listeners;
+	    var globalListeners = listeners[''];
+	    if (globalListeners) {
+	      notifySamePathListeners(
+	        binding, globalListeners, EMPTY_PATH, path, previousBackingValue, previousMeta);
+	    }
+	  };
+
+	startsWith = function (s1, s2) {
+	  return s1.indexOf(s2) === 0;
+	};
+
+	isPathAffected = function (listenerPath, changedPath) {
+	  return startsWith(changedPath, listenerPath) || startsWith(listenerPath, changedPath);
+	};
+
+	notifyNonGlobalListeners = function (binding, path, previousBackingValue, previousMeta) {
+	  var listeners = binding._listeners;
+	  Object.keys(listeners).filter(Util.identity).forEach(function (listenerPath) {
+	    if (isPathAffected(listenerPath, asStringPath(path))) {
+	      notifySamePathListeners(
+	        binding, listeners[listenerPath], listenerPath, path, previousBackingValue, previousMeta);
+	    }
+	  });
+	};
+
+	notifyAllListeners = function (binding, path, previousBackingValue, previousMeta) {
+	  notifyNonGlobalListeners(binding, path, previousBackingValue, previousMeta);
+	  notifyGlobalListeners(binding, path, previousBackingValue, previousMeta);
+	};
+
+	var findSamePathListeners, setListenerDisabled;
+
+	findSamePathListeners = function (binding, listenerId) {
+	  return Util.find(
+	    Util.getPropertyValues(binding._listeners),
+	    function (samePathListeners) { return !!samePathListeners[listenerId]; }
+	  );
+	};
+
+	setListenerDisabled = function (binding, listenerId, disabled) {
+	  var samePathListeners = findSamePathListeners(binding, listenerId);
+	  if (samePathListeners) {
+	    samePathListeners[listenerId].disabled = disabled;
+	  }
+	};
+
+	/** Binding constructor.
+	 * @param {Holder} backingValueHolder backing value holder
+	 * @param {Binding} metaBinding meta binding
+	 * @param {String[]} [path] binding path, empty array if omitted
+	 * @param {Object} [options] binding options object
+	 * @param {Object} [internals] binding internals:
+	 * <ul>
+	 *   <li>regCountHolder - registration count holder;</li>
+	 *   <li>listeners - change listeners;</li>
+	 *   <li>cache - shared bindings cache.</li>
+	 * </ul>
+	 * @public
+	 * @class Binding
+	 * @classdesc Wraps immutable collection. Provides convenient read-write access to nested values.
+	 * Allows to create sub-bindings (or views) narrowed to a subpath and sharing the same backing value.
+	 * Changes to these bindings are mutually visible.
+	 * <p>Terminology:
+	 * <ul>
+	 *   <li>
+	 *     (sub)path - path to a value within nested associative data structure, example: 'path.t.0.some.value';
+	 *   </li>
+	 *   <li>
+	 *     backing value - value shared by all bindings created using [sub]{@link Binding#sub} method.
+	 *   </li>
+	 * </ul>
+	 * <p>Features:
+	 * <ul>
+	 *   <li>can create sub-bindings sharing same backing value. Sub-binding can only modify values down its subpath;</li>
+	 *   <li>allows to conveniently modify nested values: assign, update with a function, remove, and so on;</li>
+	 *   <li>can attach change listeners to a specific subpath;</li>
+	 *   <li>can perform multiple changes atomically in respect of listener notification.</li>
+	 * </ul>
+	 * @see Binding.init */
+	var Binding = function (
+	  backingValueHolder, metaBinding, path, options, internals) {
+
+	  /** @private */
+	  this._backingValueHolder = backingValueHolder;
+	  /** @private */
+	  this._metaBinding = metaBinding;
+	  /** @private */
+	  this._path = path || EMPTY_PATH;
+
+	  /** @private */
+	  this._options = options || {};
+
+	  var effectiveInternals = internals || {};
+
+	  /** @private */
+	  this._regCountHolder = effectiveInternals.regCountHolder || Holder.init(0);
+	  /** @private */
+	  this._listeners = effectiveInternals.listeners || {};
+	  /** @private */
+	  this._cache = effectiveInternals.cache || {};
+	};
+
+	/* --------------- */
+	/* Static helpers. */
+	/* --------------- */
+
+	/** Create new binding with empty listeners set.
+	 * @param {Holder|Immutable.Map} backingValue backing value
+	 * @param {Binding} [metaBinding] meta binding
+	 * @param {Object} [options] binding options object, supported options are:
+	 * <ul>
+	 *   <li>autoMeta - auto create meta binding on first access if not set, true by default.</li>
+	 * </ul>
+	 * @return {Binding} fresh binding instance */
+	Binding.init = function (backingValue, metaBinding, options) {
+	  var args = Util.resolveArgs(
+	    arguments, 'backingValue', function (x) { return x instanceof Binding ? 'metaBinding' : null; }, '?options'
+	  );
+
+	  var binding = new Binding(
+	    backingValue instanceof Holder ? backingValue: Holder.init(backingValue),
+	    args.metaBinding,
+	    EMPTY_PATH,
+	    args.options
+	  );
+
+	  if (args.metaBinding) {
+	    args.metaBinding.addGlobalListener(function (changes) {
+	      if (changes.isValueChanged()) {
+	        var metaNodePath = changes.getPath();
+	        var changedPath = metaNodePath.slice(0, metaNodePath.length - 1);
+	        notifyAllListeners(binding, changedPath, null, changes.getPreviousValue());
+	      }
+	    });
+	  }
+
+	  return binding;
+	};
+
+	/** Convert string path to array path.
+	 * @param {String} pathAsString path as string
+	 * @return {Array} path as an array */
+	Binding.asArrayPath = function (pathAsString) {
+	  return asArrayPath(pathAsString);
+	};
+
+	/** Convert array path to string path.
+	 * @param {String[]} pathAsAnArray path as an array
+	 * @return {String} path as a string */
+	Binding.asStringPath = function (pathAsAnArray) {
+	  return asStringPath(pathAsAnArray);
+	};
+
+	/** Meta node name.
+	 * @type {String} */
+	Binding.META_NODE = META_NODE;
+
+	Binding.prototype = Object.freeze( /** @lends Binding.prototype */ {
+
+	  /** Get binding path.
+	   * @returns {Array} binding path */
+	  getPath: function () {
+	    return this._path;
+	  },
+
+	  /** Update backing value.
+	   * @param {Immutable.Map} newBackingValue new backing value, unchanged if null or undefined
+	   * @return {Binding} new binding instance, original is unaffected */
+	  withBackingValue: function (newBackingValue) {
+	    var backingValueHolder =
+	      Util.undefinedOrNull(newBackingValue) ? this._backingValueHolder : Holder.init(newBackingValue);
+	    return copyBinding(this, backingValueHolder, this._metaBinding, this._path);
+	  },
+
+	  /** Check if binding value is changed in alternative backing value.
+	   * @param {Immutable.Map} alternativeBackingValue alternative backing value
+	   * @param {Function} [compare] alternative compare function, does reference equality check if omitted */
+	  isChanged: function (alternativeBackingValue, compare) {
+	    var value = this.get();
+	    var alternativeValue = alternativeBackingValue.getIn(this._path);
+	    return compare ? compare(value, alternativeValue) : value !== alternativeValue;
+	  },
+
+	  /** Check if this and supplied binding are relatives (i.e. share same backing value).
+	   * @param {Binding} otherBinding potential relative
+	   * @return {Boolean} */
+	  isRelative: function (otherBinding) {
+	    return this._backingValueHolder === otherBinding._backingValueHolder;
+	  },
+
+	  /** Get binding's meta binding.
+	   * @returns {Binding} meta binding or undefined */
+	  meta: function () {
+	    if (!this._metaBinding && this._options.autoMeta !== false) {
+	      this._metaBinding = Binding.init(Imm.Map());
+	    }
+
+	    return this._metaBinding && this._metaBinding.sub(META_NODE);
+	  },
+
+	  /** Get binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {*} value at path or null */
+	  get: function (subpath) {
+	    return getValueAtPath(getBackingValue(this), joinPaths(this._path, asArrayPath(subpath)));
+	  },
+
+	  /** Convert to JS representation.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {*} JS representation of data at subpath */
+	  toJS: function (subpath) {
+	    var value = this.sub(subpath).get();
+	    return value instanceof Imm.Iterable ? value.toJS() : value;
+	  },
+
+	  /** Bind to subpath. Both bindings share the same backing value. Changes are mutually visible.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} new binding instance, original is unaffected */
+	  sub: function (subpath) {
+	    var pathAsArray = asArrayPath(subpath);
+	    var absolutePath = joinPaths(this._path, pathAsArray);
+	    if (absolutePath.length > 0) {
+	      var absolutePathAsString = asStringPath(absolutePath);
+	      var cached = this._cache[absolutePathAsString];
+
+	      if (cached) {
+	        return cached;
+	      } else {
+	        var metaBinding = this._metaBinding && this._metaBinding.sub(pathAsArray);
+	        var subBinding = copyBinding(this, this._backingValueHolder, metaBinding, absolutePath);
+	        this._cache[absolutePathAsString] = subBinding;
+	        return subBinding;
+	      }
+	    } else {
+	      return this;
+	    }
+	  },
+
+	  /** Update binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} f f function
+	   * @return {Binding} this binding */
+	  update: function (subpath, f) {
+	    var args = Util.resolveArgs(arguments, '?subpath', 'f');
+	    var previousBackingValue = getBackingValue(this);
+	    var affectedPath = updateValue(this, asArrayPath(args.subpath), args.f);
+	    notifyAllListeners(this, affectedPath, previousBackingValue, null);
+	    return this;
+	  },
+
+	  /** Set binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {*} newValue new value
+	   * @return {Binding} this binding */
+	  set: function (subpath, newValue) {
+	    var args = Util.resolveArgs(arguments, '?subpath', 'newValue');
+	    return this.update(args.subpath, Util.constantly(args.newValue));
+	  },
+
+	  /** Delete value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} this binding */
+	  delete: function (subpath) {
+	    var previousBackingValue = getBackingValue(this);
+	    var affectedPath = deleteValue(this, asArrayPath(subpath));
+	    notifyAllListeners(this, affectedPath, previousBackingValue, null);
+	    return this;
+	  },
+
+	  /** Deep merge values.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Boolean} [preserve] preserve existing values when merging, false by default
+	   * @param {*} newValue new value
+	   * @return {Binding} this binding */
+	  merge: function (subpath, preserve, newValue) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
+	      '?preserve',
+	      'newValue'
+	    );
+	    return this.update(args.subpath, function (value) {
+	      var effectiveNewValue = args.newValue;
+	      if (Util.undefinedOrNull(value)) {
+	        return effectiveNewValue;
+	      } else {
+	        if (value instanceof Imm.Iterable && effectiveNewValue instanceof Imm.Iterable) {
+	          return args.preserve ? effectiveNewValue.mergeDeep(value) : value.mergeDeep(effectiveNewValue);
+	        } else {
+	          return args.preserve ? value : effectiveNewValue;
+	        }
+	      }
+	    });
+	  },
+
+	  /** Clear nested collection. Does '.clear()' on Immutable values, nullifies otherwise.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} this binding */
+	  clear: function (subpath) {
+	    var subpathAsArray = asArrayPath(subpath);
+	    if (!Util.undefinedOrNull(this.get(subpathAsArray))) this.update(subpathAsArray, clear);
+	    return this;
+	  },
+
+	  /** Add change listener.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} cb function receiving changes descriptor
+	   * @return {String} unique id which should be used to un-register the listener
+	   * @see ChangesDescriptor */
+	  addListener: function (subpath, cb) {
+	    var args = Util.resolveArgs(
+	      arguments, function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, 'cb'
+	    );
+
+	    var listenerId = 'reg' + this._regCountHolder.updateValue(function (count) { return count + 1; });
+	    var pathAsString = asStringPath(joinPaths(this._path, asArrayPath(args.subpath || '')));
+	    var samePathListeners = this._listeners[pathAsString];
+	    var listenerDescriptor = { cb: args.cb, disabled: false };
+	    if (samePathListeners) {
+	      samePathListeners[listenerId] = listenerDescriptor;
+	    } else {
+	      var listeners = {};
+	      listeners[listenerId] = listenerDescriptor;
+	      this._listeners[pathAsString] = listeners;
+	    }
+	    return listenerId;
+	  },
+
+	  /** Add change listener listening from the root.
+	   * @param {Function} cb function receiving changes descriptor
+	   * @return {String} unique id which should be used to un-register the listener
+	   * @see ChangesDescriptor */
+	  addGlobalListener: function (cb) {
+	    return this.addListener(EMPTY_PATH, cb);
+	  },
+
+	  /** Enable listener.
+	   * @param {String} listenerId listener id
+	   * @return {Binding} this binding */
+	  enableListener: function (listenerId) {
+	    setListenerDisabled(this, listenerId, false);
+	    return this;
+	  },
+
+	  /** Disable listener.
+	   * @param {String} listenerId listener id
+	   * @return {Binding} this binding */
+	  disableListener: function (listenerId) {
+	    setListenerDisabled(this, listenerId, true);
+	    return this;
+	  },
+
+	  /** Execute function with listener temporarily disabled. Correctly handles functions returning promises.
+	   * @param {String} listenerId listener id
+	   * @param {Function} f function to execute
+	   * @return {Binding} this binding */
+	  withDisabledListener: function (listenerId, f) {
+	    var samePathListeners = findSamePathListeners(this, listenerId);
+	    if (samePathListeners) {
+	      var descriptor = samePathListeners[listenerId];
+	      descriptor.disabled = true;
+	      Util.afterComplete(f, function () { descriptor.disabled = false; });
+	    } else {
+	      f();
+	    }
+	    return this;
+	  },
+
+	  /** Un-register the listener.
+	   * @param {String} listenerId listener id
+	   * @return {Boolean} true if listener removed successfully, false otherwise */
+	  removeListener: function (listenerId) {
+	    var samePathListeners = findSamePathListeners(this, listenerId);
+	    return samePathListeners ? delete samePathListeners[listenerId] : false;
+	  },
+
+	  /** Create transaction context.
+	   * @return {TransactionContext} transaction context */
+	  atomically: function () {
+	    return new TransactionContext(this);
+	  }
+
+	});
+
+	/** Transaction context constructor.
+	 * @param {Binding} binding binding
+	 * @param {Function[]} [updates] queued updates
+	 * @param {Function[]} [removals] queued removals
+	 * @public
+	 * @class TransactionContext
+	 * @classdesc Transaction context. */
+	var TransactionContext = function (binding, updates, removals) {
+	  /** @private */
+	  this._binding = binding;
+	  /** @private */
+	  this._updates = updates || [];
+	  /** @private */
+	  this._deletions = removals || [];
+	  /** @private */
+	  this._committed = false;
+
+	  /** @private */
+	  this._hasChanges = false;
+	  /** @private */
+	  this._hasMetaChanges = false;
+	};
+
+	TransactionContext.prototype = (function () {
+
+	  var registerUpdate, hasChanges;
+
+	  registerUpdate = function (self, binding) {
+	    if (!self._hasChanges) {
+	      self._hasChanges = binding.isRelative(self._binding);
+	    }
+
+	    if (!self._hasMetaChanges) {
+	      var metaBinding = self._binding.meta();
+	      if (metaBinding) {
+	        self._hasMetaChanges = binding.isRelative(metaBinding);
+	      }
+	    }
+	  };
+
+	  hasChanges = function (self) {
+	    return self._hasChanges || self._hasMetaChanges;
+	  };
+
+	  var addUpdate, addDeletion, areSiblings, filterRedundantPaths, commitSilently;
+
+	  addUpdate = function (self, binding, update, subpath) {
+	    registerUpdate(self, binding);
+	    self._updates.push({ binding: binding, update: update, subpath: subpath });
+	  };
+
+	  addDeletion = function (self, binding, subpath) {
+	    registerUpdate(self, binding);
+	    self._deletions.push({ binding: binding, subpath: subpath });
+	  };
+
+	  areSiblings = function (path1, path2) {
+	    var path1Length = path1.length, path2Length = path2.length;
+	    return path1Length === path2Length && (
+	      path1Length === 1 || path1[path1Length - 2] === path2[path1Length - 2]
+	      );
+	  };
+
+	  filterRedundantPaths = function (affectedPaths) {
+	    if (affectedPaths.length < 2) {
+	      return affectedPaths;
+	    } else {
+	      var sortedPaths = affectedPaths.sort();
+	      var previousPath = sortedPaths[0], previousPathAsString = asStringPath(previousPath);
+	      var result = [previousPath];
+	      for (var i = 1; i < sortedPaths.length; i++) {
+	        var currentPath = sortedPaths[i], currentPathAsString = asStringPath(currentPath);
+	        if (!startsWith(currentPathAsString, previousPathAsString)) {
+	          if (areSiblings(currentPath, previousPath)) {
+	            var commonParentPath = currentPath.slice(0, currentPath.length - 1);
+	            result.pop();
+	            result.push(commonParentPath);
+	            previousPath = commonParentPath;
+	            previousPathAsString = asStringPath(commonParentPath);
+	          } else {
+	            result.push(currentPath);
+	            previousPath = currentPath;
+	            previousPathAsString = currentPathAsString;
+	          }
+	        }
+	      }
+	      return result;
+	    }
+	  };
+
+	  commitSilently = function (self) {
+	    if (!self._committed) {
+	      var updatedPaths = self._updates.map(function (o) { return updateValue(o.binding, o.subpath, o.update); });
+	      var removedPaths = self._deletions.map(function (o) { return deleteValue(o.binding, o.subpath); });
+	      self._committed = true;
+	      return joinPaths(updatedPaths, removedPaths);
+	    } else {
+	      throw new Error('Transaction already committed');
+	    }
+	  };
+
+	  return Object.freeze( /** @lends TransactionContext.prototype */ {
+
+	    /** Update binding value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {Function} f update function
+	     * @return {TransactionContext} updated transaction */
+	    update: function (binding, subpath, f) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'f'
+	      );
+	      addUpdate(this, args.binding || this._binding, args.f, asArrayPath(args.subpath));
+	      return this;
+	    },
+
+	    /** Set binding value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {*} newValue new value
+	     * @return {TransactionContext} updated transaction context */
+	    set: function (binding, subpath, newValue) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'newValue'
+	      );
+	      return this.update(args.binding, args.subpath, Util.constantly(args.newValue));
+	    },
+
+	    /** Remove value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @return {TransactionContext} updated transaction context */
+	    delete: function (binding, subpath) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
+	      );
+	      addDeletion(this, args.binding || this._binding, asArrayPath(args.subpath));
+	      return this;
+	    },
+
+	    /** Deep merge values.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {Boolean} [preserve] preserve existing values when merging, false by default
+	     * @param {*} newValue new value
+	     * @return {TransactionContext} updated transaction context */
+	    merge: function (binding, subpath, preserve, newValue) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; },
+	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
+	        function (x) { return typeof x === 'boolean' ? 'preserve' : null; },
+	        'newValue'
+	      );
+	      return this.update(args.binding, args.subpath, function (value) {
+	        var effectiveNewValue = args.newValue;
+	        if (Util.undefinedOrNull(value)) {
+	          return effectiveNewValue;
+	        } else {
+	          if (value instanceof Imm.Iterable && effectiveNewValue instanceof Imm.Iterable) {
+	            return args.preserve ? effectiveNewValue.mergeDeep(value) : value.mergeDeep(effectiveNewValue);
+	          } else {
+	            return args.preserve ? value : effectiveNewValue;
+	          }
+	        }
+	      });
+	    },
+
+	    /** Clear collection or nullify nested value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @return {TransactionContext} updated transaction context */
+	    clear: function (binding, subpath) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
+	      );
+	      addUpdate(
+	        this,
+	        args.binding || this._binding,
+	        function (value) { return clear(value); },
+	        asArrayPath(args.subpath)
+	      );
+	      return this;
+	    },
+
+	    /** Commit transaction (write changes and notify listeners).
+	     * @param {Object} [options] options object, supported options are:
+	     * <ul>
+	     *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	     * </ul>
+	     * @return {String[]} array of affected paths */
+	    commit: function (options) {
+	      if (hasChanges(this)) {
+	        var effectiveOptions = options || {};
+	        var binding = this._binding;
+
+	        var previousBackingValue = null, previousMetaValue = null;
+	        if (effectiveOptions.notify !== false) {
+	          if (this._hasChanges) previousBackingValue = getBackingValue(binding);
+	          if (this._hasMetaChanges) previousMetaValue = getBackingValue(binding.meta());
+	        }
+
+	        var affectedPaths = commitSilently(this);
+
+	        if (effectiveOptions.notify !== false) {
+	          var filteredPaths = filterRedundantPaths(affectedPaths);
+	          filteredPaths.forEach(function (path) {
+	            notifyNonGlobalListeners(binding, path, previousBackingValue, previousMetaValue);
+	          });
+	          notifyGlobalListeners(binding, filteredPaths[0], previousBackingValue, previousMetaValue);
+	        }
+
+	        return affectedPaths;
+
+	      } else {
+	        return [];
+	      }
+	    }
+
+	  });
+	})();
+
+	module.exports = Binding;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Imm = __webpack_require__(5);
+	var Binding = __webpack_require__(9);
+
+	var getHistoryBinding, initHistory, clearHistory, destroyHistory, listenForChanges, revertToStep, revert;
+
+	getHistoryBinding = function (binding) {
+	  return binding.meta().sub('history');
+	};
+
+	initHistory = function (historyBinding) {
+	  historyBinding.set(Imm.fromJS({ listenerId: null, undo: [], redo: [] }));
+	};
+
+	clearHistory = function (historyBinding) {
+	  var listenerId = historyBinding.get('listenerId');
+	  historyBinding.withDisabledListener(listenerId, function () {
+	    historyBinding.atomically()
+	      .set('undo', Imm.List.of())
+	      .set('redo', Imm.List.of())
+	      .commit();
+	  });
+	};
+
+	destroyHistory = function (binding, notify) {
+	  var historyBinding = getHistoryBinding(binding);
+	  var listenerId = historyBinding.get('listenerId');
+	  binding.removeListener(listenerId);
+	  historyBinding.atomically().set(null).commit({ notify: notify });
+	};
+
+	listenForChanges = function (binding, historyBinding) {
+	  var listenerId = binding.addListener([], function (changes) {
+	    historyBinding.atomically().update(function (history) {
+	      var path = changes.getPath();
+	      var previousValue = changes.getPreviousValue(), newValue = binding.get();
+	      return history
+	        .update('undo', function (undo) {
+	          var pathAsArray = Binding.asArrayPath(path);
+	          return undo && undo.unshift(Imm.Map({
+	            newValue: pathAsArray.length ? newValue.getIn(pathAsArray) : newValue,
+	            oldValue: pathAsArray.length ? previousValue.getIn(pathAsArray) : previousValue,
+	            path: path
+	          }));
+	        })
+	        .set('redo', Imm.List.of());
+	    }).commit({ notify: false });
+	  });
+
+	  historyBinding.atomically().set('listenerId', listenerId).commit({ notify: false });
+	};
+
+	revertToStep = function (path, value, listenerId, binding) {
+	  binding.withDisabledListener(listenerId, function () {
+	    binding.set(path, value);
+	  });
+	};
+
+	revert = function (binding, fromBinding, toBinding, listenerId, valueProperty) {
+	  var from = fromBinding.get();
+	  if (from.count() > 0) {
+	    var step = from.get(0);
+
+	    fromBinding.atomically()
+	      .delete(0)
+	      .update(toBinding, function (to) {
+	        return to.unshift(step);
+	      })
+	      .commit({ notify: false });
+
+	    revertToStep(step.get('path'), step.get(valueProperty), listenerId, binding);
+	    return true;
+	  } else {
+	    return false;
+	  }
+	};
+
+
+	/**
+	 * @name History
+	 * @namespace
+	 * @classdesc Undo/redo history handling.
+	 */
+	var History = {
+
+	  /** Init history.
+	   * @param {Binding} binding binding
+	   * @memberOf History */
+	  init: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    initHistory(historyBinding);
+	    listenForChanges(binding, historyBinding);
+	  },
+
+	  /** Clear history.
+	   * @param {Binding} binding binding
+	   * @memberOf History */
+	  clear: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    clearHistory(historyBinding);
+	  },
+
+	  /** Clear history and shutdown listener.
+	   * @param {Binding} binding history binding
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	   * </ul>
+	   * @memberOf History */
+	  destroy: function (binding, options) {
+	    var effectiveOptions = options || {};
+	    destroyHistory(binding, effectiveOptions.notify);
+	  },
+
+	  /** Check if history has undo information.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean}
+	   * @memberOf History */
+	  hasUndo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var undo = historyBinding.get('undo');
+	    return !!undo && undo.count() > 0;
+	  },
+
+	  /** Check if history has redo information.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean}
+	   * @memberOf History */
+	  hasRedo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var redo = historyBinding.get('redo');
+	    return !!redo && redo.count() > 0;
+	  },
+
+	  /** Revert to previous state.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean} true, if binding has undo information
+	   * @memberOf History */
+	  undo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var listenerId = historyBinding.get('listenerId');
+	    var undoBinding = historyBinding.sub('undo');
+	    var redoBinding = historyBinding.sub('redo');
+	    return revert(binding, undoBinding, redoBinding, listenerId, 'oldValue');
+	  },
+
+	  /** Revert to next state.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean} true, if binding has redo information
+	   * @memberOf History */
+	  redo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var listenerId = historyBinding.get('listenerId');
+	    var undoBinding = historyBinding.sub('undo');
+	    var redoBinding = historyBinding.sub('redo');
+	    return revert(binding, redoBinding, undoBinding, listenerId, 'newValue');
+	  }
+
+	};
+
+	module.exports = History;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Util  = __webpack_require__(8);
+	var React = __webpack_require__(27);
+
+	var _ = (function() {
+	  if (React) return React.DOM;
+	  else {
+	    throw new Error('Morearty: global variable React not found');
+	  }
+	})();
+
+	var wrapComponent = function (comp, displayName) {
+	  return React.createClass({
+
+	    displayName: displayName,
+
+	    getInitialState: function () {
+	      return { value: this.props.value };
+	    },
+
+	    onChange: function (event) {
+	      var handler = this.props.onChange;
+	      if (handler) {
+	        handler(event);
+	        this.setState({ value: event.target.value });
+	      }
+	    },
+
+	    componentWillReceiveProps: function (newProps) {
+	      this.setState({ value: newProps.value });
+	    },
+
+	    render: function () {
+	      var props = Util.assign({}, this.props, {
+	        value: this.state.value,
+	        onChange: this.onChange,
+	        children: this.props.children
+	      });
+	      return comp(props);
+	    }
+
+	  });
+	};
+
+	/**
+	 * @name DOM
+	 * @namespace
+	 * @classdesc DOM module. Exposes requestAnimationFrame-friendly wrappers around input, textarea, and option.
+	 */
+	var DOM = {
+
+	  input: wrapComponent(_.input, 'input'),
+
+	  textarea: wrapComponent(_.textarea, 'textarea'),
+
+	  option: wrapComponent(_.option, 'option')
+
+	};
+
+	module.exports = DOM;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * @name Callback
+	 * @namespace
+	 * @classdesc Miscellaneous callback util functions.
+	 */
+	var Util = __webpack_require__(8);
+
+	module.exports = {
+
+	  /** Create callback used to set binding value on an event.
+	   * @param {Binding} binding binding
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} [f] value transformer
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  set: function (binding, subpath, f) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?f'
+	    );
+
+	    return function (event) {
+	      var value = event.target.value;
+	      binding.set(args.subpath, args.f ? args.f(value) : value);
+	    };
+	  },
+
+	  /** Create callback used to delete binding value on an event.
+	   * @param {Binding} binding binding
+	   * @param {String|String[]} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} [pred] predicate
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  delete: function (binding, subpath, pred) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?pred'
+	    );
+
+	    return function (event) {
+	      var value = event.target.value;
+	      if (!args.pred || args.pred(value)) {
+	        binding.delete(args.subpath);
+	      }
+	    };
+	  },
+
+	  /** Create callback invoked when specified key combination is pressed.
+	   * @param {Function} cb callback
+	   * @param {String|Array} key key
+	   * @param {Boolean} [shiftKey] shift key flag
+	   * @param {Boolean} [ctrlKey] ctrl key flag
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onKey: function (cb, key, shiftKey, ctrlKey) {
+	    var effectiveShiftKey = shiftKey || false;
+	    var effectiveCtrlKey = ctrlKey || false;
+	    return function (event) {
+	      var keyMatched = typeof key === 'string' ?
+	        event.key === key :
+	        Util.find(key, function (k) { return k === event.key; });
+
+	      if (keyMatched && event.shiftKey === effectiveShiftKey && event.ctrlKey === effectiveCtrlKey) {
+	        cb(event);
+	      }
+	    };
+	  },
+
+	  /** Create callback invoked when enter key is pressed.
+	   * @param {Function} cb callback
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onEnter: function (cb) {
+	    return this.onKey(cb, 'Enter');
+	  },
+
+	  /** Create callback invoked when escape key is pressed.
+	   * @param {Function} cb callback
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onEscape: function (cb) {
+	    return this.onKey(cb, 'Escape');
+	  }
+
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule LinkedStateMixin
 	 * @typechecks static-only
@@ -5038,8 +6524,8 @@
 
 	"use strict";
 
-	var ReactLink = __webpack_require__(24);
-	var ReactStateSetters = __webpack_require__(25);
+	var ReactLink = __webpack_require__(28);
+	var ReactStateSetters = __webpack_require__(29);
 
 	/**
 	 * A simple mixin around ReactLink.forState().
@@ -5066,63 +6552,66 @@
 
 
 /***/ },
-/* 9 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule React
 	 */
 
 	"use strict";
 
-	var DOMPropertyOperations = __webpack_require__(26);
-	var EventPluginUtils = __webpack_require__(27);
-	var ReactChildren = __webpack_require__(28);
-	var ReactComponent = __webpack_require__(29);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactContext = __webpack_require__(31);
-	var ReactCurrentOwner = __webpack_require__(32);
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactDOM = __webpack_require__(34);
-	var ReactDOMComponent = __webpack_require__(35);
-	var ReactDefaultInjection = __webpack_require__(36);
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactMount = __webpack_require__(38);
-	var ReactMultiChild = __webpack_require__(39);
-	var ReactPerf = __webpack_require__(40);
-	var ReactPropTypes = __webpack_require__(41);
-	var ReactServerRendering = __webpack_require__(42);
-	var ReactTextComponent = __webpack_require__(43);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var EventPluginUtils = __webpack_require__(31);
+	var ReactChildren = __webpack_require__(32);
+	var ReactComponent = __webpack_require__(33);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactContext = __webpack_require__(35);
+	var ReactCurrentOwner = __webpack_require__(36);
+	var ReactElement = __webpack_require__(37);
+	var ReactElementValidator = __webpack_require__(38);
+	var ReactDOM = __webpack_require__(39);
+	var ReactDOMComponent = __webpack_require__(40);
+	var ReactDefaultInjection = __webpack_require__(41);
+	var ReactInstanceHandles = __webpack_require__(42);
+	var ReactLegacyElement = __webpack_require__(43);
+	var ReactMount = __webpack_require__(44);
+	var ReactMultiChild = __webpack_require__(45);
+	var ReactPerf = __webpack_require__(46);
+	var ReactPropTypes = __webpack_require__(47);
+	var ReactServerRendering = __webpack_require__(48);
+	var ReactTextComponent = __webpack_require__(49);
 
-	var onlyChild = __webpack_require__(44);
-	var warning = __webpack_require__(45);
+	var assign = __webpack_require__(50);
+	var deprecated = __webpack_require__(51);
+	var onlyChild = __webpack_require__(52);
 
 	ReactDefaultInjection.inject();
 
-	// Specifying arguments isn't necessary since we just use apply anyway, but it
-	// makes it clear for those actually consuming this API.
-	function createDescriptor(type, props, children) {
-	  var args = Array.prototype.slice.call(arguments, 1);
-	  return type.apply(null, args);
-	}
+	var createElement = ReactElement.createElement;
+	var createFactory = ReactElement.createFactory;
 
 	if ("production" !== process.env.NODE_ENV) {
-	  var _warnedForDeprecation = false;
+	  createElement = ReactElementValidator.createElement;
+	  createFactory = ReactElementValidator.createFactory;
 	}
+
+	// TODO: Drop legacy elements once classes no longer export these factories
+	createElement = ReactLegacyElement.wrapCreateElement(
+	  createElement
+	);
+	createFactory = ReactLegacyElement.wrapCreateFactory(
+	  createFactory
+	);
+
+	var render = ReactPerf.measure('React', 'render', ReactMount.render);
 
 	var React = {
 	  Children: {
@@ -5137,33 +6626,58 @@
 	    EventPluginUtils.useTouchEvents = shouldUseTouch;
 	  },
 	  createClass: ReactCompositeComponent.createClass,
-	  createDescriptor: function() {
-	    if ("production" !== process.env.NODE_ENV) {
-	      ("production" !== process.env.NODE_ENV ? warning(
-	        _warnedForDeprecation,
-	        'React.createDescriptor is deprecated and will be removed in the ' +
-	        'next version of React. Use React.createElement instead.'
-	      ) : null);
-	      _warnedForDeprecation = true;
-	    }
-	    return createDescriptor.apply(this, arguments);
-	  },
-	  createElement: createDescriptor,
+	  createElement: createElement,
+	  createFactory: createFactory,
 	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
 	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
-	  renderComponent: ReactPerf.measure(
+	  render: render,
+	  renderToString: ReactServerRendering.renderToString,
+	  renderToStaticMarkup: ReactServerRendering.renderToStaticMarkup,
+	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
+	  isValidClass: ReactLegacyElement.isValidClass,
+	  isValidElement: ReactElement.isValidElement,
+	  withContext: ReactContext.withContext,
+
+	  // Hook for JSX spread, don't use this for anything else.
+	  __spread: assign,
+
+	  // Deprecations (remove for 0.13)
+	  renderComponent: deprecated(
 	    'React',
 	    'renderComponent',
-	    ReactMount.renderComponent
+	    'render',
+	    this,
+	    render
 	  ),
-	  renderComponentToString: ReactServerRendering.renderComponentToString,
-	  renderComponentToStaticMarkup:
-	    ReactServerRendering.renderComponentToStaticMarkup,
-	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
-	  isValidClass: ReactDescriptor.isValidFactory,
-	  isValidComponent: ReactDescriptor.isValidDescriptor,
-	  withContext: ReactContext.withContext,
-	  __internals: {
+	  renderComponentToString: deprecated(
+	    'React',
+	    'renderComponentToString',
+	    'renderToString',
+	    this,
+	    ReactServerRendering.renderToString
+	  ),
+	  renderComponentToStaticMarkup: deprecated(
+	    'React',
+	    'renderComponentToStaticMarkup',
+	    'renderToStaticMarkup',
+	    this,
+	    ReactServerRendering.renderToStaticMarkup
+	  ),
+	  isValidComponent: deprecated(
+	    'React',
+	    'isValidComponent',
+	    'isValidElement',
+	    this,
+	    ReactElement.isValidElement
+	  )
+	};
+
+	// Inject the runtime into a devtools global hook regardless of browser.
+	// Allows for debugging when the hook is injected on the page.
+	if (
+	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' &&
+	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.inject === 'function') {
+	  __REACT_DEVTOOLS_GLOBAL_HOOK__.inject({
 	    Component: ReactComponent,
 	    CurrentOwner: ReactCurrentOwner,
 	    DOMComponent: ReactDOMComponent,
@@ -5172,18 +6686,23 @@
 	    Mount: ReactMount,
 	    MultiChild: ReactMultiChild,
 	    TextComponent: ReactTextComponent
-	  }
-	};
+	  });
+	}
 
 	if ("production" !== process.env.NODE_ENV) {
-	  var ExecutionEnvironment = __webpack_require__(46);
-	  if (ExecutionEnvironment.canUseDOM &&
-	      window.top === window.self &&
-	      navigator.userAgent.indexOf('Chrome') > -1) {
-	    console.debug(
-	      'Download the React DevTools for a better development experience: ' +
-	      'http://fb.me/react-devtools'
-	    );
+	  var ExecutionEnvironment = __webpack_require__(53);
+	  if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
+
+	    // If we're in Chrome, look for the devtools marker and provide a download
+	    // link if not installed.
+	    if (navigator.userAgent.indexOf('Chrome') > -1) {
+	      if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined') {
+	        console.debug(
+	          'Download the React DevTools for a better development experience: ' +
+	          'http://fb.me/react-devtools'
+	        );
+	      }
+	    }
 
 	    var expectedFeatures = [
 	      // shims
@@ -5203,7 +6722,7 @@
 	      Object.freeze
 	    ];
 
-	    for (var i in expectedFeatures) {
+	    for (var i = 0; i < expectedFeatures.length; i++) {
 	      if (!expectedFeatures[i]) {
 	        console.error(
 	          'One or more ES5 shim/shams expected by React are not available: ' +
@@ -5217,37 +6736,30 @@
 
 	// Version exists only in the open-source version of React, not in Facebook's
 	// internal version.
-	React.version = '0.11.2';
+	React.version = '0.12.0';
 
 	module.exports = React;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	* @providesModule ReactComponentWithPureRenderMixin
 	*/
 
 	"use strict";
 
-	var shallowEqual = __webpack_require__(47);
+	var shallowEqual = __webpack_require__(54);
 
 	/**
 	 * If your React component's render function is "pure", e.g. it will render the
@@ -5284,23 +6796,16 @@
 
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks
 	 * @providesModule ReactCSSTransitionGroup
@@ -5308,10 +6813,16 @@
 
 	"use strict";
 
-	var React = __webpack_require__(9);
+	var React = __webpack_require__(14);
 
-	var ReactTransitionGroup = __webpack_require__(12);
-	var ReactCSSTransitionGroupChild = __webpack_require__(48);
+	var assign = __webpack_require__(50);
+
+	var ReactTransitionGroup = React.createFactory(
+	  __webpack_require__(17)
+	);
+	var ReactCSSTransitionGroupChild = React.createFactory(
+	  __webpack_require__(55)
+	);
 
 	var ReactCSSTransitionGroup = React.createClass({
 	  displayName: 'ReactCSSTransitionGroup',
@@ -5344,10 +6855,9 @@
 	  },
 
 	  render: function() {
-	    return this.transferPropsTo(
+	    return (
 	      ReactTransitionGroup(
-	        {childFactory: this._wrapChild},
-	        this.props.children
+	        assign({}, this.props, {childFactory: this._wrapChild})
 	      )
 	    );
 	  }
@@ -5357,47 +6867,40 @@
 
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactTransitionGroup
 	 */
 
 	"use strict";
 
-	var React = __webpack_require__(9);
-	var ReactTransitionChildMapping = __webpack_require__(49);
+	var React = __webpack_require__(14);
+	var ReactTransitionChildMapping = __webpack_require__(56);
 
-	var cloneWithProps = __webpack_require__(14);
-	var emptyFunction = __webpack_require__(50);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var cloneWithProps = __webpack_require__(20);
+	var emptyFunction = __webpack_require__(57);
 
 	var ReactTransitionGroup = React.createClass({
 	  displayName: 'ReactTransitionGroup',
 
 	  propTypes: {
-	    component: React.PropTypes.func,
+	    component: React.PropTypes.any,
 	    childFactory: React.PropTypes.func
 	  },
 
 	  getDefaultProps: function() {
 	    return {
-	      component: React.DOM.span,
+	      component: 'span',
 	      childFactory: emptyFunction.thatReturnsArgument
 	    };
 	  },
@@ -5521,7 +7024,7 @@
 	      // This entered again before it fully left. Add it again.
 	      this.performEnter(key);
 	    } else {
-	      var newChildren = merge(this.state.children);
+	      var newChildren = assign({}, this.state.children);
 	      delete newChildren[key];
 	      this.setState({children: newChildren});
 	    }
@@ -5545,7 +7048,11 @@
 	        );
 	      }
 	    }
-	    return this.transferPropsTo(this.props.component(null, childrenToRender));
+	    return React.createElement(
+	      this.props.component,
+	      this.props,
+	      childrenToRender
+	    );
 	  }
 	});
 
@@ -5553,23 +7060,309 @@
 
 
 /***/ },
-/* 13 */
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactUpdates
+	 */
+
+	"use strict";
+
+	var CallbackQueue = __webpack_require__(58);
+	var PooledClass = __webpack_require__(59);
+	var ReactCurrentOwner = __webpack_require__(36);
+	var ReactPerf = __webpack_require__(46);
+	var Transaction = __webpack_require__(60);
+
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
+	var warning = __webpack_require__(62);
+
+	var dirtyComponents = [];
+	var asapCallbackQueue = CallbackQueue.getPooled();
+	var asapEnqueued = false;
+
+	var batchingStrategy = null;
+
+	function ensureInjected() {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactUpdates.ReactReconcileTransaction && batchingStrategy,
+	    'ReactUpdates: must inject a reconcile transaction class and batching ' +
+	    'strategy'
+	  ) : invariant(ReactUpdates.ReactReconcileTransaction && batchingStrategy));
+	}
+
+	var NESTED_UPDATES = {
+	  initialize: function() {
+	    this.dirtyComponentsLength = dirtyComponents.length;
+	  },
+	  close: function() {
+	    if (this.dirtyComponentsLength !== dirtyComponents.length) {
+	      // Additional updates were enqueued by componentDidUpdate handlers or
+	      // similar; before our own UPDATE_QUEUEING wrapper closes, we want to run
+	      // these new updates so that if A's componentDidUpdate calls setState on
+	      // B, B will update before the callback A's updater provided when calling
+	      // setState.
+	      dirtyComponents.splice(0, this.dirtyComponentsLength);
+	      flushBatchedUpdates();
+	    } else {
+	      dirtyComponents.length = 0;
+	    }
+	  }
+	};
+
+	var UPDATE_QUEUEING = {
+	  initialize: function() {
+	    this.callbackQueue.reset();
+	  },
+	  close: function() {
+	    this.callbackQueue.notifyAll();
+	  }
+	};
+
+	var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
+
+	function ReactUpdatesFlushTransaction() {
+	  this.reinitializeTransaction();
+	  this.dirtyComponentsLength = null;
+	  this.callbackQueue = CallbackQueue.getPooled();
+	  this.reconcileTransaction =
+	    ReactUpdates.ReactReconcileTransaction.getPooled();
+	}
+
+	assign(
+	  ReactUpdatesFlushTransaction.prototype,
+	  Transaction.Mixin, {
+	  getTransactionWrappers: function() {
+	    return TRANSACTION_WRAPPERS;
+	  },
+
+	  destructor: function() {
+	    this.dirtyComponentsLength = null;
+	    CallbackQueue.release(this.callbackQueue);
+	    this.callbackQueue = null;
+	    ReactUpdates.ReactReconcileTransaction.release(this.reconcileTransaction);
+	    this.reconcileTransaction = null;
+	  },
+
+	  perform: function(method, scope, a) {
+	    // Essentially calls `this.reconcileTransaction.perform(method, scope, a)`
+	    // with this transaction's wrappers around it.
+	    return Transaction.Mixin.perform.call(
+	      this,
+	      this.reconcileTransaction.perform,
+	      this.reconcileTransaction,
+	      method,
+	      scope,
+	      a
+	    );
+	  }
+	});
+
+	PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
+
+	function batchedUpdates(callback, a, b) {
+	  ensureInjected();
+	  batchingStrategy.batchedUpdates(callback, a, b);
+	}
+
+	/**
+	 * Array comparator for ReactComponents by owner depth
+	 *
+	 * @param {ReactComponent} c1 first component you're comparing
+	 * @param {ReactComponent} c2 second component you're comparing
+	 * @return {number} Return value usable by Array.prototype.sort().
+	 */
+	function mountDepthComparator(c1, c2) {
+	  return c1._mountDepth - c2._mountDepth;
+	}
+
+	function runBatchedUpdates(transaction) {
+	  var len = transaction.dirtyComponentsLength;
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    len === dirtyComponents.length,
+	    'Expected flush transaction\'s stored dirty-components length (%s) to ' +
+	    'match dirty-components array length (%s).',
+	    len,
+	    dirtyComponents.length
+	  ) : invariant(len === dirtyComponents.length));
+
+	  // Since reconciling a component higher in the owner hierarchy usually (not
+	  // always -- see shouldComponentUpdate()) will reconcile children, reconcile
+	  // them before their children by sorting the array.
+	  dirtyComponents.sort(mountDepthComparator);
+
+	  for (var i = 0; i < len; i++) {
+	    // If a component is unmounted before pending changes apply, ignore them
+	    // TODO: Queue unmounts in the same list to avoid this happening at all
+	    var component = dirtyComponents[i];
+	    if (component.isMounted()) {
+	      // If performUpdateIfNecessary happens to enqueue any new updates, we
+	      // shouldn't execute the callbacks until the next render happens, so
+	      // stash the callbacks first
+	      var callbacks = component._pendingCallbacks;
+	      component._pendingCallbacks = null;
+	      component.performUpdateIfNecessary(transaction.reconcileTransaction);
+
+	      if (callbacks) {
+	        for (var j = 0; j < callbacks.length; j++) {
+	          transaction.callbackQueue.enqueue(
+	            callbacks[j],
+	            component
+	          );
+	        }
+	      }
+	    }
+	  }
+	}
+
+	var flushBatchedUpdates = ReactPerf.measure(
+	  'ReactUpdates',
+	  'flushBatchedUpdates',
+	  function() {
+	    // ReactUpdatesFlushTransaction's wrappers will clear the dirtyComponents
+	    // array and perform any updates enqueued by mount-ready handlers (i.e.,
+	    // componentDidUpdate) but we need to check here too in order to catch
+	    // updates enqueued by setState callbacks and asap calls.
+	    while (dirtyComponents.length || asapEnqueued) {
+	      if (dirtyComponents.length) {
+	        var transaction = ReactUpdatesFlushTransaction.getPooled();
+	        transaction.perform(runBatchedUpdates, null, transaction);
+	        ReactUpdatesFlushTransaction.release(transaction);
+	      }
+
+	      if (asapEnqueued) {
+	        asapEnqueued = false;
+	        var queue = asapCallbackQueue;
+	        asapCallbackQueue = CallbackQueue.getPooled();
+	        queue.notifyAll();
+	        CallbackQueue.release(queue);
+	      }
+	    }
+	  }
+	);
+
+	/**
+	 * Mark a component as needing a rerender, adding an optional callback to a
+	 * list of functions which will be executed once the rerender occurs.
+	 */
+	function enqueueUpdate(component, callback) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    !callback || typeof callback === "function",
+	    'enqueueUpdate(...): You called `setProps`, `replaceProps`, ' +
+	    '`setState`, `replaceState`, or `forceUpdate` with a callback that ' +
+	    'isn\'t callable.'
+	  ) : invariant(!callback || typeof callback === "function"));
+	  ensureInjected();
+
+	  // Various parts of our code (such as ReactCompositeComponent's
+	  // _renderValidatedComponent) assume that calls to render aren't nested;
+	  // verify that that's the case. (This is called by each top-level update
+	  // function, like setProps, setState, forceUpdate, etc.; creation and
+	  // destruction of top-level components is guarded in ReactMount.)
+	  ("production" !== process.env.NODE_ENV ? warning(
+	    ReactCurrentOwner.current == null,
+	    'enqueueUpdate(): Render methods should be a pure function of props ' +
+	    'and state; triggering nested component updates from render is not ' +
+	    'allowed. If necessary, trigger nested updates in ' +
+	    'componentDidUpdate.'
+	  ) : null);
+
+	  if (!batchingStrategy.isBatchingUpdates) {
+	    batchingStrategy.batchedUpdates(enqueueUpdate, component, callback);
+	    return;
+	  }
+
+	  dirtyComponents.push(component);
+
+	  if (callback) {
+	    if (component._pendingCallbacks) {
+	      component._pendingCallbacks.push(callback);
+	    } else {
+	      component._pendingCallbacks = [callback];
+	    }
+	  }
+	}
+
+	/**
+	 * Enqueue a callback to be run at the end of the current batching cycle. Throws
+	 * if no updates are currently being performed.
+	 */
+	function asap(callback, context) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    batchingStrategy.isBatchingUpdates,
+	    'ReactUpdates.asap: Can\'t enqueue an asap callback in a context where' +
+	    'updates are not being batched.'
+	  ) : invariant(batchingStrategy.isBatchingUpdates));
+	  asapCallbackQueue.enqueue(callback, context);
+	  asapEnqueued = true;
+	}
+
+	var ReactUpdatesInjection = {
+	  injectReconcileTransaction: function(ReconcileTransaction) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      ReconcileTransaction,
+	      'ReactUpdates: must provide a reconcile transaction class'
+	    ) : invariant(ReconcileTransaction));
+	    ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
+	  },
+
+	  injectBatchingStrategy: function(_batchingStrategy) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      _batchingStrategy,
+	      'ReactUpdates: must provide a batching strategy'
+	    ) : invariant(_batchingStrategy));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      typeof _batchingStrategy.batchedUpdates === 'function',
+	      'ReactUpdates: must provide a batchedUpdates() function'
+	    ) : invariant(typeof _batchingStrategy.batchedUpdates === 'function'));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      typeof _batchingStrategy.isBatchingUpdates === 'boolean',
+	      'ReactUpdates: must provide an isBatchingUpdates boolean attribute'
+	    ) : invariant(typeof _batchingStrategy.isBatchingUpdates === 'boolean'));
+	    batchingStrategy = _batchingStrategy;
+	  }
+	};
+
+	var ReactUpdates = {
+	  /**
+	   * React references `ReactReconcileTransaction` using this property in order
+	   * to allow dependency injection.
+	   *
+	   * @internal
+	   */
+	  ReactReconcileTransaction: null,
+
+	  batchedUpdates: batchedUpdates,
+	  enqueueUpdate: enqueueUpdate,
+	  flushBatchedUpdates: flushBatchedUpdates,
+	  injection: ReactUpdatesInjection,
+	  asap: asap
+	};
+
+	module.exports = ReactUpdates;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule cx
 	 */
@@ -5603,23 +7396,16 @@
 
 
 /***/ },
-/* 14 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks
 	 * @providesModule cloneWithProps
@@ -5627,10 +7413,11 @@
 
 	"use strict";
 
-	var ReactPropTransferer = __webpack_require__(52);
+	var ReactElement = __webpack_require__(37);
+	var ReactPropTransferer = __webpack_require__(63);
 
-	var keyOf = __webpack_require__(53);
-	var warning = __webpack_require__(45);
+	var keyOf = __webpack_require__(64);
+	var warning = __webpack_require__(62);
 
 	var CHILDREN_PROP = keyOf({children: null});
 
@@ -5646,7 +7433,7 @@
 	function cloneWithProps(child, props) {
 	  if ("production" !== process.env.NODE_ENV) {
 	    ("production" !== process.env.NODE_ENV ? warning(
-	      !child.props.ref,
+	      !child.ref,
 	      'You are calling cloneWithProps() on a child with a ref. This is ' +
 	      'dangerous because you\'re creating a new child which will not be ' +
 	      'added as a ref to its parent.'
@@ -5662,47 +7449,40 @@
 	  }
 
 	  // The current API doesn't retain _owner and _context, which is why this
-	  // doesn't use ReactDescriptor.cloneAndReplaceProps.
-	  return child.constructor(newProps);
+	  // doesn't use ReactElement.cloneAndReplaceProps.
+	  return ReactElement.createElement(child.type, newProps);
 	}
 
 	module.exports = cloneWithProps;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 15 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule update
 	 */
 
 	"use strict";
 
-	var copyProperties = __webpack_require__(54);
-	var keyOf = __webpack_require__(53);
-	var invariant = __webpack_require__(55);
+	var assign = __webpack_require__(50);
+	var keyOf = __webpack_require__(64);
+	var invariant = __webpack_require__(61);
 
 	function shallowCopy(x) {
 	  if (Array.isArray(x)) {
 	    return x.concat();
 	  } else if (x && typeof x === 'object') {
-	    return copyProperties(new x.constructor(), x);
+	    return assign(new x.constructor(), x);
 	  } else {
 	    return x;
 	  }
@@ -5782,7 +7562,7 @@
 	      COMMAND_MERGE,
 	      nextValue
 	    ) : invariant(nextValue && typeof nextValue === 'object'));
-	    copyProperties(nextValue, spec[COMMAND_MERGE]);
+	    assign(nextValue, spec[COMMAND_MERGE]);
 	  }
 
 	  if (spec.hasOwnProperty(COMMAND_PUSH)) {
@@ -5846,26 +7626,19 @@
 
 	module.exports = update;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 16 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDefaultPerf
 	 * @typechecks static-only
@@ -5873,12 +7646,12 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
-	var ReactDefaultPerfAnalysis = __webpack_require__(57);
-	var ReactMount = __webpack_require__(38);
-	var ReactPerf = __webpack_require__(40);
+	var DOMProperty = __webpack_require__(65);
+	var ReactDefaultPerfAnalysis = __webpack_require__(66);
+	var ReactMount = __webpack_require__(44);
+	var ReactPerf = __webpack_require__(46);
 
-	var performanceNow = __webpack_require__(58);
+	var performanceNow = __webpack_require__(67);
 
 	function roundFloat(val) {
 	  return Math.floor(val * 100) / 100;
@@ -5944,19 +7717,23 @@
 	    );
 	  },
 
-	  printWasted: function(measurements) {
-	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	  getMeasurementsSummaryMap: function(measurements) {
 	    var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(
 	      measurements,
 	      true
 	    );
-	    console.table(summary.map(function(item) {
+	    return summary.map(function(item) {
 	      return {
 	        'Owner > component': item.componentName,
 	        'Wasted time (ms)': item.time,
 	        'Instances': item.count
 	      };
-	    }));
+	    });
+	  },
+
+	  printWasted: function(measurements) {
+	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	    console.table(ReactDefaultPerf.getMeasurementsSummaryMap(measurements));
 	    console.log(
 	      'Total time:',
 	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
@@ -6116,43 +7893,34 @@
 
 
 /***/ },
-/* 17 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactTestUtils
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPluginHub = __webpack_require__(61);
-	var EventPropagators = __webpack_require__(62);
-	var React = __webpack_require__(9);
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactDOM = __webpack_require__(34);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
-	var ReactMount = __webpack_require__(38);
-	var ReactTextComponent = __webpack_require__(43);
-	var ReactUpdates = __webpack_require__(64);
-	var SyntheticEvent = __webpack_require__(65);
+	var EventConstants = __webpack_require__(68);
+	var EventPluginHub = __webpack_require__(69);
+	var EventPropagators = __webpack_require__(70);
+	var React = __webpack_require__(14);
+	var ReactElement = __webpack_require__(37);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
+	var ReactMount = __webpack_require__(44);
+	var ReactTextComponent = __webpack_require__(49);
+	var ReactUpdates = __webpack_require__(18);
+	var SyntheticEvent = __webpack_require__(72);
 
-	var mergeInto = __webpack_require__(66);
-	var copyProperties = __webpack_require__(54);
+	var assign = __webpack_require__(50);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -6175,16 +7943,16 @@
 	    // clean up, so we're going to stop honoring the name of this method
 	    // (and probably rename it eventually) if no problems arise.
 	    // document.documentElement.appendChild(div);
-	    return React.renderComponent(instance, div);
+	    return React.render(instance, div);
 	  },
 
-	  isDescriptor: function(descriptor) {
-	    return ReactDescriptor.isValidDescriptor(descriptor);
+	  isElement: function(element) {
+	    return ReactElement.isValidElement(element);
 	  },
 
-	  isDescriptorOfType: function(inst, convenienceConstructor) {
+	  isElementOfType: function(inst, convenienceConstructor) {
 	    return (
-	      ReactDescriptor.isValidDescriptor(inst) &&
+	      ReactElement.isValidElement(inst) &&
 	      inst.type === convenienceConstructor.type
 	    );
 	  },
@@ -6193,9 +7961,9 @@
 	    return !!(inst && inst.mountComponent && inst.tagName);
 	  },
 
-	  isDOMComponentDescriptor: function(inst) {
+	  isDOMComponentElement: function(inst) {
 	    return !!(inst &&
-	              ReactDescriptor.isValidDescriptor(inst) &&
+	              ReactElement.isValidElement(inst) &&
 	              !!inst.tagName);
 	  },
 
@@ -6209,8 +7977,8 @@
 	             (inst.constructor === type.type));
 	  },
 
-	  isCompositeComponentDescriptor: function(inst) {
-	    if (!ReactDescriptor.isValidDescriptor(inst)) {
+	  isCompositeComponentElement: function(inst) {
+	    if (!ReactElement.isValidElement(inst)) {
 	      return false;
 	    }
 	    // We check the prototype of the type that will get mounted, not the
@@ -6222,8 +7990,8 @@
 	    );
 	  },
 
-	  isCompositeComponentDescriptorWithType: function(inst, type) {
-	    return !!(ReactTestUtils.isCompositeComponentDescriptor(inst) &&
+	  isCompositeComponentElementWithType: function(inst, type) {
+	    return !!(ReactTestUtils.isCompositeComponentElement(inst) &&
 	             (inst.constructor === type));
 	  },
 
@@ -6359,15 +8127,22 @@
 	   * @return {object} the ReactTestUtils object (for chaining)
 	   */
 	  mockComponent: function(module, mockTagName) {
-	    var ConvenienceConstructor = React.createClass({
+	    mockTagName = mockTagName || module.mockTagName || "div";
+
+	    var ConvenienceConstructor = React.createClass({displayName: 'ConvenienceConstructor',
 	      render: function() {
-	        var mockTagName = mockTagName || module.mockTagName || "div";
-	        return ReactDOM[mockTagName](null, this.props.children);
+	        return React.createElement(
+	          mockTagName,
+	          null,
+	          this.props.children
+	        );
 	      }
 	    });
 
-	    copyProperties(module, ConvenienceConstructor);
 	    module.mockImplementation(ConvenienceConstructor);
+
+	    module.type = ConvenienceConstructor.type;
+	    module.isReactLegacyFactory = true;
 
 	    return this;
 	  },
@@ -6443,7 +8218,7 @@
 	      ReactMount.getID(node),
 	      fakeNativeEvent
 	    );
-	    mergeInto(event, eventData);
+	    assign(event, eventData);
 	    EventPropagators.accumulateTwoPhaseDispatches(event);
 
 	    ReactUpdates.batchedUpdates(function() {
@@ -6499,7 +8274,7 @@
 	function makeNativeSimulator(eventType) {
 	  return function(domComponentOrNode, nativeEventData) {
 	    var fakeNativeEvent = new Event(eventType);
-	    mergeInto(fakeNativeEvent, nativeEventData);
+	    assign(fakeNativeEvent, nativeEventData);
 	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
 	      ReactTestUtils.simulateNativeEventOnDOMComponent(
 	        eventType,
@@ -6534,1285 +8309,7 @@
 
 
 /***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * @name Util
-	 * @namespace
-	 * @classdesc Miscellaneous util functions.
-	 */
-
-	/* ---------------- */
-	/* Private helpers. */
-	/* ---------------- */
-
-	// resolveArgs
-
-	var isRequired, findTurningPoint, prepare;
-
-	isRequired = function (spec) {
-	  return typeof spec === 'string' && spec.charAt(0) !== '?';
-	};
-
-	findTurningPoint = function (arr, pred) {
-	  var first = pred(arr[0]);
-	  for (var i = 1; i < arr.length; i++) {
-	    if (pred(arr[i]) !== first) return i;
-	  }
-	  return null;
-	};
-
-	prepare = function (arr, splitAt) {
-	  return arr.slice(splitAt).reverse().concat(arr.slice(0, splitAt));
-	};
-
-	module.exports = {
-
-	  /** Identity function. Returns its first argument.
-	   * @param {*} x argument to return
-	   * @return {*} its first argument
-	   * @memberOf Util */
-	  identity: function (x) {
-	    return x;
-	  },
-
-	  /** 'Not' function returning logical not of its argument.
-	   * @param {*} x argument
-	   * @returns {*} !x
-	   * @memberOf Util */
-	  not: function (x) {
-	    return !x;
-	  },
-
-	  /** Create constant function (always returning x).
-	   * @param {*} x constant function return value
-	   * @return {Function} function always returning x
-	   * @memberOf Util */
-	  constantly: function (x) {
-	    return function () { return x; };
-	  },
-
-	  /** Execute function asynchronously.
-	   * @param {Function} f function */
-	  async: function (f) {
-	    setTimeout(f, 0);
-	  },
-
-	  /** Execute function f, then function cont. If f returns a promise, cont is executed when the promise resolves.
-	   * @param {Function} f function to execute first
-	   * @param {Function} cont function to execute after f
-	   * @memberOf Util */
-	  afterComplete: function (f, cont) {
-	    var result = f();
-	    if (result && typeof result.always === 'function') {
-	      result.always(cont);
-	    } else {
-	      cont();
-	    }
-	  },
-
-	  /** Check if argument is undefined or null.
-	   * @param {*} x argument to check
-	   * @returns {Boolean}
-	   * @memberOf Util */
-	  undefinedOrNull: function (x) {
-	    return x === undefined || x === null;
-	  },
-
-	  /** Check if s1 starts with s2.
-	   * @param {String} s1
-	   * @param {String} s2
-	   * @return {Boolean}
-	   * @memberOf Util */
-	  startsWith: function (s1, s2) {
-	    return s1.indexOf(s2) === 0;
-	  },
-
-	  /** Self-descriptive.
-	   * @param {*} x
-	   * @return {String}
-	   * @memberOf Util */
-	  toString: function (x) {
-	    switch (x) {
-	      case undefined:
-	        return 'undefined';
-	      case null:
-	        return 'null';
-	      default:
-	        if (typeof x === 'string') {
-	          return '"' + x + '"';
-	        } else if (Array.isArray(x)) {
-	          return '[' + x.join(', ') + ']';
-	        } else {
-	          return x.toString();
-	        }
-	    }
-	  },
-
-	  /** Check if arguments are equal.
-	   * Checks strict equality first, if false, 'equals' method is tried, if any.
-	   * @param {*} x
-	   * @param {*} y
-	   * @returns {Boolean}
-	   * @memberOf Util */
-	  equals: function (x, y) {
-	    return x === y || (x && x.equals && x.equals(y));
-	  },
-
-	  /** Get values of object properties.
-	   * @param {Object} obj object
-	   * @return {Array} object's properties values
-	   * @memberOf Util */
-	  getPropertyValues: function (obj) {
-	    return Object.keys(obj).map(function (key) { return obj[key]; });
-	  },
-
-	  /** Find array element satisfying the predicate.
-	   * @param {Array} arr array
-	   * @param {Function} pred predicate accepting current value, index, original array
-	   * @return {*} found value or null
-	   * @memberOf Util */
-	  find: function (arr, pred) {
-	    for (var i = 0; i < arr.length; i++) {
-	      var value = arr[i];
-	      if (pred(value, i, arr)) {
-	        return value;
-	      }
-	    }
-	    return null;
-	  },
-
-	  /** Resolve arguments. Acceptable spec formats:
-	   * <ul>
-	   *   <li>'foo' - required argument 'foo';</li>
-	   *   <li>'?foo' - optional argument 'foo';</li>
-	   *   <li>function (arg) { return arg instanceof MyClass ? 'foo' : null; } - checked optional argument.</li>
-	   * </ul>
-	   * Specs can only switch optional flag once in the list. This invariant isn't checked by the method,
-	   * its violation will produce indeterminate results.
-	   * <p>Optional arguments are matched in order, left to right. Provide check function if you need to allow to skip
-	   * one optional argument and use sebsequent optional arguments instead.
-	   * <p>Returned arguments descriptor contains argument names mapped to resolved values.
-	   * @param {Array} args arguments 'array'
-	   * @param {*} var_args arguments specs as a var-args list or array, see method description
-	   * @returns {Object} arguments descriptor object
-	   * @memberOf Util */
-	  resolveArgs: function (args, var_args) {
-	    var result = {};
-	    if (arguments.length > 1) {
-	      var specs = Array.isArray(var_args) ? var_args : Array.prototype.slice.call(arguments, 1);
-	      var preparedSpecs, preparedArgs;
-	      var turningPoint;
-
-	      if (isRequired(specs[0]) || !(turningPoint = findTurningPoint(specs, isRequired))) {
-	        preparedSpecs = specs;
-	        preparedArgs = args;
-	      } else {
-	        var effectiveArgs = Array.isArray(args) ? args : Array.prototype.slice.call(args);
-	        preparedSpecs = prepare(specs, turningPoint);
-	        preparedArgs = prepare(effectiveArgs, effectiveArgs.length - (specs.length - turningPoint));
-	      }
-
-	      for (var specIndex = 0, argIndex = 0;
-	           specIndex < preparedSpecs.length && argIndex < preparedArgs.length; specIndex++) {
-	        var spec = preparedSpecs[specIndex], arg = preparedArgs[argIndex];
-	        if (isRequired(spec)) {
-	          result[spec] = arg;
-	          argIndex++;
-	        } else {
-	          var name = typeof spec === 'function' ? spec(arg) : (spec.charAt(0) !== '?' ? spec : spec.substring(1));
-	          if (name || arg === undefined) {
-	            result[name] = arg;
-	            argIndex++;
-	          }
-	        }
-	      }
-	    }
-
-	    return result;
-	  },
-
-	  /** Check if argument can be valid binding subpath.
-	   * @param {*} x
-	   * @returns {Boolean}
-	   * @memberOf Util */
-	  canRepresentSubpath: function (x) {
-	    var type = typeof x;
-	    return type === 'string' || type === 'number' || Array.isArray(x);
-	  },
-
-	  /** Shallow merge object properties from source object to dest.
-	   * @param {Object} source source object
-	   * @param {Object} dest destination object
-	   * @return {Object} destination object
-	   * @memberOf Util */
-	  shallowMerge: function (source, dest) {
-	    for (var prop in source) {
-	      if (source.hasOwnProperty(prop)) {
-	        dest[prop] = source[prop];
-	      }
-	    }
-	    return dest;
-	  },
-
-	  /** Partially apply React component constructor.
-	   * @param {Function} comp component constructor
-	   * @param {Object} props properties to apply
-	   * @param {Boolean} override override existing properties flag, true by default
-	   * @returns {Function} partially-applied React component constructor
-	   * @memberOf Util */
-	  papply: function (comp, props, override) {
-	    var self = this;
-	    var f = function (props2, children) {
-	      var effectiveChildren = arguments.length > 1 ? Array.prototype.slice.call(arguments, 1) : null;
-	      if (props2) {
-	        var effectiveProps = {};
-	        if (f._props) {
-	          self.shallowMerge(f._props, effectiveProps);
-	          self.shallowMerge(props2, effectiveProps);
-	        } else {
-	          effectiveProps = props2;
-	        }
-	        return comp(effectiveProps, effectiveChildren);
-	      } else {
-	        return comp(f._props, effectiveChildren);
-	      }
-	    };
-
-	    if (comp._props) {
-	      var newCompProps = {};
-	      if (override !== false) {
-	        self.shallowMerge(comp._props, newCompProps);
-	        self.shallowMerge(props, newCompProps);
-	      } else {
-	        self.shallowMerge(props, newCompProps);
-	        self.shallowMerge(comp._props, newCompProps);
-	      }
-	      f._props = newCompProps;
-	    } else {
-	      f._props = props;
-	    }
-
-	    return f;
-	  }
-
-	};
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Util   = __webpack_require__(18);
-	var Holder = __webpack_require__(67);
-	var Imm = __webpack_require__(4);
-
-	/* ---------------- */
-	/* Private helpers. */
-	/* ---------------- */
-
-	var copyBinding, getBackingValue, setBackingValue;
-
-	copyBinding = function (binding, backingValueHolder, path) {
-	  return new Binding(
-	    backingValueHolder,
-	    binding._regCountHolder, path, binding._listeners, binding._listenerNestingLevelHolder, binding._cache
-	  );
-	};
-
-	getBackingValue = function (binding) {
-	  return binding._backingValueHolder.getValue();
-	};
-
-	setBackingValue = function (binding, newBackingValue) {
-	  binding._backingValueHolder.setValue(newBackingValue);
-	};
-
-	var EMPTY_PATH, PATH_SEPARATOR, getPathElements, asArrayPath, asStringPath, joinPaths;
-
-	EMPTY_PATH = [];
-	PATH_SEPARATOR = '.';
-
-	getPathElements = function (path) {
-	  return path ? path.split(PATH_SEPARATOR).map(function (s) { return isNaN(s) ? s : +s; }) : [];
-	};
-
-	asArrayPath = function (path) {
-	  switch (typeof path) {
-	    case 'string':
-	      return getPathElements(path);
-	    case 'number':
-	      return [path];
-	    default:
-	      return Util.undefinedOrNull(path) ? [] : path;
-	  }
-	};
-
-	asStringPath = function (path) {
-	  switch (typeof path) {
-	    case 'string':
-	      return path;
-	    case 'number':
-	      return path.toString();
-	    default:
-	      return Util.undefinedOrNull(path) ? '' : path.join(PATH_SEPARATOR);
-	  }
-	};
-
-	joinPaths = function (path1, path2) {
-	  return path1.concat(path2);
-	};
-
-	var throwPathMustPointToKey, getValueAtPath, updateBackingValue, updateValue, unsetValue, clear;
-
-	throwPathMustPointToKey = function () {
-	  throw new Error('Path must point to a key');
-	};
-
-	getValueAtPath = function (backingValue, path) {
-	  return backingValue && path.length > 0 ? backingValue.getIn(path) : backingValue;
-	};
-
-	updateBackingValue = function (binding, f, subpath) {
-	  var effectivePath = joinPaths(binding._path, subpath);
-	  var newBackingValue = f(getBackingValue(binding), effectivePath);
-	  setBackingValue(binding, newBackingValue);
-	  return effectivePath;
-	};
-
-	updateValue = function (binding, update, subpath) {
-	  return updateBackingValue(
-	    binding,
-	    function (backingValue, effectivePath) {
-	      var setOrUpdate = function (coll, key) {
-	        if (coll) {
-	          return coll.has(key) ? coll.update(key, update) : coll.set(key, update());
-	        } else {
-	          return Imm.Map.empty().set(key, update());
-	        }
-	      };
-
-	      var len = effectivePath.length;
-	      switch (len) {
-	        case 0:
-	          return update(backingValue);
-	        case 1:
-	          return setOrUpdate(backingValue, effectivePath[0]);
-	        default:
-	          var pathTo = effectivePath.slice(0, len - 1);
-	          var key = effectivePath[len - 1];
-	          return backingValue.updateIn(pathTo, function (coll) {
-	            return setOrUpdate(coll, key);
-	          });
-	      }
-	    },
-	    subpath
-	  );
-	};
-
-	unsetValue = function (binding, subpath) {
-	  var effectivePath = joinPaths(binding._path, subpath);
-	  var backingValue = getBackingValue(binding);
-
-	  var newBackingValue;
-	  var len = effectivePath.length;
-	  var pathTo = effectivePath.slice(0, len - 1);
-
-	  var deleteValue = function (coll, key) {
-	    if (coll instanceof Imm.Vector) {
-	      return coll.splice(key, 1).toVector();
-	    } else {
-	      return coll && coll.delete(key);
-	    }
-	  };
-
-	  switch (len) {
-	    case 0:
-	      throwPathMustPointToKey();
-	      break;
-	    case 1:
-	      newBackingValue = deleteValue(backingValue, effectivePath[0]);
-	      break;
-	    default:
-	      var key = effectivePath[len - 1];
-	      newBackingValue = backingValue.has(pathTo[0]) && backingValue.updateIn(pathTo, function (coll) {
-	        return deleteValue(coll, key);
-	      }) || backingValue;
-	  }
-
-	  setBackingValue(binding, newBackingValue);
-	  return pathTo;
-	};
-
-	clear = function (value) {
-	  return value instanceof Imm.Sequence ? value.clear() : null;
-	};
-
-	var ensuringNestingLevel, getRelativePath, notifySamePathListeners, notifyGlobalListeners, isPathAffected, notifyNonGlobalListeners, notifyAllListeners;
-
-	ensuringNestingLevel = function (self, f) {
-	  self._listenerNestingLevelHolder.updateValue(function (x) { return x + 1; });
-	  f(self._listenerNestingLevelHolder.getValue());
-	  self._listenerNestingLevelHolder.updateValue(function (x) { return x - 1; });
-	};
-
-	getRelativePath = function (listenerPathAsArray, absolutePathAsArray) {
-	  if (listenerPathAsArray.length === absolutePathAsArray.length) {
-	    return '';
-	  } else {
-	    return asStringPath(absolutePathAsArray.slice(listenerPathAsArray.length));
-	  }
-	};
-
-	notifySamePathListeners = function (samePathListeners, listenerPath, pathAsString, newBackingValue, oldBackingValue) {
-	  var listenerPathAsArray = asArrayPath(listenerPath);
-	  var absolutePathAsArray = asArrayPath(pathAsString);
-	  var newValue = getValueAtPath(newBackingValue, listenerPathAsArray);
-	  var oldValue = getValueAtPath(oldBackingValue, listenerPathAsArray);
-	  if (newValue !== oldValue) {
-	    Util.getPropertyValues(samePathListeners).forEach(function (listenerDescriptor) {
-	      if (!listenerDescriptor.disabled) {
-	        listenerDescriptor.cb(
-	          newValue, oldValue, pathAsString, getRelativePath(listenerPathAsArray, absolutePathAsArray));
-	      }
-	    });
-	  }
-	};
-
-	notifyGlobalListeners = function (listeners, path, newBackingValue, oldBackingValue, listenerNestingLevel) {
-	  if (listenerNestingLevel < 2) {
-	    var globalListeners = listeners[''];
-	    if (globalListeners) {
-	      notifySamePathListeners(globalListeners, EMPTY_PATH, asStringPath(path), newBackingValue, oldBackingValue);
-	    }
-	  }
-	};
-
-	isPathAffected = function (listenerPath, changedPath) {
-	  return Util.startsWith(changedPath, listenerPath) || Util.startsWith(listenerPath, changedPath);
-	};
-
-	notifyNonGlobalListeners = function (listeners, path, newBackingValue, oldBackingValue) {
-	  var pathAsString = asStringPath(path);
-	  Object.keys(listeners).filter(Util.identity).forEach(function (listenerPath) {
-	    if (isPathAffected(listenerPath, pathAsString)) {
-	      notifySamePathListeners(listeners[listenerPath], listenerPath, pathAsString, newBackingValue, oldBackingValue);
-	    }
-	  });
-	};
-
-	notifyAllListeners = function (self, path, oldBackingValue) {
-	  ensuringNestingLevel(self, function (nestingLevel) {
-	    var newBackingValue = getBackingValue(self);
-	    notifyNonGlobalListeners(self._listeners, path, newBackingValue, oldBackingValue);
-	    notifyGlobalListeners(self._listeners, path, newBackingValue, oldBackingValue, nestingLevel);
-	  });
-	};
-
-	var findSamePathListeners, setListenerDisabled;
-
-	findSamePathListeners = function (binding, listenerId) {
-	  return Util.find(
-	    Util.getPropertyValues(binding._listeners),
-	    function (samePathListeners) { return !!samePathListeners[listenerId]; }
-	  );
-	};
-
-	setListenerDisabled = function (binding, listenerId, disabled) {
-	  var samePathListeners = findSamePathListeners(binding, listenerId);
-	  if (samePathListeners) {
-	    samePathListeners[listenerId].disabled = disabled;
-	  }
-	};
-
-	/** Binding constructor.
-	 * @param {Holder} backingValueHolder backing value holder
-	 * @param {Holder} [regCountHolder] registration count holder
-	 * @param {String[]} [path] binding path, empty array if omitted
-	 * @param {Object} [listeners] change listeners, empty if omitted
-	 * @param {Holder} [listenerNestingLevelHolder] listener nesting level holder
-	 * @param {Object} [cache] bindings cache
-	 * @public
-	 * @class Binding
-	 * @classdesc Wraps immutable collection. Provides convenient read-write access to nested values.
-	 * Allows to create sub-bindings (or views) narrowed to a subpath and sharing the same backing value.
-	 * Changes to these bindings are mutually visible.
-	 * <p>Terminology:
-	 * <ul>
-	 *   <li>
-	 *     (sub)path - path to a value within nested associative data structure, example: 'path.t.0.some.value';
-	 *   </li>
-	 *   <li>
-	 *     backing value - value shared by all bindings created using [sub]{@link Binding#sub} method.
-	 *   </li>
-	 * </ul>
-	 * <p>Features:
-	 * <ul>
-	 *   <li>can create sub-bindings sharing same backing value. Sub-binding can only modify values down its subpath;</li>
-	 *   <li>allows to conveniently modify nested values: assign, update with a function, remove, and so on;</li>
-	 *   <li>can attach change listeners to a specific subpath;</li>
-	 *   <li>can perform multiple changes atomically in respect of listener notification.</li>
-	 * </ul> */
-	var Binding = function (backingValueHolder, regCountHolder, path, listeners, listenerNestingLevelHolder, cache) {
-	  /** @private */
-	  this._backingValueHolder = backingValueHolder;
-	  /** @private */
-	  this._regCountHolder = regCountHolder || Holder.init(0);
-	  /** @private */
-	  this._path = path || EMPTY_PATH;
-	  /** @protected
-	   * @ignore */
-	  this._listeners = listeners || {};
-	  /** @private */
-	  this._listenerNestingLevelHolder = listenerNestingLevelHolder || Holder.init(0);
-	  /** @private */
-	  this._cache = cache || {};
-	};
-
-	/* ---------------- */
-	/* Static helpers. */
-	/* ---------------- */
-
-	/** Create new binding with empty listeners set.
-	 * @param {IMap} [backingValue] backing value
-	 * @return {Binding} fresh binding instance */
-	Binding.init = function (backingValue) {
-	  return new Binding(Holder.init(backingValue || Imm.Map.empty()));
-	};
-
-	/** Convert string path to array path.
-	 * @param {String} pathAsString path as string
-	 * @return {Array} path as an array */
-	Binding.asArrayPath = function (pathAsString) {
-	  return asArrayPath(pathAsString);
-	};
-
-	/** Convert array path to string path.
-	 * @param {String[]} pathAsAnArray path as an array
-	 * @return {String} path as a string */
-	Binding.asStringPath = function (pathAsAnArray) {
-	  return asStringPath(pathAsAnArray);
-	};
-
-	Binding.prototype = Object.freeze( /** @lends Binding.prototype */ {
-	  /** Update backing value.
-	   * @param {IMap} newBackingValue new backing value
-	   * @return {Binding} new binding instance, original is unaffected */
-	  withBackingValue: function (newBackingValue) {
-	    return copyBinding(this, Holder.init(newBackingValue), this._path);
-	  },
-
-	  /** Mutate backing value.
-	   * @param {IMap} newBackingValue new backing value
-	   * @param {Boolean} [notifyListeners] should listeners be notified;
-	   *                                    true by default, set to false to disable notification */
-	  setBackingValue: function (newBackingValue, notifyListeners) {
-	    var oldBackingValue = getBackingValue(this);
-	    this._backingValueHolder.setValue(newBackingValue);
-
-	    if (notifyListeners !== false) {
-	      notifyAllListeners(this, EMPTY_PATH, oldBackingValue);
-	    }
-	  },
-
-	  /** Get binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {*} value at path or null */
-	  val: function (subpath) {
-	    return getValueAtPath(getBackingValue(this), joinPaths(this._path, asArrayPath(subpath)));
-	  },
-
-	  /** Convert to JS representation.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {*} JS representation of data at subpath */
-	  toJS: function (subpath) {
-	    var value = this.sub(subpath).val();
-	    return value instanceof Imm.Sequence ? value.toJS() : value;
-	  },
-
-	  /** Bind to subpath. Both bindings share the same backing value. Changes are mutually visible.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} new binding instance, original is unaffected */
-	  sub: function (subpath) {
-	    var absolutePath = joinPaths(this._path, asArrayPath(subpath));
-	    if (absolutePath.length > 0) {
-	      var absolutePathAsString = asStringPath(absolutePath);
-	      var cached = this._cache[absolutePathAsString];
-
-	      if (cached) {
-	        return cached;
-	      } else {
-	        var subBinding = copyBinding(this, this._backingValueHolder, absolutePath);
-	        this._cache[absolutePathAsString] = subBinding;
-	        return subBinding;
-	      }
-	    } else {
-	      return this;
-	    }
-	  },
-
-	  /** Update binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} update update function
-	   * @return {Binding} this binding */
-	  update: function (subpath, update) {
-	    var args = Util.resolveArgs(arguments, '?subpath', 'update');
-	    var oldBackingValue = getBackingValue(this);
-	    var affectedPath = updateValue(this, args.update, asArrayPath(args.subpath));
-	    notifyAllListeners(this, affectedPath, oldBackingValue);
-	    return this;
-	  },
-
-	  /** Set binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {*} newValue new value
-	   * @return {Binding} this binding */
-	  set: function (subpath, newValue) {
-	    var args = Util.resolveArgs(arguments, '?subpath', 'newValue');
-	    return this.update(args.subpath, Util.constantly(args.newValue));
-	  },
-
-	  /** Delete value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} this binding */
-	  delete: function (subpath) {
-	    var oldBackingValue = getBackingValue(this);
-	    var affectedPath = unsetValue(this, asArrayPath(subpath));
-	    notifyAllListeners(this, affectedPath, oldBackingValue);
-	    return this;
-	  },
-
-	  /** Deep merge values.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Boolean} [preserve] preserve existing values when merging, false by default
-	   * @param {*} newValue new value
-	   * @return {Binding} this binding */
-	  merge: function (subpath, preserve, newValue) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
-	      '?preserve',
-	      'newValue'
-	    );
-	    return this.update(args.subpath, function (value) {
-	      var effectiveNewValue = args.newValue;
-	      if (Util.undefinedOrNull(value)) {
-	        return effectiveNewValue;
-	      } else {
-	        if (value instanceof Imm.Sequence && effectiveNewValue instanceof Imm.Sequence) {
-	          return args.preserve ? effectiveNewValue.mergeDeep(value) : value.mergeDeep(effectiveNewValue);
-	        } else {
-	          return args.preserve ? value : effectiveNewValue;
-	        }
-	      }
-	    });
-	  },
-
-	  /** Clear nested collection. Does '.empty()' on Immutable values, nullifies otherwise.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} this binding */
-	  clear: function (subpath) {
-	    var subpathAsArray = asArrayPath(subpath);
-	    if (this.val(subpathAsArray)) this.update(subpathAsArray, clear);
-	    return this;
-	  },
-
-	  /** Add change listener.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} cb function of (newValue, oldValue, absolutePath, relativePath)
-	   * @return {String} unique id which should be used to un-register the listener */
-	  addListener: function (subpath, cb) {
-	    var args = Util.resolveArgs(
-	      arguments, function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, 'cb'
-	    );
-
-	    var listenerId = 'reg' + this._regCountHolder.updateValue(function (count) { return count + 1; });
-	    var pathAsString = asStringPath(joinPaths(this._path, asArrayPath(args.subpath || '')));
-	    var samePathListeners = this._listeners[pathAsString];
-	    var listenerDescriptor = { cb: args.cb, disabled: false };
-	    if (samePathListeners) {
-	      samePathListeners[listenerId] = listenerDescriptor;
-	    } else {
-	      var listeners = {};
-	      listeners[listenerId] = listenerDescriptor;
-	      this._listeners[pathAsString] = listeners;
-	    }
-	    return listenerId;
-	  },
-
-	  /** Add change listener listening from the root.
-	   * @param {Function} cb function of (newValue, oldValue, absolutePath, relativePath)
-	   * @return {String} unique id which should be used to un-register the listener */
-	  addGlobalListener: function (cb) {
-	    return this.addListener(EMPTY_PATH, cb);
-	  },
-
-	  /** Enable listener.
-	   * @param {String} listenerId listener id
-	   * @return {Binding} this binding */
-	  enableListener: function (listenerId) {
-	    setListenerDisabled(this, listenerId, false);
-	    return this;
-	  },
-
-	  /** Disable listener.
-	   * @param {String} listenerId listener id
-	   * @return {Binding} this binding */
-	  disableListener: function (listenerId) {
-	    setListenerDisabled(this, listenerId, true);
-	    return this;
-	  },
-
-	  /** Execute function with listener temporarily disabled. Correctly handles functions returning promises.
-	   * @param {String} listenerId listener id
-	   * @param {Function} f function to execute
-	   * @return {Binding} this binding */
-	  withDisabledListener: function (listenerId, f) {
-	    var samePathListeners = findSamePathListeners(this, listenerId);
-	    if (samePathListeners) {
-	      var descriptor = samePathListeners[listenerId];
-	      descriptor.disabled = true;
-	      Util.afterComplete(f, function () { descriptor.disabled = false; });
-	    } else {
-	      f();
-	    }
-	    return this;
-	  },
-
-	  /** Un-register the listener.
-	   * @param {String} listenerId listener id
-	   * @return {Boolean} true if listener removed successfully, false otherwise */
-	  removeListener: function (listenerId) {
-	    var samePathListeners = findSamePathListeners(this, listenerId);
-	    return samePathListeners ? delete samePathListeners[listenerId] : false;
-	  },
-
-	  /** Create transaction context.
-	   * @return {TransactionContext} transaction context */
-	  atomically: function () {
-	    return new TransactionContext(this);
-	  }
-	});
-
-	/** Transaction context constructor.
-	 * @param {Binding} binding binding
-	 * @param {Function[]} [updates] queued updates
-	 * @param {Function[]} [removals] queued removals
-	 * @public
-	 * @class TransactionContext
-	 * @classdesc Transaction context. */
-	var TransactionContext = function (binding, updates, removals) {
-	  /** @private */
-	  this._binding = binding;
-	  /** @private */
-	  this._updates = updates || [];
-	  /** @private */
-	  this._removals = removals || [];
-	  /** @private */
-	  this._committed = false;
-	};
-
-	TransactionContext.prototype = (function () {
-
-	  var addUpdate, addRemoval, hasChanges, areSiblings, filterRedundantPaths, commitSilently;
-
-	  addUpdate = function (self, binding, update, subpath) {
-	    self._updates.push({ binding: binding, update: update, subpath: subpath });
-	  };
-
-	  addRemoval = function (self, binding, subpath) {
-	    self._removals.push({ binding: binding, subpath: subpath });
-	  };
-
-	  hasChanges = function (self) {
-	    return self._updates.length > 0 || self._removals.length > 0;
-	  };
-
-	  areSiblings = function (path1, path2) {
-	    var path1Length = path1.length, path2Length = path2.length;
-	    return path1Length === path2Length && (
-	      path1Length === 1 || path1[path1Length - 2] === path2[path1Length - 2]
-	    );
-	  };
-
-	  filterRedundantPaths = function (affectedPaths) {
-	    if (affectedPaths.length < 2) {
-	      return affectedPaths;
-	    } else {
-	      var sortedPaths = affectedPaths.sort();
-	      var previousPath = sortedPaths[0], previousPathAsString = asStringPath(previousPath);
-	      var result = [previousPath];
-	      for (var i = 1; i < sortedPaths.length; i++) {
-	        var currentPath = sortedPaths[i], currentPathAsString = asStringPath(currentPath);
-	        if (!Util.startsWith(currentPathAsString, previousPathAsString)) {
-	          if (areSiblings(currentPath, previousPath)) {
-	            var commonParentPath = currentPath.slice(0, currentPath.length - 1);
-	            result.pop();
-	            result.push(commonParentPath);
-	            previousPath = commonParentPath;
-	            previousPathAsString = asStringPath(commonParentPath);
-	          } else {
-	            result.push(currentPath);
-	            previousPath = currentPath;
-	            previousPathAsString = currentPathAsString;
-	          }
-	        }
-	      }
-	      return result;
-	    }
-	  };
-
-	  commitSilently = function (self) {
-	    if (!self._committed) {
-	      var updatedPaths = self._updates.map(function (o) { return updateValue(o.binding, o.update, o.subpath); });
-	      var removedPaths = self._removals.map(function (o) { return unsetValue(o.binding, o.subpath); });
-	      self._committed = true;
-	      return updatedPaths.concat(removedPaths);
-	    } else {
-	      throw new Error('Transaction already committed');
-	    }
-	  };
-
-	  return Object.freeze( /** @lends TransactionContext.prototype */ {
-
-	    /** Update binding value.
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Binding} [binding] binding to apply update to, latest used by default
-	     * @param {Function} update update function
-	     * @return {TransactionContext} updated transaction context carrying latest binding used */
-	    update: function (subpath, binding, update) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?binding', 'update'
-	      );
-	      addUpdate(this, args.binding || this._binding, args.update, asArrayPath(args.subpath));
-	      return this;
-	    },
-
-	    /** Set binding value.
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Binding} [binding] binding to apply update to, latest used by default
-	     * @param {*} newValue new value
-	     * @return {TransactionContext} updated transaction context carrying latest binding used */
-	    set: function (subpath, binding, newValue) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?binding', 'newValue'
-	      );
-	      return this.update(args.subpath, args.binding, Util.constantly(args.newValue));
-	    },
-
-	    /** Remove value.
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Binding} [binding] binding to apply update to, latest used by default
-	     * @return {TransactionContext} updated transaction context carrying latest binding used */
-	    delete: function (subpath, binding) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?binding'
-	      );
-	      addRemoval(this, args.binding || this._binding, asArrayPath(args.subpath));
-	      return this;
-	    },
-
-	    /** Deep merge values.
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Boolean} [preserve] preserve existing values when merging, false by default
-	     * @param {Binding} [binding] binding to apply update to, latest used by default
-	     * @param {*} newValue new value */
-	    merge: function (subpath, preserve, binding, newValue) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
-	        function (x) { return typeof x === 'boolean' ? 'preserve' : null; },
-	        '?binding',
-	        'newValue'
-	      );
-	      return this.update(args.subpath, args.binding, function (value) {
-	        var effectiveNewValue = args.newValue;
-	        if (Util.undefinedOrNull(value)) {
-	          return effectiveNewValue;
-	        } else {
-	          if (value instanceof Imm.Sequence && effectiveNewValue instanceof Imm.Sequence) {
-	            return args.preserve ? effectiveNewValue.mergeDeep(value) : value.mergeDeep(effectiveNewValue);
-	          } else {
-	            return args.preserve ? value : effectiveNewValue;
-	          }
-	        }
-	      });
-	    },
-
-	    /** Clear collection or nullify nested value.
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Binding} [binding] binding to apply update to, latest used by default */
-	    clear: function (subpath, binding) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?binding'
-	      );
-	      addUpdate(
-	        this,
-	        args.binding || this._binding,
-	        function (value) { return clear(value); },
-	        asArrayPath(args.subpath)
-	      );
-	      return this;
-	    },
-
-	    /** Commit transaction (write changes and notify listeners).
-	     * @param {Boolean} [notifyListeners] should listeners be notified;
-	     *                                    true by default, set to false to disable notification
-	     * @return {String[]} array of affected paths */
-	    commit: function (notifyListeners) {
-	      if (hasChanges(this)) {
-	        var binding = this._binding;
-	        var oldBackingValue = getBackingValue(binding);
-	        var affectedPaths = commitSilently(this);
-	        var newBackingValue = getBackingValue(binding);
-
-	        if (notifyListeners !== false) {
-	          if (newBackingValue !== oldBackingValue) {
-	            var filteredPaths = filterRedundantPaths(affectedPaths);
-	            ensuringNestingLevel(binding, function (nestingLevel) {
-	              var listeners = binding._listeners;
-	              filteredPaths.forEach(function (path) {
-	                notifyNonGlobalListeners(listeners, path, newBackingValue, oldBackingValue);
-	              });
-	              notifyGlobalListeners(listeners, filteredPaths[0], newBackingValue, oldBackingValue, nestingLevel);
-	            });
-	            return affectedPaths;
-	          } else {
-	            return [];
-	          }
-	        } else {
-	          return affectedPaths;
-	        }
-
-	      } else {
-	        return [];
-	      }
-	    }
-
-	  });
-	})();
-
-	module.exports = Binding;
-
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Imm = __webpack_require__(4);
-	var Binding = __webpack_require__(19);
-
-	var initHistory, clearHistory, destroyHistory, listenForChanges, revertToStep, revert;
-
-	initHistory = function (historyBinding) {
-	  historyBinding.set(Imm.fromJS({ listenerId: null, undo: [], redo: [] }));
-	};
-
-	clearHistory = function (historyBinding) {
-	  historyBinding.atomically()
-	    .set('undo', Imm.Vector.empty())
-	    .set('redo', Imm.Vector.empty())
-	    .commit();
-	};
-
-	destroyHistory = function (historyBinding, notifyListeners) {
-	  var listenerId = historyBinding.val('listenerId');
-	  historyBinding.removeListener(listenerId);
-	  historyBinding.atomically().set(null).commit(notifyListeners);
-	};
-
-	listenForChanges = function (binding, historyBinding) {
-	  var listenerId = binding.addListener([], function (newValue, oldValue, absolutePath, relativePath) {
-	    historyBinding.atomically().update(function (history) {
-	      return history
-	        .update('undo', function (undo) {
-	          var pathAsArray = Binding.asArrayPath(relativePath);
-	          return undo && undo.unshift(Imm.Map({
-	            newValue: pathAsArray.length ? newValue.getIn(pathAsArray) : newValue,
-	            oldValue: pathAsArray.length ? oldValue.getIn(pathAsArray) : oldValue,
-	            path: relativePath
-	          }));
-	        })
-	        .set('redo', Imm.Vector.empty());
-	    }).commit(false);
-	  });
-
-	  historyBinding.atomically().set('listenerId', listenerId).commit(false);
-	};
-
-	revertToStep = function (path, value, listenerId, dataBinding) {
-	  dataBinding.withDisabledListener(listenerId, function () {
-	    dataBinding.set(path, value);
-	  });
-	};
-
-	revert = function (dataBinding, fromBinding, toBinding, listenerId, valueProperty) {
-	  var from = fromBinding.val();
-	  if (from.length > 0) {
-	    var step = from.get(0);
-
-	    fromBinding.atomically()
-	      .delete(0)
-	      .update(toBinding, function (to) {
-	        return to.unshift(step);
-	      })
-	      .commit(false);
-
-	    revertToStep(step.get('path'), step.get(valueProperty), listenerId, dataBinding);
-	    return true;
-	  } else {
-	    return false;
-	  }
-	};
-
-
-	/**
-	 * @name History
-	 * @namespace
-	 * @classdesc Undo/redo history handling.
-	 */
-	var History = {
-
-	  /** Init history.
-	   * @param {Binding} dataBinding data binding
-	   * @param {Binding} historyBinding history binding
-	   * @memberOf History */
-	  init: function (dataBinding, historyBinding) {
-	    initHistory(historyBinding);
-	    listenForChanges(dataBinding, historyBinding);
-	  },
-
-	  /** Clear history.
-	   * @param {Binding} historyBinding history binding
-	   * @memberOf History */
-	  clear: function (historyBinding) {
-	    clearHistory(historyBinding);
-	  },
-
-	  /** Clear history and shutdown listener.
-	   * @param {Binding} historyBinding history binding
-	   * @param {Boolean} notifyListeners should listeners be notified;
-	   *                                  true by default, set to false to disable notification
-	   * @memberOf History */
-	  destroy: function (historyBinding, notifyListeners) {
-	    destroyHistory(historyBinding, notifyListeners);
-	  },
-
-	  /** Check if history has undo information.
-	   * @param {Binding} historyBinding history binding
-	   * @returns {Boolean}
-	   * @memberOf History */
-	  hasUndo: function (historyBinding) {
-	    var undo = historyBinding.val('undo');
-	    return !!undo && undo.length > 0;
-	  },
-
-	  /** Check if history has redo information.
-	   * @param {Binding} historyBinding history binding
-	   * @returns {Boolean}
-	   * @memberOf History */
-	  hasRedo: function (historyBinding) {
-	    var redo = historyBinding.val('redo');
-	    return !!redo && redo.length > 0;
-	  },
-
-	  /** Revert to previous state.
-	   * @param {Binding} dataBinding data binding
-	   * @param {Binding} historyBinding history binding
-	   * @returns {Boolean} true, if binding has undo information
-	   * @memberOf History */
-	  undo: function (dataBinding, historyBinding) {
-	    var listenerId = historyBinding.val('listenerId');
-	    var undoBinding = historyBinding.sub('undo');
-	    var redoBinding = historyBinding.sub('redo');
-	    return revert(dataBinding, undoBinding, redoBinding, listenerId, 'oldValue');
-	  },
-
-	  /** Revert to next state.
-	   * @param {Binding} dataBinding data binding
-	   * @param {Binding} historyBinding history binding
-	   * @returns {Boolean} true, if binding has redo information
-	   * @memberOf History */
-	  redo: function (dataBinding, historyBinding) {
-	    var listenerId = historyBinding.val('listenerId');
-	    var undoBinding = historyBinding.sub('undo');
-	    var redoBinding = historyBinding.sub('redo');
-	    return revert(dataBinding, redoBinding, undoBinding, listenerId, 'newValue');
-	  }
-
-	};
-
-	module.exports = History;
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(59);
-
-	var _ = (function() {
-	  if (React) return React.DOM;
-	  else {
-	    throw new Error('Morearty: global variable React not found');
-	  }
-	})();
-
-	var wrapComponent = function (comp, displayName) {
-	  return React.createClass({
-
-	    displayName: displayName,
-
-	    getInitialState: function () {
-	      return { value: this.props.value };
-	    },
-
-	    onChange: function (event) {
-	      var handler = this.props.onChange;
-	      if (handler) {
-	        var result = handler(event);
-	        this.setState({ value: event.target.value });
-	        return result;
-	      }
-	    },
-
-	    componentWillReceiveProps: function (newProps) {
-	      this.setState({ value: newProps.value });
-	    },
-
-	    render: function () {
-	      return this.transferPropsTo(comp({
-	        value: this.state.value,
-	        onChange: this.onChange,
-	        children: this.props.children
-	      }));
-	    }
-
-	  });
-	};
-
-	/**
-	 * @name DOM
-	 * @namespace
-	 * @classdesc DOM module. Exposes requestAnimationFrame-friendly wrappers around input, textarea, and option.
-	 */
-	var DOM = {
-
-	  input: wrapComponent(_.input, 'input'),
-
-	  textarea: wrapComponent(_.textarea, 'textarea'),
-
-	  option: wrapComponent(_.option, 'option')
-
-	};
-
-	module.exports = DOM;
-
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * @name Callback
-	 * @namespace
-	 * @classdesc Miscellaneous callback util functions.
-	 */
-	var Util = __webpack_require__(18);
-
-	module.exports = {
-
-	  /** Create callback used to set binding value on an event.
-	   * @param {Binding} binding binding
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} [f] value transformer
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  set: function (binding, subpath, f) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?f'
-	    );
-
-	    return function (event) {
-	      var value = event.target.value;
-	      binding.set(args.subpath, args.f ? args.f(value) : value);
-	      return false;
-	    };
-	  },
-
-	  /** Create callback used to delete binding value on an event.
-	   * @param {Binding} binding binding
-	   * @param {String|String[]} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} [pred] predicate
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  delete: function (binding, subpath, pred) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?pred'
-	    );
-
-	    return function (event) {
-	      var value = event.target.value;
-	      if (!args.pred || args.pred(value)) {
-	        binding.delete(args.subpath);
-	      }
-	      return false;
-	    };
-	  },
-
-	  /** Create callback invoked when specified key combination is pressed.
-	   * <p>Callback will return false on successful match, true otherwise.
-	   * @param {Function} cb callback
-	   * @param {String|Array} key key
-	   * @param {Boolean} [shiftKey] shift key flag
-	   * @param {Boolean} [ctrlKey] ctrl key flag
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onKey: function (cb, key, shiftKey, ctrlKey) {
-	    var effectiveShiftKey = shiftKey || false;
-	    var effectiveCtrlKey = ctrlKey || false;
-	    return function (event) {
-	      var keyMatched = typeof key === 'string' ?
-	        event.key === key :
-	        Util.find(key, function (k) { return k === event.key; });
-
-	      if (keyMatched && event.shiftKey === effectiveShiftKey && event.ctrlKey === effectiveCtrlKey) {
-	        cb(event);
-	        return false;
-	      } else {
-	        return true;
-	      }
-	    };
-	  },
-
-	  /** Create callback invoked when enter key is pressed.
-	   * @param {Function} cb callback
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onEnter: function (cb) {
-	    return this.onKey(cb, 'Enter');
-	  },
-
-	  /** Create callback invoked when escape key is pressed.
-	   * @param {Function} cb callback
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onEscape: function (cb) {
-	    return this.onKey(cb, 'Escape');
-	  }
-
-	};
-
-
-/***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// shim for using process in browser
@@ -7881,23 +8378,140 @@
 
 
 /***/ },
-/* 24 */
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** Holder constructor.
+	 * @param {*} value value
+	 * @public
+	 * @class Holder
+	 * @classdesc Mutable cell holding some value. */
+	var Holder = function (value) {
+	  /** @private */
+	  this._value = value;
+	};
+
+	/* --------------- */
+	/* Static helpers. */
+	/* --------------- */
+
+	/** Create new holder instance.
+	 * @param {*} value value
+	 * @return {Holder} fresh holder */
+	Holder.init = function (value) {
+	  return new Holder(value);
+	};
+
+	Holder.prototype = Object.freeze( /** @lends Holder.prototype */ {
+
+	  /** Get value.
+	   * @return {*} */
+	  getValue: function () {
+	    return this._value;
+	  },
+
+	  /** Set value.
+	   * @param {*} newValue new value */
+	  setValue: function (newValue) {
+	    this._value = newValue;
+	  },
+
+	  /** Update value with a function.
+	   * @param {Function} update update function
+	   * @return {*} old value */
+	  updateValue: function (update) {
+	    var oldValue = this._value;
+	    this._value = update(oldValue);
+	    return oldValue;
+	  }
+
+	});
+
+	module.exports = Holder;
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** Changes descriptor constructor.
+	 * @param {Binding} binding binding
+	 * @param {Array} path absolute changed path
+	 * @param {Array} listenerPath absolute listener path
+	 * @param {Immutable.Map} previousValue previous binding backing value
+	 * @param {Immutable.Map} previousMeta previous meta binding backing value
+	 * @public
+	 * @class ChangesDescriptor
+	 * @classdesc Encapsulates binding changes for binding listeners. */
+	var ChangesDescriptor =
+	  function (binding, path, listenerPath, previousValue, previousMeta) {
+	    /** @private */
+	    this._binding = binding;
+	    /** @private */
+	    this._path = path;
+	    /** @private */
+	    this._listenerPath = listenerPath;
+	    /** @private */
+	    this._previousValue = previousValue;
+	    /** @private */
+	    this._previousMeta = previousMeta;
+	  };
+
+	ChangesDescriptor.prototype = Object.freeze( /** @lends ChangesDescriptor.prototype */ {
+	  /** Get changed path relative to binding's path listener was installed on.
+	   * @return {Array} changed path */
+	  getPath: function () {
+	    var listenerPathLen = this._listenerPath.length;
+	    return listenerPathLen === this._path.length ? [] : this._path.slice(listenerPathLen);
+	  },
+
+	  /** Check if binding's value was changed.
+	   * @returns {Boolean} */
+	  isValueChanged: function () {
+	    return !!this._previousValue &&
+	      this._binding.get(this._listenerPath) !== this._previousValue.getIn(this._listenerPath);
+	  },
+
+	  /** Check if meta binding's value was changed.
+	   * @returns {Boolean} */
+	  isMetaChanged: function () {
+	    return !!this._previousMeta;
+	  },
+
+	  /** Get previous value at listening path.
+	   * @returns {*} previous value at listening path or null if not changed */
+	  getPreviousValue: function () {
+	    return this._previousValue && this._previousValue.getIn(this._listenerPath);
+	  },
+
+	  /** Get previous meta at listening path.
+	   * @returns {*} */
+	  getPreviousMeta: function () {
+	    return this._previousMeta && this._previousMeta.getIn(this._listenerPath);
+	  }
+	});
+
+	module.exports = ChangesDescriptor;
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(14);
+
+
+/***/ },
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactLink
 	 * @typechecks static-only
@@ -7928,7 +8542,7 @@
 	 * consumption of ReactLink easier; see LinkedValueUtils and LinkedStateMixin.
 	 */
 
-	var React = __webpack_require__(9);
+	var React = __webpack_require__(14);
 
 	/**
 	 * @param {*} value current value of the link
@@ -7965,23 +8579,16 @@
 
 
 /***/ },
-/* 25 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactStateSetters
 	 */
@@ -8082,23 +8689,16 @@
 
 
 /***/ },
-/* 26 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule DOMPropertyOperations
 	 * @typechecks static-only
@@ -8106,11 +8706,11 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
+	var DOMProperty = __webpack_require__(65);
 
-	var escapeTextForBrowser = __webpack_require__(70);
-	var memoizeStringOnly = __webpack_require__(71);
-	var warning = __webpack_require__(45);
+	var escapeTextForBrowser = __webpack_require__(73);
+	var memoizeStringOnly = __webpack_require__(74);
+	var warning = __webpack_require__(62);
 
 	function shouldIgnoreValue(name, value) {
 	  return value == null ||
@@ -8225,10 +8825,17 @@
 	      } else if (shouldIgnoreValue(name, value)) {
 	        this.deleteValueForProperty(node, name);
 	      } else if (DOMProperty.mustUseAttribute[name]) {
+	        // `setAttribute` with objects becomes only `[object]` in IE8/9,
+	        // ('' + value) makes it output the correct toString()-value.
 	        node.setAttribute(DOMProperty.getAttributeName[name], '' + value);
 	      } else {
 	        var propName = DOMProperty.getPropertyName[name];
-	        if (!DOMProperty.hasSideEffects[name] || node[propName] !== value) {
+	        // Must explicitly cast values for HAS_SIDE_EFFECTS-properties to the
+	        // property type before comparing; only `value` does and is string.
+	        if (!DOMProperty.hasSideEffects[name] ||
+	            ('' + node[propName]) !== ('' + value)) {
+	          // Contrary to `setAttribute`, object properties are properly
+	          // `toString`ed by IE8/9.
 	          node[propName] = value;
 	        }
 	      }
@@ -8264,7 +8871,7 @@
 	          propName
 	        );
 	        if (!DOMProperty.hasSideEffects[name] ||
-	            node[propName] !== defaultValue) {
+	            ('' + node[propName]) !== defaultValue) {
 	          node[propName] = defaultValue;
 	        }
 	      }
@@ -8279,35 +8886,28 @@
 
 	module.exports = DOMPropertyOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 27 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EventPluginUtils
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
+	var EventConstants = __webpack_require__(68);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Injected dependencies:
@@ -8510,36 +9110,29 @@
 
 	module.exports = EventPluginUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 28 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactChildren
 	 */
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(68);
+	var PooledClass = __webpack_require__(59);
 
-	var traverseAllChildren = __webpack_require__(69);
-	var warning = __webpack_require__(45);
+	var traverseAllChildren = __webpack_require__(75);
+	var warning = __webpack_require__(62);
 
 	var twoArgumentPooler = PooledClass.twoArgumentPooler;
 	var threeArgumentPooler = PooledClass.threeArgumentPooler;
@@ -8670,39 +9263,32 @@
 
 	module.exports = ReactChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 29 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactComponent
 	 */
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactOwner = __webpack_require__(72);
-	var ReactUpdates = __webpack_require__(64);
+	var ReactElement = __webpack_require__(37);
+	var ReactOwner = __webpack_require__(76);
+	var ReactUpdates = __webpack_require__(18);
 
-	var invariant = __webpack_require__(55);
-	var keyMirror = __webpack_require__(73);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
+	var keyMirror = __webpack_require__(77);
 
 	/**
 	 * Every React component is in one of these life cycles.
@@ -8825,11 +9411,11 @@
 	     * @public
 	     */
 	    setProps: function(partialProps, callback) {
-	      // Merge with the pending descriptor if it exists, otherwise with existing
-	      // descriptor props.
-	      var descriptor = this._pendingDescriptor || this._descriptor;
+	      // Merge with the pending element if it exists, otherwise with existing
+	      // element props.
+	      var element = this._pendingElement || this._currentElement;
 	      this.replaceProps(
-	        merge(descriptor.props, partialProps),
+	        assign({}, element.props, partialProps),
 	        callback
 	      );
 	    },
@@ -8855,10 +9441,10 @@
 	        '`render` method to pass the correct value as props to the component ' +
 	        'where it is created.'
 	      ) : invariant(this._mountDepth === 0));
-	      // This is a deoptimized path. We optimize for always having a descriptor.
-	      // This creates an extra internal descriptor.
-	      this._pendingDescriptor = ReactDescriptor.cloneAndReplaceProps(
-	        this._pendingDescriptor || this._descriptor,
+	      // This is a deoptimized path. We optimize for always having a element.
+	      // This creates an extra internal element.
+	      this._pendingElement = ReactElement.cloneAndReplaceProps(
+	        this._pendingElement || this._currentElement,
 	        props
 	      );
 	      ReactUpdates.enqueueUpdate(this, callback);
@@ -8873,12 +9459,12 @@
 	     * @internal
 	     */
 	    _setPropsInternal: function(partialProps, callback) {
-	      // This is a deoptimized path. We optimize for always having a descriptor.
-	      // This creates an extra internal descriptor.
-	      var descriptor = this._pendingDescriptor || this._descriptor;
-	      this._pendingDescriptor = ReactDescriptor.cloneAndReplaceProps(
-	        descriptor,
-	        merge(descriptor.props, partialProps)
+	      // This is a deoptimized path. We optimize for always having a element.
+	      // This creates an extra internal element.
+	      var element = this._pendingElement || this._currentElement;
+	      this._pendingElement = ReactElement.cloneAndReplaceProps(
+	        element,
+	        assign({}, element.props, partialProps)
 	      );
 	      ReactUpdates.enqueueUpdate(this, callback);
 	    },
@@ -8889,19 +9475,19 @@
 	     * Subclasses that override this method should make sure to invoke
 	     * `ReactComponent.Mixin.construct.call(this, ...)`.
 	     *
-	     * @param {ReactDescriptor} descriptor
+	     * @param {ReactElement} element
 	     * @internal
 	     */
-	    construct: function(descriptor) {
+	    construct: function(element) {
 	      // This is the public exposed props object after it has been processed
-	      // with default props. The descriptor's props represents the true internal
+	      // with default props. The element's props represents the true internal
 	      // state of the props.
-	      this.props = descriptor.props;
+	      this.props = element.props;
 	      // Record the component responsible for creating this component.
-	      // This is accessible through the descriptor but we maintain an extra
+	      // This is accessible through the element but we maintain an extra
 	      // field for compatibility with devtools and as a way to make an
 	      // incremental update. TODO: Consider deprecating this field.
-	      this._owner = descriptor._owner;
+	      this._owner = element._owner;
 
 	      // All components start unmounted.
 	      this._lifeCycleState = ComponentLifeCycle.UNMOUNTED;
@@ -8909,10 +9495,10 @@
 	      // See ReactUpdates.
 	      this._pendingCallbacks = null;
 
-	      // We keep the old descriptor and a reference to the pending descriptor
+	      // We keep the old element and a reference to the pending element
 	      // to track updates.
-	      this._descriptor = descriptor;
-	      this._pendingDescriptor = null;
+	      this._currentElement = element;
+	      this._pendingElement = null;
 	    },
 
 	    /**
@@ -8937,10 +9523,10 @@
 	        'single component instance in multiple places.',
 	        rootID
 	      ) : invariant(!this.isMounted()));
-	      var props = this._descriptor.props;
-	      if (props.ref != null) {
-	        var owner = this._descriptor._owner;
-	        ReactOwner.addComponentAsRefTo(this, props.ref, owner);
+	      var ref = this._currentElement.ref;
+	      if (ref != null) {
+	        var owner = this._currentElement._owner;
+	        ReactOwner.addComponentAsRefTo(this, ref, owner);
 	      }
 	      this._rootNodeID = rootID;
 	      this._lifeCycleState = ComponentLifeCycle.MOUNTED;
@@ -8963,9 +9549,9 @@
 	        this.isMounted(),
 	        'unmountComponent(): Can only unmount a mounted component.'
 	      ) : invariant(this.isMounted()));
-	      var props = this.props;
-	      if (props.ref != null) {
-	        ReactOwner.removeComponentAsRefFrom(this, props.ref, this._owner);
+	      var ref = this._currentElement.ref;
+	      if (ref != null) {
+	        ReactOwner.removeComponentAsRefFrom(this, ref, this._owner);
 	      }
 	      unmountIDFromEnvironment(this._rootNodeID);
 	      this._rootNodeID = null;
@@ -8983,49 +9569,49 @@
 	     * @param {ReactReconcileTransaction} transaction
 	     * @internal
 	     */
-	    receiveComponent: function(nextDescriptor, transaction) {
+	    receiveComponent: function(nextElement, transaction) {
 	      ("production" !== process.env.NODE_ENV ? invariant(
 	        this.isMounted(),
 	        'receiveComponent(...): Can only update a mounted component.'
 	      ) : invariant(this.isMounted()));
-	      this._pendingDescriptor = nextDescriptor;
+	      this._pendingElement = nextElement;
 	      this.performUpdateIfNecessary(transaction);
 	    },
 
 	    /**
-	     * If `_pendingDescriptor` is set, update the component.
+	     * If `_pendingElement` is set, update the component.
 	     *
 	     * @param {ReactReconcileTransaction} transaction
 	     * @internal
 	     */
 	    performUpdateIfNecessary: function(transaction) {
-	      if (this._pendingDescriptor == null) {
+	      if (this._pendingElement == null) {
 	        return;
 	      }
-	      var prevDescriptor = this._descriptor;
-	      var nextDescriptor = this._pendingDescriptor;
-	      this._descriptor = nextDescriptor;
-	      this.props = nextDescriptor.props;
-	      this._owner = nextDescriptor._owner;
-	      this._pendingDescriptor = null;
-	      this.updateComponent(transaction, prevDescriptor);
+	      var prevElement = this._currentElement;
+	      var nextElement = this._pendingElement;
+	      this._currentElement = nextElement;
+	      this.props = nextElement.props;
+	      this._owner = nextElement._owner;
+	      this._pendingElement = null;
+	      this.updateComponent(transaction, prevElement);
 	    },
 
 	    /**
 	     * Updates the component's currently mounted representation.
 	     *
 	     * @param {ReactReconcileTransaction} transaction
-	     * @param {object} prevDescriptor
+	     * @param {object} prevElement
 	     * @internal
 	     */
-	    updateComponent: function(transaction, prevDescriptor) {
-	      var nextDescriptor = this._descriptor;
+	    updateComponent: function(transaction, prevElement) {
+	      var nextElement = this._currentElement;
 
 	      // If either the owner or a `ref` has changed, make sure the newest owner
 	      // has stored a reference to `this`, and the previous owner (if different)
-	      // has forgotten the reference to `this`. We use the descriptor instead
+	      // has forgotten the reference to `this`. We use the element instead
 	      // of the public this.props because the post processing cannot determine
-	      // a ref. The ref conceptually lives on the descriptor.
+	      // a ref. The ref conceptually lives on the element.
 
 	      // TODO: Should this even be possible? The owner cannot change because
 	      // it's forbidden by shouldUpdateReactComponent. The ref can change
@@ -9033,19 +9619,19 @@
 	      // is made. It probably belongs where the key checking and
 	      // instantiateReactComponent is done.
 
-	      if (nextDescriptor._owner !== prevDescriptor._owner ||
-	          nextDescriptor.props.ref !== prevDescriptor.props.ref) {
-	        if (prevDescriptor.props.ref != null) {
+	      if (nextElement._owner !== prevElement._owner ||
+	          nextElement.ref !== prevElement.ref) {
+	        if (prevElement.ref != null) {
 	          ReactOwner.removeComponentAsRefFrom(
-	            this, prevDescriptor.props.ref, prevDescriptor._owner
+	            this, prevElement.ref, prevElement._owner
 	          );
 	        }
 	        // Correct, even if the owner is the same, and only the ref has changed.
-	        if (nextDescriptor.props.ref != null) {
+	        if (nextElement.ref != null) {
 	          ReactOwner.addComponentAsRefTo(
 	            this,
-	            nextDescriptor.props.ref,
-	            nextDescriptor._owner
+	            nextElement.ref,
+	            nextElement._owner
 	          );
 	        }
 	      }
@@ -9059,7 +9645,7 @@
 	     * @param {boolean} shouldReuseMarkup If true, do not insert markup
 	     * @final
 	     * @internal
-	     * @see {ReactMount.renderComponent}
+	     * @see {ReactMount.render}
 	     */
 	    mountComponentIntoNode: function(rootID, container, shouldReuseMarkup) {
 	      var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
@@ -9123,55 +9709,51 @@
 
 	module.exports = ReactComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 30 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactCompositeComponent
 	 */
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(29);
-	var ReactContext = __webpack_require__(31);
-	var ReactCurrentOwner = __webpack_require__(32);
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactDescriptorValidator = __webpack_require__(74);
-	var ReactEmptyComponent = __webpack_require__(75);
-	var ReactErrorUtils = __webpack_require__(76);
-	var ReactOwner = __webpack_require__(72);
-	var ReactPerf = __webpack_require__(40);
-	var ReactPropTransferer = __webpack_require__(52);
-	var ReactPropTypeLocations = __webpack_require__(77);
-	var ReactPropTypeLocationNames = __webpack_require__(78);
-	var ReactUpdates = __webpack_require__(64);
+	var ReactComponent = __webpack_require__(33);
+	var ReactContext = __webpack_require__(35);
+	var ReactCurrentOwner = __webpack_require__(36);
+	var ReactElement = __webpack_require__(37);
+	var ReactElementValidator = __webpack_require__(38);
+	var ReactEmptyComponent = __webpack_require__(78);
+	var ReactErrorUtils = __webpack_require__(79);
+	var ReactLegacyElement = __webpack_require__(43);
+	var ReactOwner = __webpack_require__(76);
+	var ReactPerf = __webpack_require__(46);
+	var ReactPropTransferer = __webpack_require__(63);
+	var ReactPropTypeLocations = __webpack_require__(80);
+	var ReactPropTypeLocationNames = __webpack_require__(81);
+	var ReactUpdates = __webpack_require__(18);
 
-	var instantiateReactComponent = __webpack_require__(79);
-	var invariant = __webpack_require__(55);
-	var keyMirror = __webpack_require__(73);
-	var merge = __webpack_require__(51);
-	var mixInto = __webpack_require__(80);
-	var monitorCodeUse = __webpack_require__(81);
-	var mapObject = __webpack_require__(82);
-	var shouldUpdateReactComponent = __webpack_require__(83);
-	var warning = __webpack_require__(45);
+	var assign = __webpack_require__(50);
+	var instantiateReactComponent = __webpack_require__(82);
+	var invariant = __webpack_require__(61);
+	var keyMirror = __webpack_require__(77);
+	var keyOf = __webpack_require__(64);
+	var monitorCodeUse = __webpack_require__(83);
+	var mapObject = __webpack_require__(84);
+	var shouldUpdateReactComponent = __webpack_require__(85);
+	var warning = __webpack_require__(62);
+
+	var MIXINS_KEY = keyOf({mixins: null});
 
 	/**
 	 * Policies that describe methods in `ReactCompositeComponentInterface`.
@@ -9476,7 +10058,8 @@
 	      childContextTypes,
 	      ReactPropTypeLocations.childContext
 	    );
-	    Constructor.childContextTypes = merge(
+	    Constructor.childContextTypes = assign(
+	      {},
 	      Constructor.childContextTypes,
 	      childContextTypes
 	    );
@@ -9487,7 +10070,11 @@
 	      contextTypes,
 	      ReactPropTypeLocations.context
 	    );
-	    Constructor.contextTypes = merge(Constructor.contextTypes, contextTypes);
+	    Constructor.contextTypes = assign(
+	      {},
+	      Constructor.contextTypes,
+	      contextTypes
+	    );
 	  },
 	  /**
 	   * Special case getDefaultProps which should move into statics but requires
@@ -9509,7 +10096,11 @@
 	      propTypes,
 	      ReactPropTypeLocations.prop
 	    );
-	    Constructor.propTypes = merge(Constructor.propTypes, propTypes);
+	    Constructor.propTypes = assign(
+	      {},
+	      Constructor.propTypes,
+	      propTypes
+	    );
 	  },
 	  statics: function(Constructor, statics) {
 	    mixStaticSpecIntoComponent(Constructor, statics);
@@ -9578,11 +10169,12 @@
 	    'replaceState(...): Can only update a mounted or mounting component.'
 	  ) : invariant(instance.isMounted() ||
 	    compositeLifeCycleState === CompositeLifeCycle.MOUNTING));
-	  ("production" !== process.env.NODE_ENV ? invariant(compositeLifeCycleState !== CompositeLifeCycle.RECEIVING_STATE,
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactCurrentOwner.current == null,
 	    'replaceState(...): Cannot update during an existing state transition ' +
-	    '(such as within `render`). This could potentially cause an infinite ' +
-	    'loop so it is forbidden.'
-	  ) : invariant(compositeLifeCycleState !== CompositeLifeCycle.RECEIVING_STATE));
+	    '(such as within `render`). Render methods should be a pure function ' +
+	    'of props and state.'
+	  ) : invariant(ReactCurrentOwner.current == null));
 	  ("production" !== process.env.NODE_ENV ? invariant(compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING,
 	    'replaceState(...): Cannot update while unmounting component. This ' +
 	    'usually means you called setState() on an unmounted component.'
@@ -9590,28 +10182,45 @@
 	}
 
 	/**
-	 * Custom version of `mixInto` which handles policy validation and reserved
+	 * Mixin helper which handles policy validation and reserved
 	 * specification keys when building `ReactCompositeComponent` classses.
 	 */
 	function mixSpecIntoComponent(Constructor, spec) {
+	  if (!spec) {
+	    return;
+	  }
+
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !ReactDescriptor.isValidFactory(spec),
+	    !ReactLegacyElement.isValidFactory(spec),
 	    'ReactCompositeComponent: You\'re attempting to ' +
 	    'use a component class as a mixin. Instead, just use a regular object.'
-	  ) : invariant(!ReactDescriptor.isValidFactory(spec)));
+	  ) : invariant(!ReactLegacyElement.isValidFactory(spec)));
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !ReactDescriptor.isValidDescriptor(spec),
+	    !ReactElement.isValidElement(spec),
 	    'ReactCompositeComponent: You\'re attempting to ' +
 	    'use a component as a mixin. Instead, just use a regular object.'
-	  ) : invariant(!ReactDescriptor.isValidDescriptor(spec)));
+	  ) : invariant(!ReactElement.isValidElement(spec)));
 
 	  var proto = Constructor.prototype;
+
+	  // By handling mixins before any other properties, we ensure the same
+	  // chaining order is applied to methods with DEFINE_MANY policy, whether
+	  // mixins are listed before or after these methods in the spec.
+	  if (spec.hasOwnProperty(MIXINS_KEY)) {
+	    RESERVED_SPEC_KEYS.mixins(Constructor, spec.mixins);
+	  }
+
 	  for (var name in spec) {
-	    var property = spec[name];
 	    if (!spec.hasOwnProperty(name)) {
 	      continue;
 	    }
 
+	    if (name === MIXINS_KEY) {
+	      // We have already handled mixins in a special case above
+	      continue;
+	    }
+
+	    var property = spec[name];
 	    validateMethodOverride(proto, name);
 
 	    if (RESERVED_SPEC_KEYS.hasOwnProperty(name)) {
@@ -9689,23 +10298,25 @@
 	      continue;
 	    }
 
+	    var isReserved = name in RESERVED_SPEC_KEYS;
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !isReserved,
+	      'ReactCompositeComponent: You are attempting to define a reserved ' +
+	      'property, `%s`, that shouldn\'t be on the "statics" key. Define it ' +
+	      'as an instance property instead; it will still be accessible on the ' +
+	      'constructor.',
+	      name
+	    ) : invariant(!isReserved));
+
 	    var isInherited = name in Constructor;
-	    var result = property;
-	    if (isInherited) {
-	      var existingProperty = Constructor[name];
-	      var existingType = typeof existingProperty;
-	      var propertyType = typeof property;
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        existingType === 'function' && propertyType === 'function',
-	        'ReactCompositeComponent: You are attempting to define ' +
-	        '`%s` on your component more than once, but that is only supported ' +
-	        'for functions, which are chained together. This conflict may be ' +
-	        'due to a mixin.',
-	        name
-	      ) : invariant(existingType === 'function' && propertyType === 'function'));
-	      result = createChainedFunction(existingProperty, property);
-	    }
-	    Constructor[name] = result;
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !isInherited,
+	      'ReactCompositeComponent: You are attempting to define ' +
+	      '`%s` on your component more than once. This conflict may be ' +
+	      'due to a mixin.',
+	      name
+	    ) : invariant(!isInherited));
+	    Constructor[name] = property;
 	  }
 	}
 
@@ -9726,7 +10337,10 @@
 	    ("production" !== process.env.NODE_ENV ? invariant(
 	      one[key] === undefined,
 	      'mergeObjectsWithNoDuplicateKeys(): ' +
-	      'Tried to merge two objects with the same key: %s',
+	      'Tried to merge two objects with the same key: `%s`. This conflict ' +
+	      'may be due to a mixin; in particular, this may be caused by two ' +
+	      'getInitialState() or getDefaultProps() methods returning objects ' +
+	      'with clashing keys.',
 	      key
 	    ) : invariant(one[key] === undefined));
 	    one[key] = value;
@@ -9782,19 +10396,19 @@
 	 * Top Row: ReactComponent.ComponentLifeCycle
 	 * Low Row: ReactComponent.CompositeLifeCycle
 	 *
-	 * +-------+------------------------------------------------------+--------+
-	 * |  UN   |                    MOUNTED                           |   UN   |
-	 * |MOUNTED|                                                      | MOUNTED|
-	 * +-------+------------------------------------------------------+--------+
-	 * |       ^--------+   +------+   +------+   +------+   +--------^        |
-	 * |       |        |   |      |   |      |   |      |   |        |        |
-	 * |    0--|MOUNTING|-0-|RECEIV|-0-|RECEIV|-0-|RECEIV|-0-|   UN   |--->0   |
-	 * |       |        |   |PROPS |   | PROPS|   | STATE|   |MOUNTING|        |
-	 * |       |        |   |      |   |      |   |      |   |        |        |
-	 * |       |        |   |      |   |      |   |      |   |        |        |
-	 * |       +--------+   +------+   +------+   +------+   +--------+        |
-	 * |       |                                                      |        |
-	 * +-------+------------------------------------------------------+--------+
+	 * +-------+---------------------------------+--------+
+	 * |  UN   |             MOUNTED             |   UN   |
+	 * |MOUNTED|                                 | MOUNTED|
+	 * +-------+---------------------------------+--------+
+	 * |       ^--------+   +-------+   +--------^        |
+	 * |       |        |   |       |   |        |        |
+	 * |    0--|MOUNTING|-0-|RECEIVE|-0-|   UN   |--->0   |
+	 * |       |        |   |PROPS  |   |MOUNTING|        |
+	 * |       |        |   |       |   |        |        |
+	 * |       |        |   |       |   |        |        |
+	 * |       +--------+   +-------+   +--------+        |
+	 * |       |                                 |        |
+	 * +-------+---------------------------------+--------+
 	 */
 	var CompositeLifeCycle = keyMirror({
 	  /**
@@ -9811,12 +10425,7 @@
 	   * Components that are mounted and receiving new props respond to state
 	   * changes differently.
 	   */
-	  RECEIVING_PROPS: null,
-	  /**
-	   * Components that are mounted and receiving new state are guarded against
-	   * additional state changes.
-	   */
-	  RECEIVING_STATE: null
+	  RECEIVING_PROPS: null
 	});
 
 	/**
@@ -9827,11 +10436,11 @@
 	  /**
 	   * Base constructor for all composite component.
 	   *
-	   * @param {ReactDescriptor} descriptor
+	   * @param {ReactElement} element
 	   * @final
 	   * @internal
 	   */
-	  construct: function(descriptor) {
+	  construct: function(element) {
 	    // Children can be either an array or more than one argument
 	    ReactComponent.Mixin.construct.apply(this, arguments);
 	    ReactOwner.Mixin.construct.apply(this, arguments);
@@ -9840,7 +10449,7 @@
 	    this._pendingState = null;
 
 	    // This is the public post-processed context. The real context and pending
-	    // context lives on the descriptor.
+	    // context lives on the element.
 	    this.context = null;
 
 	    this._compositeLifeCycleState = null;
@@ -9883,7 +10492,7 @@
 	        this._bindAutoBindMethods();
 	      }
 
-	      this.context = this._processContext(this._descriptor._context);
+	      this.context = this._processContext(this._currentElement._context);
 	      this.props = this._processProps(this.props);
 
 	      this.state = this.getInitialState ? this.getInitialState() : null;
@@ -9907,7 +10516,8 @@
 	      }
 
 	      this._renderedComponent = instantiateReactComponent(
-	        this._renderValidatedComponent()
+	        this._renderValidatedComponent(),
+	        this._currentElement.type // The wrapping type
 	      );
 
 	      // Done with mounting, `setState` will now trigger UI changes.
@@ -9979,7 +10589,7 @@
 	    }
 	    // Merge with `_pendingState` if it exists, otherwise with existing state.
 	    this.replaceState(
-	      merge(this._pendingState || this.state, partialState),
+	      assign({}, this._pendingState || this.state, partialState),
 	      callback
 	    );
 	  },
@@ -10067,7 +10677,7 @@
 	          name
 	        ) : invariant(name in this.constructor.childContextTypes));
 	      }
-	      return merge(currentContext, childContext);
+	      return assign({}, currentContext, childContext);
 	    }
 	    return currentContext;
 	  },
@@ -10082,25 +10692,13 @@
 	   * @private
 	   */
 	  _processProps: function(newProps) {
-	    var defaultProps = this.constructor.defaultProps;
-	    var props;
-	    if (defaultProps) {
-	      props = merge(newProps);
-	      for (var propName in defaultProps) {
-	        if (typeof props[propName] === 'undefined') {
-	          props[propName] = defaultProps[propName];
-	        }
-	      }
-	    } else {
-	      props = newProps;
-	    }
 	    if ("production" !== process.env.NODE_ENV) {
 	      var propTypes = this.constructor.propTypes;
 	      if (propTypes) {
-	        this._checkPropTypes(propTypes, props, ReactPropTypeLocations.prop);
+	        this._checkPropTypes(propTypes, newProps, ReactPropTypeLocations.prop);
 	      }
 	    }
-	    return props;
+	    return newProps;
 	  },
 
 	  /**
@@ -10112,7 +10710,7 @@
 	   * @private
 	   */
 	  _checkPropTypes: function(propTypes, props, location) {
-	    // TODO: Stop validating prop types here and only use the descriptor
+	    // TODO: Stop validating prop types here and only use the element
 	    // validation.
 	    var componentName = this.constructor.displayName;
 	    for (var propName in propTypes) {
@@ -10131,7 +10729,7 @@
 	  },
 
 	  /**
-	   * If any of `_pendingDescriptor`, `_pendingState`, or `_pendingForceUpdate`
+	   * If any of `_pendingElement`, `_pendingState`, or `_pendingForceUpdate`
 	   * is set, update the component.
 	   *
 	   * @param {ReactReconcileTransaction} transaction
@@ -10146,7 +10744,7 @@
 	      return;
 	    }
 
-	    if (this._pendingDescriptor == null &&
+	    if (this._pendingElement == null &&
 	        this._pendingState == null &&
 	        !this._pendingForceUpdate) {
 	      return;
@@ -10154,12 +10752,12 @@
 
 	    var nextContext = this.context;
 	    var nextProps = this.props;
-	    var nextDescriptor = this._descriptor;
-	    if (this._pendingDescriptor != null) {
-	      nextDescriptor = this._pendingDescriptor;
-	      nextContext = this._processContext(nextDescriptor._context);
-	      nextProps = this._processProps(nextDescriptor.props);
-	      this._pendingDescriptor = null;
+	    var nextElement = this._currentElement;
+	    if (this._pendingElement != null) {
+	      nextElement = this._pendingElement;
+	      nextContext = this._processContext(nextElement._context);
+	      nextProps = this._processProps(nextElement.props);
+	      this._pendingElement = null;
 
 	      this._compositeLifeCycleState = CompositeLifeCycle.RECEIVING_PROPS;
 	      if (this.componentWillReceiveProps) {
@@ -10167,51 +10765,47 @@
 	      }
 	    }
 
-	    this._compositeLifeCycleState = CompositeLifeCycle.RECEIVING_STATE;
+	    this._compositeLifeCycleState = null;
 
 	    var nextState = this._pendingState || this.state;
 	    this._pendingState = null;
 
-	    try {
-	      var shouldUpdate =
-	        this._pendingForceUpdate ||
-	        !this.shouldComponentUpdate ||
-	        this.shouldComponentUpdate(nextProps, nextState, nextContext);
+	    var shouldUpdate =
+	      this._pendingForceUpdate ||
+	      !this.shouldComponentUpdate ||
+	      this.shouldComponentUpdate(nextProps, nextState, nextContext);
 
-	      if ("production" !== process.env.NODE_ENV) {
-	        if (typeof shouldUpdate === "undefined") {
-	          console.warn(
-	            (this.constructor.displayName || 'ReactCompositeComponent') +
-	            '.shouldComponentUpdate(): Returned undefined instead of a ' +
-	            'boolean value. Make sure to return true or false.'
-	          );
-	        }
-	      }
-
-	      if (shouldUpdate) {
-	        this._pendingForceUpdate = false;
-	        // Will set `this.props`, `this.state` and `this.context`.
-	        this._performComponentUpdate(
-	          nextDescriptor,
-	          nextProps,
-	          nextState,
-	          nextContext,
-	          transaction
+	    if ("production" !== process.env.NODE_ENV) {
+	      if (typeof shouldUpdate === "undefined") {
+	        console.warn(
+	          (this.constructor.displayName || 'ReactCompositeComponent') +
+	          '.shouldComponentUpdate(): Returned undefined instead of a ' +
+	          'boolean value. Make sure to return true or false.'
 	        );
-	      } else {
-	        // If it's determined that a component should not update, we still want
-	        // to set props and state.
-	        this._descriptor = nextDescriptor;
-	        this.props = nextProps;
-	        this.state = nextState;
-	        this.context = nextContext;
-
-	        // Owner cannot change because shouldUpdateReactComponent doesn't allow
-	        // it. TODO: Remove this._owner completely.
-	        this._owner = nextDescriptor._owner;
 	      }
-	    } finally {
-	      this._compositeLifeCycleState = null;
+	    }
+
+	    if (shouldUpdate) {
+	      this._pendingForceUpdate = false;
+	      // Will set `this.props`, `this.state` and `this.context`.
+	      this._performComponentUpdate(
+	        nextElement,
+	        nextProps,
+	        nextState,
+	        nextContext,
+	        transaction
+	      );
+	    } else {
+	      // If it's determined that a component should not update, we still want
+	      // to set props and state.
+	      this._currentElement = nextElement;
+	      this.props = nextProps;
+	      this.state = nextState;
+	      this.context = nextContext;
+
+	      // Owner cannot change because shouldUpdateReactComponent doesn't allow
+	      // it. TODO: Remove this._owner completely.
+	      this._owner = nextElement._owner;
 	    }
 	  },
 
@@ -10219,7 +10813,7 @@
 	   * Merges new props and state, notifies delegate methods of update and
 	   * performs update.
 	   *
-	   * @param {ReactDescriptor} nextDescriptor Next descriptor
+	   * @param {ReactElement} nextElement Next element
 	   * @param {object} nextProps Next public object to set as properties.
 	   * @param {?object} nextState Next object to set as state.
 	   * @param {?object} nextContext Next public object to set as context.
@@ -10227,13 +10821,13 @@
 	   * @private
 	   */
 	  _performComponentUpdate: function(
-	    nextDescriptor,
+	    nextElement,
 	    nextProps,
 	    nextState,
 	    nextContext,
 	    transaction
 	  ) {
-	    var prevDescriptor = this._descriptor;
+	    var prevElement = this._currentElement;
 	    var prevProps = this.props;
 	    var prevState = this.state;
 	    var prevContext = this.context;
@@ -10242,18 +10836,18 @@
 	      this.componentWillUpdate(nextProps, nextState, nextContext);
 	    }
 
-	    this._descriptor = nextDescriptor;
+	    this._currentElement = nextElement;
 	    this.props = nextProps;
 	    this.state = nextState;
 	    this.context = nextContext;
 
 	    // Owner cannot change because shouldUpdateReactComponent doesn't allow
 	    // it. TODO: Remove this._owner completely.
-	    this._owner = nextDescriptor._owner;
+	    this._owner = nextElement._owner;
 
 	    this.updateComponent(
 	      transaction,
-	      prevDescriptor
+	      prevElement
 	    );
 
 	    if (this.componentDidUpdate) {
@@ -10264,22 +10858,22 @@
 	    }
 	  },
 
-	  receiveComponent: function(nextDescriptor, transaction) {
-	    if (nextDescriptor === this._descriptor &&
-	        nextDescriptor._owner != null) {
-	      // Since descriptors are immutable after the owner is rendered,
+	  receiveComponent: function(nextElement, transaction) {
+	    if (nextElement === this._currentElement &&
+	        nextElement._owner != null) {
+	      // Since elements are immutable after the owner is rendered,
 	      // we can do a cheap identity compare here to determine if this is a
 	      // superfluous reconcile. It's possible for state to be mutable but such
 	      // change should trigger an update of the owner which would recreate
-	      // the descriptor. We explicitly check for the existence of an owner since
-	      // it's possible for a descriptor created outside a composite to be
+	      // the element. We explicitly check for the existence of an owner since
+	      // it's possible for a element created outside a composite to be
 	      // deeply mutated and reused.
 	      return;
 	    }
 
 	    ReactComponent.Mixin.receiveComponent.call(
 	      this,
-	      nextDescriptor,
+	      nextElement,
 	      transaction
 	    );
 	  },
@@ -10291,31 +10885,34 @@
 	   * Sophisticated clients may wish to override this.
 	   *
 	   * @param {ReactReconcileTransaction} transaction
-	   * @param {ReactDescriptor} prevDescriptor
+	   * @param {ReactElement} prevElement
 	   * @internal
 	   * @overridable
 	   */
 	  updateComponent: ReactPerf.measure(
 	    'ReactCompositeComponent',
 	    'updateComponent',
-	    function(transaction, prevParentDescriptor) {
+	    function(transaction, prevParentElement) {
 	      ReactComponent.Mixin.updateComponent.call(
 	        this,
 	        transaction,
-	        prevParentDescriptor
+	        prevParentElement
 	      );
 
 	      var prevComponentInstance = this._renderedComponent;
-	      var prevDescriptor = prevComponentInstance._descriptor;
-	      var nextDescriptor = this._renderValidatedComponent();
-	      if (shouldUpdateReactComponent(prevDescriptor, nextDescriptor)) {
-	        prevComponentInstance.receiveComponent(nextDescriptor, transaction);
+	      var prevElement = prevComponentInstance._currentElement;
+	      var nextElement = this._renderValidatedComponent();
+	      if (shouldUpdateReactComponent(prevElement, nextElement)) {
+	        prevComponentInstance.receiveComponent(nextElement, transaction);
 	      } else {
 	        // These two IDs are actually the same! But nothing should rely on that.
 	        var thisID = this._rootNodeID;
 	        var prevComponentID = prevComponentInstance._rootNodeID;
 	        prevComponentInstance.unmountComponent();
-	        this._renderedComponent = instantiateReactComponent(nextDescriptor);
+	        this._renderedComponent = instantiateReactComponent(
+	          nextElement,
+	          this._currentElement.type
+	        );
 	        var nextMarkup = this._renderedComponent.mountComponent(
 	          thisID,
 	          transaction,
@@ -10353,12 +10950,12 @@
 	    ) : invariant(this.isMounted() ||
 	      compositeLifeCycleState === CompositeLifeCycle.MOUNTING));
 	    ("production" !== process.env.NODE_ENV ? invariant(
-	      compositeLifeCycleState !== CompositeLifeCycle.RECEIVING_STATE &&
-	      compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING,
+	      compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING &&
+	      ReactCurrentOwner.current == null,
 	      'forceUpdate(...): Cannot force an update while unmounting component ' +
-	      'or during an existing state transition (such as within `render`).'
-	    ) : invariant(compositeLifeCycleState !== CompositeLifeCycle.RECEIVING_STATE &&
-	    compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING));
+	      'or within a `render` function.'
+	    ) : invariant(compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING &&
+	    ReactCurrentOwner.current == null));
 	    this._pendingForceUpdate = true;
 	    ReactUpdates.enqueueUpdate(this, callback);
 	  },
@@ -10373,7 +10970,7 @@
 	      var renderedComponent;
 	      var previousContext = ReactContext.current;
 	      ReactContext.current = this._processChildContext(
-	        this._descriptor._context
+	        this._currentElement._context
 	      );
 	      ReactCurrentOwner.current = this;
 	      try {
@@ -10389,11 +10986,11 @@
 	        ReactCurrentOwner.current = null;
 	      }
 	      ("production" !== process.env.NODE_ENV ? invariant(
-	        ReactDescriptor.isValidDescriptor(renderedComponent),
+	        ReactElement.isValidElement(renderedComponent),
 	        '%s.render(): A valid ReactComponent must be returned. You may have ' +
 	          'returned undefined, an array or some other invalid object.',
 	        this.constructor.displayName || 'ReactCompositeComponent'
-	      ) : invariant(ReactDescriptor.isValidDescriptor(renderedComponent)));
+	      ) : invariant(ReactElement.isValidElement(renderedComponent)));
 	      return renderedComponent;
 	    }
 	  ),
@@ -10422,9 +11019,7 @@
 	   */
 	  _bindAutoBindMethod: function(method) {
 	    var component = this;
-	    var boundMethod = function() {
-	      return method.apply(component, arguments);
-	    };
+	    var boundMethod = method.bind(component);
 	    if ("production" !== process.env.NODE_ENV) {
 	      boundMethod.__reactBoundContext = component;
 	      boundMethod.__reactBoundMethod = method;
@@ -10462,10 +11057,13 @@
 	};
 
 	var ReactCompositeComponentBase = function() {};
-	mixInto(ReactCompositeComponentBase, ReactComponent.Mixin);
-	mixInto(ReactCompositeComponentBase, ReactOwner.Mixin);
-	mixInto(ReactCompositeComponentBase, ReactPropTransferer.Mixin);
-	mixInto(ReactCompositeComponentBase, ReactCompositeComponentMixin);
+	assign(
+	  ReactCompositeComponentBase.prototype,
+	  ReactComponent.Mixin,
+	  ReactOwner.Mixin,
+	  ReactPropTransferer.Mixin,
+	  ReactCompositeComponentMixin
+	);
 
 	/**
 	 * Module for creating composite components.
@@ -10489,8 +11087,10 @@
 	   * @public
 	   */
 	  createClass: function(spec) {
-	    var Constructor = function(props, owner) {
-	      this.construct(props, owner);
+	    var Constructor = function(props) {
+	      // This constructor is overridden by mocks. The argument is used
+	      // by mocks to assert on what gets mounted. This will later be used
+	      // by the stand-alone class implementation.
 	    };
 	    Constructor.prototype = new ReactCompositeComponentBase();
 	    Constructor.prototype.constructor = Constructor;
@@ -10533,17 +11133,14 @@
 	      }
 	    }
 
-	    var descriptorFactory = ReactDescriptor.createFactory(Constructor);
-
 	    if ("production" !== process.env.NODE_ENV) {
-	      return ReactDescriptorValidator.createFactory(
-	        descriptorFactory,
-	        Constructor.propTypes,
-	        Constructor.contextTypes
+	      return ReactLegacyElement.wrapFactory(
+	        ReactElementValidator.createFactory(Constructor)
 	      );
 	    }
-
-	    return descriptorFactory;
+	    return ReactLegacyElement.wrapFactory(
+	      ReactElement.createFactory(Constructor)
+	    );
 	  },
 
 	  injection: {
@@ -10555,33 +11152,26 @@
 
 	module.exports = ReactCompositeComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 31 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactContext
 	 */
 
 	"use strict";
 
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
 
 	/**
 	 * Keeps track of the current context.
@@ -10603,7 +11193,7 @@
 	   * A typical use case might look like
 	   *
 	   *  render: function() {
-	   *    var children = ReactContext.withContext({foo: 'foo'} () => (
+	   *    var children = ReactContext.withContext({foo: 'foo'}, () => (
 	   *
 	   *    ));
 	   *    return <div>{children}</div>;
@@ -10616,7 +11206,7 @@
 	  withContext: function(newContext, scopedCallback) {
 	    var result;
 	    var previousContext = ReactContext.current;
-	    ReactContext.current = merge(previousContext, newContext);
+	    ReactContext.current = assign({}, previousContext, newContext);
 	    try {
 	      result = scopedCallback();
 	    } finally {
@@ -10631,23 +11221,16 @@
 
 
 /***/ },
-/* 32 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactCurrentOwner
 	 */
@@ -10676,34 +11259,31 @@
 
 
 /***/ },
-/* 33 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactDescriptor
+	 * @providesModule ReactElement
 	 */
 
 	"use strict";
 
-	var ReactContext = __webpack_require__(31);
-	var ReactCurrentOwner = __webpack_require__(32);
+	var ReactContext = __webpack_require__(35);
+	var ReactCurrentOwner = __webpack_require__(36);
 
-	var merge = __webpack_require__(51);
-	var warning = __webpack_require__(45);
+	var warning = __webpack_require__(62);
+
+	var RESERVED_PROPS = {
+	  key: true,
+	  ref: true
+	};
 
 	/**
 	 * Warn for mutations.
@@ -10746,7 +11326,7 @@
 	 * Warn for mutations.
 	 *
 	 * @internal
-	 * @param {object} descriptor
+	 * @param {object} element
 	 */
 	function defineMutationMembrane(prototype) {
 	  try {
@@ -10763,161 +11343,145 @@
 	}
 
 	/**
-	 * Transfer static properties from the source to the target. Functions are
-	 * rebound to have this reflect the original source.
-	 */
-	function proxyStaticMethods(target, source) {
-	  if (typeof source !== 'function') {
-	    return;
-	  }
-	  for (var key in source) {
-	    if (source.hasOwnProperty(key)) {
-	      var value = source[key];
-	      if (typeof value === 'function') {
-	        var bound = value.bind(source);
-	        // Copy any properties defined on the function, such as `isRequired` on
-	        // a PropTypes validator. (mergeInto refuses to work on functions.)
-	        for (var k in value) {
-	          if (value.hasOwnProperty(k)) {
-	            bound[k] = value[k];
-	          }
-	        }
-	        target[key] = bound;
-	      } else {
-	        target[key] = value;
-	      }
-	    }
-	  }
-	}
-
-	/**
-	 * Base constructor for all React descriptors. This is only used to make this
+	 * Base constructor for all React elements. This is only used to make this
 	 * work with a dynamic instanceof check. Nothing should live on this prototype.
 	 *
 	 * @param {*} type
+	 * @param {string|object} ref
+	 * @param {*} key
+	 * @param {*} props
 	 * @internal
 	 */
-	var ReactDescriptor = function() {};
+	var ReactElement = function(type, key, ref, owner, context, props) {
+	  // Built-in properties that belong on the element
+	  this.type = type;
+	  this.key = key;
+	  this.ref = ref;
 
-	if ("production" !== process.env.NODE_ENV) {
-	  defineMutationMembrane(ReactDescriptor.prototype);
-	}
+	  // Record the component responsible for creating this element.
+	  this._owner = owner;
 
-	ReactDescriptor.createFactory = function(type) {
-
-	  var descriptorPrototype = Object.create(ReactDescriptor.prototype);
-
-	  var factory = function(props, children) {
-	    // For consistency we currently allocate a new object for every descriptor.
-	    // This protects the descriptor from being mutated by the original props
-	    // object being mutated. It also protects the original props object from
-	    // being mutated by children arguments and default props. This behavior
-	    // comes with a performance cost and could be deprecated in the future.
-	    // It could also be optimized with a smarter JSX transform.
-	    if (props == null) {
-	      props = {};
-	    } else if (typeof props === 'object') {
-	      props = merge(props);
-	    }
-
-	    // Children can be more than one argument, and those are transferred onto
-	    // the newly allocated props object.
-	    var childrenLength = arguments.length - 1;
-	    if (childrenLength === 1) {
-	      props.children = children;
-	    } else if (childrenLength > 1) {
-	      var childArray = Array(childrenLength);
-	      for (var i = 0; i < childrenLength; i++) {
-	        childArray[i] = arguments[i + 1];
-	      }
-	      props.children = childArray;
-	    }
-
-	    // Initialize the descriptor object
-	    var descriptor = Object.create(descriptorPrototype);
-
-	    // Record the component responsible for creating this descriptor.
-	    descriptor._owner = ReactCurrentOwner.current;
-
-	    // TODO: Deprecate withContext, and then the context becomes accessible
-	    // through the owner.
-	    descriptor._context = ReactContext.current;
-
-	    if ("production" !== process.env.NODE_ENV) {
-	      // The validation flag and props are currently mutative. We put them on
-	      // an external backing store so that we can freeze the whole object.
-	      // This can be replaced with a WeakMap once they are implemented in
-	      // commonly used development environments.
-	      descriptor._store = { validated: false, props: props };
-
-	      // We're not allowed to set props directly on the object so we early
-	      // return and rely on the prototype membrane to forward to the backing
-	      // store.
-	      if (useMutationMembrane) {
-	        Object.freeze(descriptor);
-	        return descriptor;
-	      }
-	    }
-
-	    descriptor.props = props;
-	    return descriptor;
-	  };
-
-	  // Currently we expose the prototype of the descriptor so that
-	  // <Foo /> instanceof Foo works. This is controversial pattern.
-	  factory.prototype = descriptorPrototype;
-
-	  // Expose the type on the factory and the prototype so that it can be
-	  // easily accessed on descriptors. E.g. <Foo />.type === Foo.type and for
-	  // static methods like <Foo />.type.staticMethod();
-	  // This should not be named constructor since this may not be the function
-	  // that created the descriptor, and it may not even be a constructor.
-	  factory.type = type;
-	  descriptorPrototype.type = type;
-
-	  proxyStaticMethods(factory, type);
-
-	  // Expose a unique constructor on the prototype is that this works with type
-	  // systems that compare constructor properties: <Foo />.constructor === Foo
-	  // This may be controversial since it requires a known factory function.
-	  descriptorPrototype.constructor = factory;
-
-	  return factory;
-
-	};
-
-	ReactDescriptor.cloneAndReplaceProps = function(oldDescriptor, newProps) {
-	  var newDescriptor = Object.create(oldDescriptor.constructor.prototype);
-	  // It's important that this property order matches the hidden class of the
-	  // original descriptor to maintain perf.
-	  newDescriptor._owner = oldDescriptor._owner;
-	  newDescriptor._context = oldDescriptor._context;
+	  // TODO: Deprecate withContext, and then the context becomes accessible
+	  // through the owner.
+	  this._context = context;
 
 	  if ("production" !== process.env.NODE_ENV) {
-	    newDescriptor._store = {
-	      validated: oldDescriptor._store.validated,
-	      props: newProps
-	    };
+	    // The validation flag and props are currently mutative. We put them on
+	    // an external backing store so that we can freeze the whole object.
+	    // This can be replaced with a WeakMap once they are implemented in
+	    // commonly used development environments.
+	    this._store = { validated: false, props: props };
+
+	    // We're not allowed to set props directly on the object so we early
+	    // return and rely on the prototype membrane to forward to the backing
+	    // store.
 	    if (useMutationMembrane) {
-	      Object.freeze(newDescriptor);
-	      return newDescriptor;
+	      Object.freeze(this);
+	      return;
 	    }
 	  }
 
-	  newDescriptor.props = newProps;
-	  return newDescriptor;
+	  this.props = props;
 	};
 
-	/**
-	 * Checks if a value is a valid descriptor constructor.
-	 *
-	 * @param {*}
-	 * @return {boolean}
-	 * @public
-	 */
-	ReactDescriptor.isValidFactory = function(factory) {
-	  return typeof factory === 'function' &&
-	         factory.prototype instanceof ReactDescriptor;
+	// We intentionally don't expose the function on the constructor property.
+	// ReactElement should be indistinguishable from a plain object.
+	ReactElement.prototype = {
+	  _isReactElement: true
+	};
+
+	if ("production" !== process.env.NODE_ENV) {
+	  defineMutationMembrane(ReactElement.prototype);
+	}
+
+	ReactElement.createElement = function(type, config, children) {
+	  var propName;
+
+	  // Reserved names are extracted
+	  var props = {};
+
+	  var key = null;
+	  var ref = null;
+
+	  if (config != null) {
+	    ref = config.ref === undefined ? null : config.ref;
+	    if ("production" !== process.env.NODE_ENV) {
+	      ("production" !== process.env.NODE_ENV ? warning(
+	        config.key !== null,
+	        'createElement(...): Encountered component with a `key` of null. In ' +
+	        'a future version, this will be treated as equivalent to the string ' +
+	        '\'null\'; instead, provide an explicit key or use undefined.'
+	      ) : null);
+	    }
+	    // TODO: Change this back to `config.key === undefined`
+	    key = config.key == null ? null : '' + config.key;
+	    // Remaining properties are added to a new props object
+	    for (propName in config) {
+	      if (config.hasOwnProperty(propName) &&
+	          !RESERVED_PROPS.hasOwnProperty(propName)) {
+	        props[propName] = config[propName];
+	      }
+	    }
+	  }
+
+	  // Children can be more than one argument, and those are transferred onto
+	  // the newly allocated props object.
+	  var childrenLength = arguments.length - 2;
+	  if (childrenLength === 1) {
+	    props.children = children;
+	  } else if (childrenLength > 1) {
+	    var childArray = Array(childrenLength);
+	    for (var i = 0; i < childrenLength; i++) {
+	      childArray[i] = arguments[i + 2];
+	    }
+	    props.children = childArray;
+	  }
+
+	  // Resolve default props
+	  if (type.defaultProps) {
+	    var defaultProps = type.defaultProps;
+	    for (propName in defaultProps) {
+	      if (typeof props[propName] === 'undefined') {
+	        props[propName] = defaultProps[propName];
+	      }
+	    }
+	  }
+
+	  return new ReactElement(
+	    type,
+	    key,
+	    ref,
+	    ReactCurrentOwner.current,
+	    ReactContext.current,
+	    props
+	  );
+	};
+
+	ReactElement.createFactory = function(type) {
+	  var factory = ReactElement.createElement.bind(null, type);
+	  // Expose the type on the factory and the prototype so that it can be
+	  // easily accessed on elements. E.g. <Foo />.type === Foo.type.
+	  // This should not be named `constructor` since this may not be the function
+	  // that created the element, and it may not even be a constructor.
+	  factory.type = type;
+	  return factory;
+	};
+
+	ReactElement.cloneAndReplaceProps = function(oldElement, newProps) {
+	  var newElement = new ReactElement(
+	    oldElement.type,
+	    oldElement.key,
+	    oldElement.ref,
+	    oldElement._owner,
+	    oldElement._context,
+	    newProps
+	  );
+
+	  if ("production" !== process.env.NODE_ENV) {
+	    // If the key on the original is valid, then the clone is valid
+	    newElement._store.validated = oldElement._store.validated;
+	  }
+	  return newElement;
 	};
 
 	/**
@@ -10925,32 +11489,307 @@
 	 * @return {boolean} True if `object` is a valid component.
 	 * @final
 	 */
-	ReactDescriptor.isValidDescriptor = function(object) {
-	  return object instanceof ReactDescriptor;
+	ReactElement.isValidElement = function(object) {
+	  // ReactTestUtils is often used outside of beforeEach where as React is
+	  // within it. This leads to two different instances of React on the same
+	  // page. To identify a element from a different React instance we use
+	  // a flag instead of an instanceof check.
+	  var isElement = !!(object && object._isReactElement);
+	  // if (isElement && !(object instanceof ReactElement)) {
+	  // This is an indicator that you're using multiple versions of React at the
+	  // same time. This will screw with ownership and stuff. Fix it, please.
+	  // TODO: We could possibly warn here.
+	  // }
+	  return isElement;
 	};
 
-	module.exports = ReactDescriptor;
+	module.exports = ReactElement;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 34 */
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactElementValidator
+	 */
+
+	/**
+	 * ReactElementValidator provides a wrapper around a element factory
+	 * which validates the props passed to the element. This is intended to be
+	 * used only in DEV and could be replaced by a static type checker for languages
+	 * that support it.
+	 */
+
+	"use strict";
+
+	var ReactElement = __webpack_require__(37);
+	var ReactPropTypeLocations = __webpack_require__(80);
+	var ReactCurrentOwner = __webpack_require__(36);
+
+	var monitorCodeUse = __webpack_require__(83);
+
+	/**
+	 * Warn if there's no key explicitly set on dynamic arrays of children or
+	 * object keys are not valid. This allows us to keep track of children between
+	 * updates.
+	 */
+	var ownerHasKeyUseWarning = {
+	  'react_key_warning': {},
+	  'react_numeric_key_warning': {}
+	};
+	var ownerHasMonitoredObjectMap = {};
+
+	var loggedTypeFailures = {};
+
+	var NUMERIC_PROPERTY_REGEX = /^\d+$/;
+
+	/**
+	 * Gets the current owner's displayName for use in warnings.
+	 *
+	 * @internal
+	 * @return {?string} Display name or undefined
+	 */
+	function getCurrentOwnerDisplayName() {
+	  var current = ReactCurrentOwner.current;
+	  return current && current.constructor.displayName || undefined;
+	}
+
+	/**
+	 * Warn if the component doesn't have an explicit key assigned to it.
+	 * This component is in an array. The array could grow and shrink or be
+	 * reordered. All children that haven't already been validated are required to
+	 * have a "key" property assigned to it.
+	 *
+	 * @internal
+	 * @param {ReactComponent} component Component that requires a key.
+	 * @param {*} parentType component's parent's type.
+	 */
+	function validateExplicitKey(component, parentType) {
+	  if (component._store.validated || component.key != null) {
+	    return;
+	  }
+	  component._store.validated = true;
+
+	  warnAndMonitorForKeyUse(
+	    'react_key_warning',
+	    'Each child in an array should have a unique "key" prop.',
+	    component,
+	    parentType
+	  );
+	}
+
+	/**
+	 * Warn if the key is being defined as an object property but has an incorrect
+	 * value.
+	 *
+	 * @internal
+	 * @param {string} name Property name of the key.
+	 * @param {ReactComponent} component Component that requires a key.
+	 * @param {*} parentType component's parent's type.
+	 */
+	function validatePropertyKey(name, component, parentType) {
+	  if (!NUMERIC_PROPERTY_REGEX.test(name)) {
+	    return;
+	  }
+	  warnAndMonitorForKeyUse(
+	    'react_numeric_key_warning',
+	    'Child objects should have non-numeric keys so ordering is preserved.',
+	    component,
+	    parentType
+	  );
+	}
+
+	/**
+	 * Shared warning and monitoring code for the key warnings.
+	 *
+	 * @internal
+	 * @param {string} warningID The id used when logging.
+	 * @param {string} message The base warning that gets output.
+	 * @param {ReactComponent} component Component that requires a key.
+	 * @param {*} parentType component's parent's type.
+	 */
+	function warnAndMonitorForKeyUse(warningID, message, component, parentType) {
+	  var ownerName = getCurrentOwnerDisplayName();
+	  var parentName = parentType.displayName;
+
+	  var useName = ownerName || parentName;
+	  var memoizer = ownerHasKeyUseWarning[warningID];
+	  if (memoizer.hasOwnProperty(useName)) {
+	    return;
+	  }
+	  memoizer[useName] = true;
+
+	  message += ownerName ?
+	    (" Check the render method of " + ownerName + ".") :
+	    (" Check the renderComponent call using <" + parentName + ">.");
+
+	  // Usually the current owner is the offender, but if it accepts children as a
+	  // property, it may be the creator of the child that's responsible for
+	  // assigning it a key.
+	  var childOwnerName = null;
+	  if (component._owner && component._owner !== ReactCurrentOwner.current) {
+	    // Name of the component that originally created this child.
+	    childOwnerName = component._owner.constructor.displayName;
+
+	    message += (" It was passed a child from " + childOwnerName + ".");
+	  }
+
+	  message += ' See http://fb.me/react-warning-keys for more information.';
+	  monitorCodeUse(warningID, {
+	    component: useName,
+	    componentOwner: childOwnerName
+	  });
+	  console.warn(message);
+	}
+
+	/**
+	 * Log that we're using an object map. We're considering deprecating this
+	 * feature and replace it with proper Map and ImmutableMap data structures.
+	 *
+	 * @internal
+	 */
+	function monitorUseOfObjectMap() {
+	  var currentName = getCurrentOwnerDisplayName() || '';
+	  if (ownerHasMonitoredObjectMap.hasOwnProperty(currentName)) {
+	    return;
+	  }
+	  ownerHasMonitoredObjectMap[currentName] = true;
+	  monitorCodeUse('react_object_map_children');
+	}
+
+	/**
+	 * Ensure that every component either is passed in a static location, in an
+	 * array with an explicit keys property defined, or in an object literal
+	 * with valid key property.
+	 *
+	 * @internal
+	 * @param {*} component Statically passed child of any type.
+	 * @param {*} parentType component's parent's type.
+	 * @return {boolean}
+	 */
+	function validateChildKeys(component, parentType) {
+	  if (Array.isArray(component)) {
+	    for (var i = 0; i < component.length; i++) {
+	      var child = component[i];
+	      if (ReactElement.isValidElement(child)) {
+	        validateExplicitKey(child, parentType);
+	      }
+	    }
+	  } else if (ReactElement.isValidElement(component)) {
+	    // This component was passed in a valid location.
+	    component._store.validated = true;
+	  } else if (component && typeof component === 'object') {
+	    monitorUseOfObjectMap();
+	    for (var name in component) {
+	      validatePropertyKey(name, component[name], parentType);
+	    }
+	  }
+	}
+
+	/**
+	 * Assert that the props are valid
+	 *
+	 * @param {string} componentName Name of the component for error messages.
+	 * @param {object} propTypes Map of prop name to a ReactPropType
+	 * @param {object} props
+	 * @param {string} location e.g. "prop", "context", "child context"
+	 * @private
+	 */
+	function checkPropTypes(componentName, propTypes, props, location) {
+	  for (var propName in propTypes) {
+	    if (propTypes.hasOwnProperty(propName)) {
+	      var error;
+	      // Prop type validation may throw. In case they do, we don't want to
+	      // fail the render phase where it didn't fail before. So we log it.
+	      // After these have been cleaned up, we'll let them throw.
+	      try {
+	        error = propTypes[propName](props, propName, componentName, location);
+	      } catch (ex) {
+	        error = ex;
+	      }
+	      if (error instanceof Error && !(error.message in loggedTypeFailures)) {
+	        // Only monitor this failure once because there tends to be a lot of the
+	        // same error.
+	        loggedTypeFailures[error.message] = true;
+	        // This will soon use the warning module
+	        monitorCodeUse(
+	          'react_failed_descriptor_type_check',
+	          { message: error.message }
+	        );
+	      }
+	    }
+	  }
+	}
+
+	var ReactElementValidator = {
+
+	  createElement: function(type, props, children) {
+	    var element = ReactElement.createElement.apply(this, arguments);
+
+	    // The result can be nullish if a mock or a custom function is used.
+	    // TODO: Drop this when these are no longer allowed as the type argument.
+	    if (element == null) {
+	      return element;
+	    }
+
+	    for (var i = 2; i < arguments.length; i++) {
+	      validateChildKeys(arguments[i], type);
+	    }
+
+	    var name = type.displayName;
+	    if (type.propTypes) {
+	      checkPropTypes(
+	        name,
+	        type.propTypes,
+	        element.props,
+	        ReactPropTypeLocations.prop
+	      );
+	    }
+	    if (type.contextTypes) {
+	      checkPropTypes(
+	        name,
+	        type.contextTypes,
+	        element._context,
+	        ReactPropTypeLocations.context
+	      );
+	    }
+	    return element;
+	  },
+
+	  createFactory: function(type) {
+	    var validatedFactory = ReactElementValidator.createElement.bind(
+	      null,
+	      type
+	    );
+	    validatedFactory.type = type;
+	    return validatedFactory;
+	  }
+
+	};
+
+	module.exports = ReactElementValidator;
+
+
+/***/ },
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOM
 	 * @typechecks static-only
@@ -10958,45 +11797,27 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactDescriptorValidator = __webpack_require__(74);
-	var ReactDOMComponent = __webpack_require__(35);
+	var ReactElement = __webpack_require__(37);
+	var ReactElementValidator = __webpack_require__(38);
+	var ReactLegacyElement = __webpack_require__(43);
 
-	var mergeInto = __webpack_require__(66);
-	var mapObject = __webpack_require__(82);
+	var mapObject = __webpack_require__(84);
 
 	/**
-	 * Creates a new React class that is idempotent and capable of containing other
-	 * React components. It accepts event listeners and DOM properties that are
-	 * valid according to `DOMProperty`.
+	 * Create a factory that creates HTML tag elements.
 	 *
-	 *  - Event listeners: `onClick`, `onMouseDown`, etc.
-	 *  - DOM properties: `className`, `name`, `title`, etc.
-	 *
-	 * The `style` property functions differently from the DOM API. It accepts an
-	 * object mapping of style properties to values.
-	 *
-	 * @param {boolean} omitClose True if the close tag should be omitted.
 	 * @param {string} tag Tag name (e.g. `div`).
 	 * @private
 	 */
-	function createDOMComponentClass(omitClose, tag) {
-	  var Constructor = function(descriptor) {
-	    this.construct(descriptor);
-	  };
-	  Constructor.prototype = new ReactDOMComponent(tag, omitClose);
-	  Constructor.prototype.constructor = Constructor;
-	  Constructor.displayName = tag;
-
-	  var ConvenienceConstructor = ReactDescriptor.createFactory(Constructor);
-
+	function createDOMFactory(tag) {
 	  if ("production" !== process.env.NODE_ENV) {
-	    return ReactDescriptorValidator.createFactory(
-	      ConvenienceConstructor
+	    return ReactLegacyElement.markNonLegacyFactory(
+	      ReactElementValidator.createFactory(tag)
 	    );
 	  }
-
-	  return ConvenienceConstructor;
+	  return ReactLegacyElement.markNonLegacyFactory(
+	    ReactElement.createFactory(tag)
+	  );
 	}
 
 	/**
@@ -11006,169 +11827,155 @@
 	 * @public
 	 */
 	var ReactDOM = mapObject({
-	  a: false,
-	  abbr: false,
-	  address: false,
-	  area: true,
-	  article: false,
-	  aside: false,
-	  audio: false,
-	  b: false,
-	  base: true,
-	  bdi: false,
-	  bdo: false,
-	  big: false,
-	  blockquote: false,
-	  body: false,
-	  br: true,
-	  button: false,
-	  canvas: false,
-	  caption: false,
-	  cite: false,
-	  code: false,
-	  col: true,
-	  colgroup: false,
-	  data: false,
-	  datalist: false,
-	  dd: false,
-	  del: false,
-	  details: false,
-	  dfn: false,
-	  dialog: false,
-	  div: false,
-	  dl: false,
-	  dt: false,
-	  em: false,
-	  embed: true,
-	  fieldset: false,
-	  figcaption: false,
-	  figure: false,
-	  footer: false,
-	  form: false, // NOTE: Injected, see `ReactDOMForm`.
-	  h1: false,
-	  h2: false,
-	  h3: false,
-	  h4: false,
-	  h5: false,
-	  h6: false,
-	  head: false,
-	  header: false,
-	  hr: true,
-	  html: false,
-	  i: false,
-	  iframe: false,
-	  img: true,
-	  input: true,
-	  ins: false,
-	  kbd: false,
-	  keygen: true,
-	  label: false,
-	  legend: false,
-	  li: false,
-	  link: true,
-	  main: false,
-	  map: false,
-	  mark: false,
-	  menu: false,
-	  menuitem: false, // NOTE: Close tag should be omitted, but causes problems.
-	  meta: true,
-	  meter: false,
-	  nav: false,
-	  noscript: false,
-	  object: false,
-	  ol: false,
-	  optgroup: false,
-	  option: false,
-	  output: false,
-	  p: false,
-	  param: true,
-	  picture: false,
-	  pre: false,
-	  progress: false,
-	  q: false,
-	  rp: false,
-	  rt: false,
-	  ruby: false,
-	  s: false,
-	  samp: false,
-	  script: false,
-	  section: false,
-	  select: false,
-	  small: false,
-	  source: true,
-	  span: false,
-	  strong: false,
-	  style: false,
-	  sub: false,
-	  summary: false,
-	  sup: false,
-	  table: false,
-	  tbody: false,
-	  td: false,
-	  textarea: false, // NOTE: Injected, see `ReactDOMTextarea`.
-	  tfoot: false,
-	  th: false,
-	  thead: false,
-	  time: false,
-	  title: false,
-	  tr: false,
-	  track: true,
-	  u: false,
-	  ul: false,
-	  'var': false,
-	  video: false,
-	  wbr: true,
+	  a: 'a',
+	  abbr: 'abbr',
+	  address: 'address',
+	  area: 'area',
+	  article: 'article',
+	  aside: 'aside',
+	  audio: 'audio',
+	  b: 'b',
+	  base: 'base',
+	  bdi: 'bdi',
+	  bdo: 'bdo',
+	  big: 'big',
+	  blockquote: 'blockquote',
+	  body: 'body',
+	  br: 'br',
+	  button: 'button',
+	  canvas: 'canvas',
+	  caption: 'caption',
+	  cite: 'cite',
+	  code: 'code',
+	  col: 'col',
+	  colgroup: 'colgroup',
+	  data: 'data',
+	  datalist: 'datalist',
+	  dd: 'dd',
+	  del: 'del',
+	  details: 'details',
+	  dfn: 'dfn',
+	  dialog: 'dialog',
+	  div: 'div',
+	  dl: 'dl',
+	  dt: 'dt',
+	  em: 'em',
+	  embed: 'embed',
+	  fieldset: 'fieldset',
+	  figcaption: 'figcaption',
+	  figure: 'figure',
+	  footer: 'footer',
+	  form: 'form',
+	  h1: 'h1',
+	  h2: 'h2',
+	  h3: 'h3',
+	  h4: 'h4',
+	  h5: 'h5',
+	  h6: 'h6',
+	  head: 'head',
+	  header: 'header',
+	  hr: 'hr',
+	  html: 'html',
+	  i: 'i',
+	  iframe: 'iframe',
+	  img: 'img',
+	  input: 'input',
+	  ins: 'ins',
+	  kbd: 'kbd',
+	  keygen: 'keygen',
+	  label: 'label',
+	  legend: 'legend',
+	  li: 'li',
+	  link: 'link',
+	  main: 'main',
+	  map: 'map',
+	  mark: 'mark',
+	  menu: 'menu',
+	  menuitem: 'menuitem',
+	  meta: 'meta',
+	  meter: 'meter',
+	  nav: 'nav',
+	  noscript: 'noscript',
+	  object: 'object',
+	  ol: 'ol',
+	  optgroup: 'optgroup',
+	  option: 'option',
+	  output: 'output',
+	  p: 'p',
+	  param: 'param',
+	  picture: 'picture',
+	  pre: 'pre',
+	  progress: 'progress',
+	  q: 'q',
+	  rp: 'rp',
+	  rt: 'rt',
+	  ruby: 'ruby',
+	  s: 's',
+	  samp: 'samp',
+	  script: 'script',
+	  section: 'section',
+	  select: 'select',
+	  small: 'small',
+	  source: 'source',
+	  span: 'span',
+	  strong: 'strong',
+	  style: 'style',
+	  sub: 'sub',
+	  summary: 'summary',
+	  sup: 'sup',
+	  table: 'table',
+	  tbody: 'tbody',
+	  td: 'td',
+	  textarea: 'textarea',
+	  tfoot: 'tfoot',
+	  th: 'th',
+	  thead: 'thead',
+	  time: 'time',
+	  title: 'title',
+	  tr: 'tr',
+	  track: 'track',
+	  u: 'u',
+	  ul: 'ul',
+	  'var': 'var',
+	  video: 'video',
+	  wbr: 'wbr',
 
 	  // SVG
-	  circle: false,
-	  defs: false,
-	  ellipse: false,
-	  g: false,
-	  line: false,
-	  linearGradient: false,
-	  mask: false,
-	  path: false,
-	  pattern: false,
-	  polygon: false,
-	  polyline: false,
-	  radialGradient: false,
-	  rect: false,
-	  stop: false,
-	  svg: false,
-	  text: false,
-	  tspan: false
-	}, createDOMComponentClass);
+	  circle: 'circle',
+	  defs: 'defs',
+	  ellipse: 'ellipse',
+	  g: 'g',
+	  line: 'line',
+	  linearGradient: 'linearGradient',
+	  mask: 'mask',
+	  path: 'path',
+	  pattern: 'pattern',
+	  polygon: 'polygon',
+	  polyline: 'polyline',
+	  radialGradient: 'radialGradient',
+	  rect: 'rect',
+	  stop: 'stop',
+	  svg: 'svg',
+	  text: 'text',
+	  tspan: 'tspan'
 
-	var injection = {
-	  injectComponentClasses: function(componentClasses) {
-	    mergeInto(ReactDOM, componentClasses);
-	  }
-	};
-
-	ReactDOM.injection = injection;
+	}, createDOMFactory);
 
 	module.exports = ReactDOM;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 35 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMComponent
 	 * @typechecks static-only
@@ -11176,21 +11983,22 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(84);
-	var DOMProperty = __webpack_require__(56);
-	var DOMPropertyOperations = __webpack_require__(26);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactComponent = __webpack_require__(29);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
-	var ReactMount = __webpack_require__(38);
-	var ReactMultiChild = __webpack_require__(39);
-	var ReactPerf = __webpack_require__(40);
+	var CSSPropertyOperations = __webpack_require__(86);
+	var DOMProperty = __webpack_require__(65);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactComponent = __webpack_require__(33);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
+	var ReactMount = __webpack_require__(44);
+	var ReactMultiChild = __webpack_require__(45);
+	var ReactPerf = __webpack_require__(46);
 
-	var escapeTextForBrowser = __webpack_require__(70);
-	var invariant = __webpack_require__(55);
-	var keyOf = __webpack_require__(53);
-	var merge = __webpack_require__(51);
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
+	var escapeTextForBrowser = __webpack_require__(73);
+	var invariant = __webpack_require__(61);
+	var isEventSupported = __webpack_require__(88);
+	var keyOf = __webpack_require__(64);
+	var monitorCodeUse = __webpack_require__(83);
 
 	var deleteListener = ReactBrowserEventEmitter.deleteListener;
 	var listenTo = ReactBrowserEventEmitter.listenTo;
@@ -11215,6 +12023,16 @@
 	    props.children == null || props.dangerouslySetInnerHTML == null,
 	    'Can only set one of `children` or `props.dangerouslySetInnerHTML`.'
 	  ) : invariant(props.children == null || props.dangerouslySetInnerHTML == null));
+	  if ("production" !== process.env.NODE_ENV) {
+	    if (props.contentEditable && props.children != null) {
+	      console.warn(
+	        'A component is `contentEditable` and contains `children` managed by ' +
+	        'React. It is now your responsibility to guarantee that none of those '+
+	        'nodes are unexpectedly modified or duplicated. This is probably not ' +
+	        'intentional.'
+	      );
+	    }
+	  }
 	  ("production" !== process.env.NODE_ENV ? invariant(
 	    props.style == null || typeof props.style === 'object',
 	    'The `style` prop expects a mapping from style properties to values, ' +
@@ -11223,6 +12041,15 @@
 	}
 
 	function putListener(id, registrationName, listener, transaction) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    // IE8 has no API for event capturing and the `onScroll` event doesn't
+	    // bubble.
+	    if (registrationName === 'onScroll' &&
+	        !isEventSupported('scroll', true)) {
+	      monitorCodeUse('react_no_scroll_event');
+	      console.warn('This browser doesn\'t support the `onScroll` event');
+	    }
+	  }
 	  var container = ReactMount.findReactContainerForID(id);
 	  if (container) {
 	    var doc = container.nodeType === ELEMENT_NODE_TYPE ?
@@ -11237,17 +12064,65 @@
 	  );
 	}
 
+	// For HTML, certain tags should omit their close tag. We keep a whitelist for
+	// those special cased tags.
+
+	var omittedCloseTags = {
+	  'area': true,
+	  'base': true,
+	  'br': true,
+	  'col': true,
+	  'embed': true,
+	  'hr': true,
+	  'img': true,
+	  'input': true,
+	  'keygen': true,
+	  'link': true,
+	  'meta': true,
+	  'param': true,
+	  'source': true,
+	  'track': true,
+	  'wbr': true
+	  // NOTE: menuitem's close tag should be omitted, but that causes problems.
+	};
+
+	// We accept any tag to be rendered but since this gets injected into abitrary
+	// HTML, we want to make sure that it's a safe tag.
+	// http://www.w3.org/TR/REC-xml/#NT-Name
+
+	var VALID_TAG_REGEX = /^[a-zA-Z][a-zA-Z:_\.\-\d]*$/; // Simplified subset
+	var validatedTagCache = {};
+	var hasOwnProperty = {}.hasOwnProperty;
+
+	function validateDangerousTag(tag) {
+	  if (!hasOwnProperty.call(validatedTagCache, tag)) {
+	    ("production" !== process.env.NODE_ENV ? invariant(VALID_TAG_REGEX.test(tag), 'Invalid tag: %s', tag) : invariant(VALID_TAG_REGEX.test(tag)));
+	    validatedTagCache[tag] = true;
+	  }
+	}
 
 	/**
+	 * Creates a new React class that is idempotent and capable of containing other
+	 * React components. It accepts event listeners and DOM properties that are
+	 * valid according to `DOMProperty`.
+	 *
+	 *  - Event listeners: `onClick`, `onMouseDown`, etc.
+	 *  - DOM properties: `className`, `name`, `title`, etc.
+	 *
+	 * The `style` property functions differently from the DOM API. It accepts an
+	 * object mapping of style properties to values.
+	 *
 	 * @constructor ReactDOMComponent
 	 * @extends ReactComponent
 	 * @extends ReactMultiChild
 	 */
-	function ReactDOMComponent(tag, omitClose) {
-	  this._tagOpen = '<' + tag;
-	  this._tagClose = omitClose ? '' : '</' + tag + '>';
+	function ReactDOMComponent(tag) {
+	  validateDangerousTag(tag);
+	  this._tag = tag;
 	  this.tagName = tag.toUpperCase();
 	}
+
+	ReactDOMComponent.displayName = 'ReactDOMComponent';
 
 	ReactDOMComponent.Mixin = {
 
@@ -11272,10 +12147,11 @@
 	        mountDepth
 	      );
 	      assertValidProps(this.props);
+	      var closeTag = omittedCloseTags[this._tag] ? '' : '</' + this._tag + '>';
 	      return (
 	        this._createOpenTagMarkupAndPutListeners(transaction) +
 	        this._createContentMarkup(transaction) +
-	        this._tagClose
+	        closeTag
 	      );
 	    }
 	  ),
@@ -11294,7 +12170,7 @@
 	   */
 	  _createOpenTagMarkupAndPutListeners: function(transaction) {
 	    var props = this.props;
-	    var ret = this._tagOpen;
+	    var ret = '<' + this._tag;
 
 	    for (var propKey in props) {
 	      if (!props.hasOwnProperty(propKey)) {
@@ -11309,7 +12185,7 @@
 	      } else {
 	        if (propKey === STYLE) {
 	          if (propValue) {
-	            propValue = props.style = merge(props.style);
+	            propValue = props.style = assign({}, props.style);
 	          }
 	          propValue = CSSPropertyOperations.createMarkupForStyles(propValue);
 	        }
@@ -11362,22 +12238,22 @@
 	    return '';
 	  },
 
-	  receiveComponent: function(nextDescriptor, transaction) {
-	    if (nextDescriptor === this._descriptor &&
-	        nextDescriptor._owner != null) {
-	      // Since descriptors are immutable after the owner is rendered,
+	  receiveComponent: function(nextElement, transaction) {
+	    if (nextElement === this._currentElement &&
+	        nextElement._owner != null) {
+	      // Since elements are immutable after the owner is rendered,
 	      // we can do a cheap identity compare here to determine if this is a
 	      // superfluous reconcile. It's possible for state to be mutable but such
 	      // change should trigger an update of the owner which would recreate
-	      // the descriptor. We explicitly check for the existence of an owner since
-	      // it's possible for a descriptor created outside a composite to be
+	      // the element. We explicitly check for the existence of an owner since
+	      // it's possible for a element created outside a composite to be
 	      // deeply mutated and reused.
 	      return;
 	    }
 
 	    ReactComponent.Mixin.receiveComponent.call(
 	      this,
-	      nextDescriptor,
+	      nextElement,
 	      transaction
 	    );
 	  },
@@ -11387,22 +12263,22 @@
 	   * attached to the DOM. Reconciles the root DOM node, then recurses.
 	   *
 	   * @param {ReactReconcileTransaction} transaction
-	   * @param {ReactDescriptor} prevDescriptor
+	   * @param {ReactElement} prevElement
 	   * @internal
 	   * @overridable
 	   */
 	  updateComponent: ReactPerf.measure(
 	    'ReactDOMComponent',
 	    'updateComponent',
-	    function(transaction, prevDescriptor) {
-	      assertValidProps(this._descriptor.props);
+	    function(transaction, prevElement) {
+	      assertValidProps(this._currentElement.props);
 	      ReactComponent.Mixin.updateComponent.call(
 	        this,
 	        transaction,
-	        prevDescriptor
+	        prevElement
 	      );
-	      this._updateDOMProperties(prevDescriptor.props, transaction);
-	      this._updateDOMChildren(prevDescriptor.props, transaction);
+	      this._updateDOMProperties(prevElement.props, transaction);
+	      this._updateDOMChildren(prevElement.props, transaction);
 	    }
 	  ),
 
@@ -11458,7 +12334,7 @@
 	      }
 	      if (propKey === STYLE) {
 	        if (nextProp) {
-	          nextProp = nextProps.style = merge(nextProp);
+	          nextProp = nextProps.style = assign({}, nextProp);
 	        }
 	        if (lastProp) {
 	          // Unset styles on `lastProp` but not on `nextProp`.
@@ -11567,70 +12443,66 @@
 
 	};
 
-	mixInto(ReactDOMComponent, ReactComponent.Mixin);
-	mixInto(ReactDOMComponent, ReactDOMComponent.Mixin);
-	mixInto(ReactDOMComponent, ReactMultiChild.Mixin);
-	mixInto(ReactDOMComponent, ReactBrowserComponentMixin);
+	assign(
+	  ReactDOMComponent.prototype,
+	  ReactComponent.Mixin,
+	  ReactDOMComponent.Mixin,
+	  ReactMultiChild.Mixin,
+	  ReactBrowserComponentMixin
+	);
 
 	module.exports = ReactDOMComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 36 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDefaultInjection
 	 */
 
 	"use strict";
 
-	var BeforeInputEventPlugin = __webpack_require__(87);
-	var ChangeEventPlugin = __webpack_require__(88);
-	var ClientReactRootIndex = __webpack_require__(89);
-	var CompositionEventPlugin = __webpack_require__(90);
-	var DefaultEventPluginOrder = __webpack_require__(91);
-	var EnterLeaveEventPlugin = __webpack_require__(92);
-	var ExecutionEnvironment = __webpack_require__(46);
-	var HTMLDOMPropertyConfig = __webpack_require__(93);
-	var MobileSafariClickEventPlugin = __webpack_require__(94);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
+	var BeforeInputEventPlugin = __webpack_require__(89);
+	var ChangeEventPlugin = __webpack_require__(90);
+	var ClientReactRootIndex = __webpack_require__(91);
+	var CompositionEventPlugin = __webpack_require__(92);
+	var DefaultEventPluginOrder = __webpack_require__(93);
+	var EnterLeaveEventPlugin = __webpack_require__(94);
+	var ExecutionEnvironment = __webpack_require__(53);
+	var HTMLDOMPropertyConfig = __webpack_require__(95);
+	var MobileSafariClickEventPlugin = __webpack_require__(96);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
 	var ReactComponentBrowserEnvironment =
-	  __webpack_require__(95);
-	var ReactDefaultBatchingStrategy = __webpack_require__(96);
-	var ReactDOM = __webpack_require__(34);
-	var ReactDOMButton = __webpack_require__(97);
-	var ReactDOMForm = __webpack_require__(98);
-	var ReactDOMImg = __webpack_require__(99);
-	var ReactDOMInput = __webpack_require__(100);
-	var ReactDOMOption = __webpack_require__(101);
-	var ReactDOMSelect = __webpack_require__(102);
-	var ReactDOMTextarea = __webpack_require__(103);
-	var ReactEventListener = __webpack_require__(104);
-	var ReactInjection = __webpack_require__(105);
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactMount = __webpack_require__(38);
-	var SelectEventPlugin = __webpack_require__(106);
-	var ServerReactRootIndex = __webpack_require__(107);
-	var SimpleEventPlugin = __webpack_require__(108);
-	var SVGDOMPropertyConfig = __webpack_require__(109);
+	  __webpack_require__(97);
+	var ReactDefaultBatchingStrategy = __webpack_require__(98);
+	var ReactDOMComponent = __webpack_require__(40);
+	var ReactDOMButton = __webpack_require__(99);
+	var ReactDOMForm = __webpack_require__(100);
+	var ReactDOMImg = __webpack_require__(101);
+	var ReactDOMInput = __webpack_require__(102);
+	var ReactDOMOption = __webpack_require__(103);
+	var ReactDOMSelect = __webpack_require__(104);
+	var ReactDOMTextarea = __webpack_require__(105);
+	var ReactEventListener = __webpack_require__(106);
+	var ReactInjection = __webpack_require__(107);
+	var ReactInstanceHandles = __webpack_require__(42);
+	var ReactMount = __webpack_require__(44);
+	var SelectEventPlugin = __webpack_require__(108);
+	var ServerReactRootIndex = __webpack_require__(109);
+	var SimpleEventPlugin = __webpack_require__(110);
+	var SVGDOMPropertyConfig = __webpack_require__(111);
 
-	var createFullPageComponent = __webpack_require__(110);
+	var createFullPageComponent = __webpack_require__(112);
 
 	function inject() {
 	  ReactInjection.EventEmitter.injectReactEventListener(
@@ -11658,18 +12530,22 @@
 	    BeforeInputEventPlugin: BeforeInputEventPlugin
 	  });
 
-	  ReactInjection.DOM.injectComponentClasses({
-	    button: ReactDOMButton,
-	    form: ReactDOMForm,
-	    img: ReactDOMImg,
-	    input: ReactDOMInput,
-	    option: ReactDOMOption,
-	    select: ReactDOMSelect,
-	    textarea: ReactDOMTextarea,
+	  ReactInjection.NativeComponent.injectGenericComponentClass(
+	    ReactDOMComponent
+	  );
 
-	    html: createFullPageComponent(ReactDOM.html),
-	    head: createFullPageComponent(ReactDOM.head),
-	    body: createFullPageComponent(ReactDOM.body)
+	  ReactInjection.NativeComponent.injectComponentClasses({
+	    'button': ReactDOMButton,
+	    'form': ReactDOMForm,
+	    'img': ReactDOMImg,
+	    'input': ReactDOMInput,
+	    'option': ReactDOMOption,
+	    'select': ReactDOMSelect,
+	    'textarea': ReactDOMTextarea,
+
+	    'html': createFullPageComponent('html'),
+	    'head': createFullPageComponent('head'),
+	    'body': createFullPageComponent('body')
 	  });
 
 	  // This needs to happen after createFullPageComponent() otherwise the mixin
@@ -11679,7 +12555,7 @@
 	  ReactInjection.DOMProperty.injectDOMPropertyConfig(HTMLDOMPropertyConfig);
 	  ReactInjection.DOMProperty.injectDOMPropertyConfig(SVGDOMPropertyConfig);
 
-	  ReactInjection.EmptyComponent.injectEmptyComponent(ReactDOM.noscript);
+	  ReactInjection.EmptyComponent.injectEmptyComponent('noscript');
 
 	  ReactInjection.Updates.injectReconcileTransaction(
 	    ReactComponentBrowserEnvironment.ReactReconcileTransaction
@@ -11699,7 +12575,7 @@
 	  if ("production" !== process.env.NODE_ENV) {
 	    var url = (ExecutionEnvironment.canUseDOM && window.location.href) || '';
 	    if ((/[?&]react_perf\b/).test(url)) {
-	      var ReactDefaultPerf = __webpack_require__(16);
+	      var ReactDefaultPerf = __webpack_require__(22);
 	      ReactDefaultPerf.start();
 	    }
 	  }
@@ -11709,26 +12585,19 @@
 	  inject: inject
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 37 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactInstanceHandles
 	 * @typechecks static-only
@@ -11736,9 +12605,9 @@
 
 	"use strict";
 
-	var ReactRootIndex = __webpack_require__(86);
+	var ReactRootIndex = __webpack_require__(113);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	var SEPARATOR = '.';
 	var SEPARATOR_LENGTH = SEPARATOR.length;
@@ -12054,45 +12923,294 @@
 
 	module.exports = ReactInstanceHandles;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 38 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule ReactLegacyElement
+	 */
+
+	"use strict";
+
+	var ReactCurrentOwner = __webpack_require__(36);
+
+	var invariant = __webpack_require__(61);
+	var monitorCodeUse = __webpack_require__(83);
+	var warning = __webpack_require__(62);
+
+	var legacyFactoryLogs = {};
+	function warnForLegacyFactoryCall() {
+	  if (!ReactLegacyElementFactory._isLegacyCallWarningEnabled) {
+	    return;
+	  }
+	  var owner = ReactCurrentOwner.current;
+	  var name = owner && owner.constructor ? owner.constructor.displayName : '';
+	  if (!name) {
+	    name = 'Something';
+	  }
+	  if (legacyFactoryLogs.hasOwnProperty(name)) {
+	    return;
+	  }
+	  legacyFactoryLogs[name] = true;
+	  ("production" !== process.env.NODE_ENV ? warning(
+	    false,
+	    name + ' is calling a React component directly. ' +
+	    'Use a factory or JSX instead. See: http://fb.me/react-legacyfactory'
+	  ) : null);
+	  monitorCodeUse('react_legacy_factory_call', { version: 3, name: name });
+	}
+
+	function warnForPlainFunctionType(type) {
+	  var isReactClass =
+	    type.prototype &&
+	    typeof type.prototype.mountComponent === 'function' &&
+	    typeof type.prototype.receiveComponent === 'function';
+	  if (isReactClass) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      false,
+	      'Did not expect to get a React class here. Use `Component` instead ' +
+	      'of `Component.type` or `this.constructor`.'
+	    ) : null);
+	  } else {
+	    if (!type._reactWarnedForThisType) {
+	      try {
+	        type._reactWarnedForThisType = true;
+	      } catch (x) {
+	        // just incase this is a frozen object or some special object
+	      }
+	      monitorCodeUse(
+	        'react_non_component_in_jsx',
+	        { version: 3, name: type.name }
+	      );
+	    }
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      false,
+	      'This JSX uses a plain function. Only React components are ' +
+	      'valid in React\'s JSX transform.'
+	    ) : null);
+	  }
+	}
+
+	function warnForNonLegacyFactory(type) {
+	  ("production" !== process.env.NODE_ENV ? warning(
+	    false,
+	    'Do not pass React.DOM.' + type.type + ' to JSX or createFactory. ' +
+	    'Use the string "' + type.type + '" instead.'
+	  ) : null);
+	}
+
+	/**
+	 * Transfer static properties from the source to the target. Functions are
+	 * rebound to have this reflect the original source.
+	 */
+	function proxyStaticMethods(target, source) {
+	  if (typeof source !== 'function') {
+	    return;
+	  }
+	  for (var key in source) {
+	    if (source.hasOwnProperty(key)) {
+	      var value = source[key];
+	      if (typeof value === 'function') {
+	        var bound = value.bind(source);
+	        // Copy any properties defined on the function, such as `isRequired` on
+	        // a PropTypes validator.
+	        for (var k in value) {
+	          if (value.hasOwnProperty(k)) {
+	            bound[k] = value[k];
+	          }
+	        }
+	        target[key] = bound;
+	      } else {
+	        target[key] = value;
+	      }
+	    }
+	  }
+	}
+
+	// We use an object instead of a boolean because booleans are ignored by our
+	// mocking libraries when these factories gets mocked.
+	var LEGACY_MARKER = {};
+	var NON_LEGACY_MARKER = {};
+
+	var ReactLegacyElementFactory = {};
+
+	ReactLegacyElementFactory.wrapCreateFactory = function(createFactory) {
+	  var legacyCreateFactory = function(type) {
+	    if (typeof type !== 'function') {
+	      // Non-function types cannot be legacy factories
+	      return createFactory(type);
+	    }
+
+	    if (type.isReactNonLegacyFactory) {
+	      // This is probably a factory created by ReactDOM we unwrap it to get to
+	      // the underlying string type. It shouldn't have been passed here so we
+	      // warn.
+	      if ("production" !== process.env.NODE_ENV) {
+	        warnForNonLegacyFactory(type);
+	      }
+	      return createFactory(type.type);
+	    }
+
+	    if (type.isReactLegacyFactory) {
+	      // This is probably a legacy factory created by ReactCompositeComponent.
+	      // We unwrap it to get to the underlying class.
+	      return createFactory(type.type);
+	    }
+
+	    if ("production" !== process.env.NODE_ENV) {
+	      warnForPlainFunctionType(type);
+	    }
+
+	    // Unless it's a legacy factory, then this is probably a plain function,
+	    // that is expecting to be invoked by JSX. We can just return it as is.
+	    return type;
+	  };
+	  return legacyCreateFactory;
+	};
+
+	ReactLegacyElementFactory.wrapCreateElement = function(createElement) {
+	  var legacyCreateElement = function(type, props, children) {
+	    if (typeof type !== 'function') {
+	      // Non-function types cannot be legacy factories
+	      return createElement.apply(this, arguments);
+	    }
+
+	    var args;
+
+	    if (type.isReactNonLegacyFactory) {
+	      // This is probably a factory created by ReactDOM we unwrap it to get to
+	      // the underlying string type. It shouldn't have been passed here so we
+	      // warn.
+	      if ("production" !== process.env.NODE_ENV) {
+	        warnForNonLegacyFactory(type);
+	      }
+	      args = Array.prototype.slice.call(arguments, 0);
+	      args[0] = type.type;
+	      return createElement.apply(this, args);
+	    }
+
+	    if (type.isReactLegacyFactory) {
+	      // This is probably a legacy factory created by ReactCompositeComponent.
+	      // We unwrap it to get to the underlying class.
+	      if (type._isMockFunction) {
+	        // If this is a mock function, people will expect it to be called. We
+	        // will actually call the original mock factory function instead. This
+	        // future proofs unit testing that assume that these are classes.
+	        type.type._mockedReactClassConstructor = type;
+	      }
+	      args = Array.prototype.slice.call(arguments, 0);
+	      args[0] = type.type;
+	      return createElement.apply(this, args);
+	    }
+
+	    if ("production" !== process.env.NODE_ENV) {
+	      warnForPlainFunctionType(type);
+	    }
+
+	    // This is being called with a plain function we should invoke it
+	    // immediately as if this was used with legacy JSX.
+	    return type.apply(null, Array.prototype.slice.call(arguments, 1));
+	  };
+	  return legacyCreateElement;
+	};
+
+	ReactLegacyElementFactory.wrapFactory = function(factory) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    typeof factory === 'function',
+	    'This is suppose to accept a element factory'
+	  ) : invariant(typeof factory === 'function'));
+	  var legacyElementFactory = function(config, children) {
+	    // This factory should not be called when JSX is used. Use JSX instead.
+	    if ("production" !== process.env.NODE_ENV) {
+	      warnForLegacyFactoryCall();
+	    }
+	    return factory.apply(this, arguments);
+	  };
+	  proxyStaticMethods(legacyElementFactory, factory.type);
+	  legacyElementFactory.isReactLegacyFactory = LEGACY_MARKER;
+	  legacyElementFactory.type = factory.type;
+	  return legacyElementFactory;
+	};
+
+	// This is used to mark a factory that will remain. E.g. we're allowed to call
+	// it as a function. However, you're not suppose to pass it to createElement
+	// or createFactory, so it will warn you if you do.
+	ReactLegacyElementFactory.markNonLegacyFactory = function(factory) {
+	  factory.isReactNonLegacyFactory = NON_LEGACY_MARKER;
+	  return factory;
+	};
+
+	// Checks if a factory function is actually a legacy factory pretending to
+	// be a class.
+	ReactLegacyElementFactory.isValidFactory = function(factory) {
+	  // TODO: This will be removed and moved into a class validator or something.
+	  return typeof factory === 'function' &&
+	    factory.isReactLegacyFactory === LEGACY_MARKER;
+	};
+
+	ReactLegacyElementFactory.isValidClass = function(factory) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      false,
+	      'isValidClass is deprecated and will be removed in a future release. ' +
+	      'Use a more specific validator instead.'
+	    ) : null);
+	  }
+	  return ReactLegacyElementFactory.isValidFactory(factory);
+	};
+
+	ReactLegacyElementFactory._isLegacyCallWarningEnabled = true;
+
+	module.exports = ReactLegacyElementFactory;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactMount
 	 */
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
-	var ReactCurrentOwner = __webpack_require__(32);
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactPerf = __webpack_require__(40);
+	var DOMProperty = __webpack_require__(65);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
+	var ReactCurrentOwner = __webpack_require__(36);
+	var ReactElement = __webpack_require__(37);
+	var ReactLegacyElement = __webpack_require__(43);
+	var ReactInstanceHandles = __webpack_require__(42);
+	var ReactPerf = __webpack_require__(46);
 
-	var containsNode = __webpack_require__(111);
-	var getReactRootElementInContainer = __webpack_require__(112);
-	var instantiateReactComponent = __webpack_require__(79);
-	var invariant = __webpack_require__(55);
-	var shouldUpdateReactComponent = __webpack_require__(83);
-	var warning = __webpack_require__(45);
+	var containsNode = __webpack_require__(114);
+	var deprecated = __webpack_require__(51);
+	var getReactRootElementInContainer = __webpack_require__(115);
+	var instantiateReactComponent = __webpack_require__(82);
+	var invariant = __webpack_require__(61);
+	var shouldUpdateReactComponent = __webpack_require__(85);
+	var warning = __webpack_require__(62);
+
+	var createElement = ReactLegacyElement.wrapCreateElement(
+	  ReactElement.createElement
+	);
 
 	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
 
@@ -12261,7 +13379,7 @@
 	 * representative DOM elements and inserting them into a supplied `container`.
 	 * Any prior content inside `container` is destroyed in the process.
 	 *
-	 *   ReactMount.renderComponent(
+	 *   ReactMount.render(
 	 *     component,
 	 *     document.getElementById('container')
 	 *   );
@@ -12367,7 +13485,7 @@
 	        'componentDidUpdate.'
 	      ) : null);
 
-	      var componentInstance = instantiateReactComponent(nextComponent);
+	      var componentInstance = instantiateReactComponent(nextComponent, null);
 	      var reactRootID = ReactMount._registerComponent(
 	        componentInstance,
 	        container
@@ -12395,35 +13513,38 @@
 	   * perform an update on it and only mutate the DOM as necessary to reflect the
 	   * latest React component.
 	   *
-	   * @param {ReactDescriptor} nextDescriptor Component descriptor to render.
+	   * @param {ReactElement} nextElement Component element to render.
 	   * @param {DOMElement} container DOM element to render into.
 	   * @param {?function} callback function triggered on completion
 	   * @return {ReactComponent} Component instance rendered in `container`.
 	   */
-	  renderComponent: function(nextDescriptor, container, callback) {
+	  render: function(nextElement, container, callback) {
 	    ("production" !== process.env.NODE_ENV ? invariant(
-	      ReactDescriptor.isValidDescriptor(nextDescriptor),
-	      'renderComponent(): Invalid component descriptor.%s',
+	      ReactElement.isValidElement(nextElement),
+	      'renderComponent(): Invalid component element.%s',
 	      (
-	        ReactDescriptor.isValidFactory(nextDescriptor) ?
+	        typeof nextElement === 'string' ?
+	          ' Instead of passing an element string, make sure to instantiate ' +
+	          'it by passing it to React.createElement.' :
+	        ReactLegacyElement.isValidFactory(nextElement) ?
 	          ' Instead of passing a component class, make sure to instantiate ' +
-	          'it first by calling it with props.' :
-	        // Check if it quacks like a descriptor
-	        typeof nextDescriptor.props !== "undefined" ?
+	          'it by passing it to React.createElement.' :
+	        // Check if it quacks like a element
+	        typeof nextElement.props !== "undefined" ?
 	          ' This may be caused by unintentionally loading two independent ' +
 	          'copies of React.' :
 	          ''
 	      )
-	    ) : invariant(ReactDescriptor.isValidDescriptor(nextDescriptor)));
+	    ) : invariant(ReactElement.isValidElement(nextElement)));
 
 	    var prevComponent = instancesByReactRootID[getReactRootID(container)];
 
 	    if (prevComponent) {
-	      var prevDescriptor = prevComponent._descriptor;
-	      if (shouldUpdateReactComponent(prevDescriptor, nextDescriptor)) {
+	      var prevElement = prevComponent._currentElement;
+	      if (shouldUpdateReactComponent(prevElement, nextElement)) {
 	        return ReactMount._updateRootComponent(
 	          prevComponent,
-	          nextDescriptor,
+	          nextElement,
 	          container,
 	          callback
 	        );
@@ -12439,7 +13560,7 @@
 	    var shouldReuseMarkup = containerHasReactMarkup && !prevComponent;
 
 	    var component = ReactMount._renderNewRootComponent(
-	      nextDescriptor,
+	      nextElement,
 	      container,
 	      shouldReuseMarkup
 	    );
@@ -12457,7 +13578,8 @@
 	   * @return {ReactComponent} Component instance rendered in `container`.
 	   */
 	  constructAndRenderComponent: function(constructor, props, container) {
-	    return ReactMount.renderComponent(constructor(props), container);
+	    var element = createElement(constructor, props);
+	    return ReactMount.render(element, container);
 	  },
 
 	  /**
@@ -12716,9 +13838,10 @@
 	      false,
 	      'findComponentRoot(..., %s): Unable to find element. This probably ' +
 	      'means the DOM was unexpectedly mutated (e.g., by the browser), ' +
-	      'usually due to forgetting a <tbody> when using tables, nesting <p> ' +
-	      'or <a> tags, or using non-SVG elements in an <svg> parent. Try ' +
-	      'inspecting the child nodes of the element with React ID `%s`.',
+	      'usually due to forgetting a <tbody> when using tables, nesting tags ' +
+	      'like <form>, <p>, or <a>, or using non-SVG elements in an <svg> ' +
+	      'parent. ' +
+	      'Try inspecting the child nodes of the element with React ID `%s`.',
 	      targetID,
 	      ReactMount.getID(ancestorNode)
 	    ) : invariant(false));
@@ -12740,28 +13863,30 @@
 	  purgeID: purgeID
 	};
 
+	// Deprecations (remove for 0.13)
+	ReactMount.renderComponent = deprecated(
+	  'ReactMount',
+	  'renderComponent',
+	  'render',
+	  this,
+	  ReactMount.render
+	);
+
 	module.exports = ReactMount;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 39 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactMultiChild
 	 * @typechecks static-only
@@ -12769,12 +13894,12 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(29);
-	var ReactMultiChildUpdateTypes = __webpack_require__(113);
+	var ReactComponent = __webpack_require__(33);
+	var ReactMultiChildUpdateTypes = __webpack_require__(116);
 
-	var flattenChildren = __webpack_require__(114);
-	var instantiateReactComponent = __webpack_require__(79);
-	var shouldUpdateReactComponent = __webpack_require__(83);
+	var flattenChildren = __webpack_require__(117);
+	var instantiateReactComponent = __webpack_require__(82);
+	var shouldUpdateReactComponent = __webpack_require__(85);
 
 	/**
 	 * Updating children of a component may trigger recursive updates. The depth is
@@ -12945,7 +14070,7 @@
 	        if (children.hasOwnProperty(name)) {
 	          // The rendered children must be turned into instances as they're
 	          // mounted.
-	          var childInstance = instantiateReactComponent(child);
+	          var childInstance = instantiateReactComponent(child, null);
 	          children[name] = childInstance;
 	          // Inlined for performance, see `ReactInstanceHandles.createReactID`.
 	          var rootID = this._rootNodeID + name;
@@ -13036,12 +14161,12 @@
 	          continue;
 	        }
 	        var prevChild = prevChildren && prevChildren[name];
-	        var prevDescriptor = prevChild && prevChild._descriptor;
-	        var nextDescriptor = nextChildren[name];
-	        if (shouldUpdateReactComponent(prevDescriptor, nextDescriptor)) {
+	        var prevElement = prevChild && prevChild._currentElement;
+	        var nextElement = nextChildren[name];
+	        if (shouldUpdateReactComponent(prevElement, nextElement)) {
 	          this.moveChild(prevChild, nextIndex, lastIndex);
 	          lastIndex = Math.max(prevChild._mountIndex, lastIndex);
-	          prevChild.receiveComponent(nextDescriptor, transaction);
+	          prevChild.receiveComponent(nextElement, transaction);
 	          prevChild._mountIndex = nextIndex;
 	        } else {
 	          if (prevChild) {
@@ -13050,7 +14175,10 @@
 	            this._unmountChildByName(prevChild, name);
 	          }
 	          // The child must be instantiated before it's mounted.
-	          var nextChildInstance = instantiateReactComponent(nextDescriptor);
+	          var nextChildInstance = instantiateReactComponent(
+	            nextElement,
+	            null
+	          );
 	          this._mountChildByNameAtIndex(
 	            nextChildInstance, name, nextIndex, transaction
 	          );
@@ -13181,23 +14309,16 @@
 
 
 /***/ },
-/* 40 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPerf
 	 * @typechecks static-only
@@ -13233,7 +14354,7 @@
 	  measure: function(objName, fnName, func) {
 	    if ("production" !== process.env.NODE_ENV) {
 	      var measuredFunc = null;
-	      return function() {
+	      var wrapper = function() {
 	        if (ReactPerf.enableMeasure) {
 	          if (!measuredFunc) {
 	            measuredFunc = ReactPerf.storedMeasure(objName, fnName, func);
@@ -13242,6 +14363,8 @@
 	        }
 	        return func.apply(this, arguments);
 	      };
+	      wrapper.displayName = objName + '_' + fnName;
+	      return wrapper;
 	    }
 	    return func;
 	  },
@@ -13270,36 +14393,30 @@
 
 	module.exports = ReactPerf;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 41 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPropTypes
 	 */
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactPropTypeLocationNames = __webpack_require__(78);
+	var ReactElement = __webpack_require__(37);
+	var ReactPropTypeLocationNames = __webpack_require__(81);
 
-	var emptyFunction = __webpack_require__(50);
+	var deprecated = __webpack_require__(51);
+	var emptyFunction = __webpack_require__(57);
 
 	/**
 	 * Collection of methods that allow declaration and validation of props that are
@@ -13350,6 +14467,9 @@
 
 	var ANONYMOUS = '<<anonymous>>';
 
+	var elementTypeChecker = createElementTypeChecker();
+	var nodeTypeChecker = createNodeChecker();
+
 	var ReactPropTypes = {
 	  array: createPrimitiveTypeChecker('array'),
 	  bool: createPrimitiveTypeChecker('boolean'),
@@ -13360,13 +14480,28 @@
 
 	  any: createAnyTypeChecker(),
 	  arrayOf: createArrayOfTypeChecker,
-	  component: createComponentTypeChecker(),
+	  element: elementTypeChecker,
 	  instanceOf: createInstanceTypeChecker,
+	  node: nodeTypeChecker,
 	  objectOf: createObjectOfTypeChecker,
 	  oneOf: createEnumTypeChecker,
 	  oneOfType: createUnionTypeChecker,
-	  renderable: createRenderableTypeChecker(),
-	  shape: createShapeTypeChecker
+	  shape: createShapeTypeChecker,
+
+	  component: deprecated(
+	    'React.PropTypes',
+	    'component',
+	    'element',
+	    this,
+	    elementTypeChecker
+	  ),
+	  renderable: deprecated(
+	    'React.PropTypes',
+	    'renderable',
+	    'node',
+	    this,
+	    nodeTypeChecker
+	  )
 	};
 
 	function createChainableTypeChecker(validate) {
@@ -13436,13 +14571,13 @@
 	  return createChainableTypeChecker(validate);
 	}
 
-	function createComponentTypeChecker() {
+	function createElementTypeChecker() {
 	  function validate(props, propName, componentName, location) {
-	    if (!ReactDescriptor.isValidDescriptor(props[propName])) {
+	    if (!ReactElement.isValidElement(props[propName])) {
 	      var locationName = ReactPropTypeLocationNames[location];
 	      return new Error(
 	        ("Invalid " + locationName + " `" + propName + "` supplied to ") +
-	        ("`" + componentName + "`, expected a React component.")
+	        ("`" + componentName + "`, expected a ReactElement.")
 	      );
 	    }
 	  }
@@ -13523,13 +14658,13 @@
 	  return createChainableTypeChecker(validate);
 	}
 
-	function createRenderableTypeChecker() {
+	function createNodeChecker() {
 	  function validate(props, propName, componentName, location) {
-	    if (!isRenderable(props[propName])) {
+	    if (!isNode(props[propName])) {
 	      var locationName = ReactPropTypeLocationNames[location];
 	      return new Error(
 	        ("Invalid " + locationName + " `" + propName + "` supplied to ") +
-	        ("`" + componentName + "`, expected a renderable prop.")
+	        ("`" + componentName + "`, expected a ReactNode.")
 	      );
 	    }
 	  }
@@ -13561,11 +14696,8 @@
 	  return createChainableTypeChecker(validate, 'expected `object`');
 	}
 
-	function isRenderable(propValue) {
+	function isNode(propValue) {
 	  switch(typeof propValue) {
-	    // TODO: this was probably written with the assumption that we're not
-	    // returning `this.props.component` directly from `render`. This is
-	    // currently not supported but we should, to make it consistent.
 	    case 'number':
 	    case 'string':
 	      return true;
@@ -13573,13 +14705,13 @@
 	      return !propValue;
 	    case 'object':
 	      if (Array.isArray(propValue)) {
-	        return propValue.every(isRenderable);
+	        return propValue.every(isNode);
 	      }
-	      if (ReactDescriptor.isValidDescriptor(propValue)) {
+	      if (ReactElement.isValidElement(propValue)) {
 	        return true;
 	      }
 	      for (var k in propValue) {
-	        if (!isRenderable(propValue[k])) {
+	        if (!isNode(propValue[k])) {
 	          return false;
 	        }
 	      }
@@ -13622,53 +14754,40 @@
 
 
 /***/ },
-/* 42 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks static-only
 	 * @providesModule ReactServerRendering
 	 */
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactMarkupChecksum = __webpack_require__(115);
+	var ReactElement = __webpack_require__(37);
+	var ReactInstanceHandles = __webpack_require__(42);
+	var ReactMarkupChecksum = __webpack_require__(118);
 	var ReactServerRenderingTransaction =
-	  __webpack_require__(116);
+	  __webpack_require__(119);
 
-	var instantiateReactComponent = __webpack_require__(79);
-	var invariant = __webpack_require__(55);
+	var instantiateReactComponent = __webpack_require__(82);
+	var invariant = __webpack_require__(61);
 
 	/**
-	 * @param {ReactComponent} component
+	 * @param {ReactElement} element
 	 * @return {string} the HTML markup
 	 */
-	function renderComponentToString(component) {
+	function renderToString(element) {
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(component),
-	    'renderComponentToString(): You must pass a valid ReactComponent.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
-
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !(arguments.length === 2 && typeof arguments[1] === 'function'),
-	    'renderComponentToString(): This function became synchronous and now ' +
-	    'returns the generated markup. Please remove the second parameter.'
-	  ) : invariant(!(arguments.length === 2 && typeof arguments[1] === 'function')));
+	    ReactElement.isValidElement(element),
+	    'renderToString(): You must pass a valid ReactElement.'
+	  ) : invariant(ReactElement.isValidElement(element)));
 
 	  var transaction;
 	  try {
@@ -13676,7 +14795,7 @@
 	    transaction = ReactServerRenderingTransaction.getPooled(false);
 
 	    return transaction.perform(function() {
-	      var componentInstance = instantiateReactComponent(component);
+	      var componentInstance = instantiateReactComponent(element, null);
 	      var markup = componentInstance.mountComponent(id, transaction, 0);
 	      return ReactMarkupChecksum.addChecksumToMarkup(markup);
 	    }, null);
@@ -13686,15 +14805,15 @@
 	}
 
 	/**
-	 * @param {ReactComponent} component
+	 * @param {ReactElement} element
 	 * @return {string} the HTML markup, without the extra React ID and checksum
-	* (for generating static pages)
+	 * (for generating static pages)
 	 */
-	function renderComponentToStaticMarkup(component) {
+	function renderToStaticMarkup(element) {
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(component),
-	    'renderComponentToStaticMarkup(): You must pass a valid ReactComponent.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
+	    ReactElement.isValidElement(element),
+	    'renderToStaticMarkup(): You must pass a valid ReactElement.'
+	  ) : invariant(ReactElement.isValidElement(element)));
 
 	  var transaction;
 	  try {
@@ -13702,7 +14821,7 @@
 	    transaction = ReactServerRenderingTransaction.getPooled(true);
 
 	    return transaction.perform(function() {
-	      var componentInstance = instantiateReactComponent(component);
+	      var componentInstance = instantiateReactComponent(element, null);
 	      return componentInstance.mountComponent(id, transaction, 0);
 	    }, null);
 	  } finally {
@@ -13711,30 +14830,23 @@
 	}
 
 	module.exports = {
-	  renderComponentToString: renderComponentToString,
-	  renderComponentToStaticMarkup: renderComponentToStaticMarkup
+	  renderToString: renderToString,
+	  renderToStaticMarkup: renderToStaticMarkup
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 43 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactTextComponent
 	 * @typechecks static-only
@@ -13742,13 +14854,12 @@
 
 	"use strict";
 
-	var DOMPropertyOperations = __webpack_require__(26);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactComponent = __webpack_require__(29);
-	var ReactDescriptor = __webpack_require__(33);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var ReactComponent = __webpack_require__(33);
+	var ReactElement = __webpack_require__(37);
 
-	var escapeTextForBrowser = __webpack_require__(70);
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
+	var escapeTextForBrowser = __webpack_require__(73);
 
 	/**
 	 * Text nodes violate a couple assumptions that React makes about components:
@@ -13765,13 +14876,11 @@
 	 * @extends ReactComponent
 	 * @internal
 	 */
-	var ReactTextComponent = function(descriptor) {
-	  this.construct(descriptor);
+	var ReactTextComponent = function(props) {
+	  // This constructor and it's argument is currently used by mocks.
 	};
 
-	mixInto(ReactTextComponent, ReactComponent.Mixin);
-	mixInto(ReactTextComponent, ReactBrowserComponentMixin);
-	mixInto(ReactTextComponent, {
+	assign(ReactTextComponent.prototype, ReactComponent.Mixin, {
 
 	  /**
 	   * Creates the markup for this text node. This node is not intended to have
@@ -13827,35 +14936,140 @@
 
 	});
 
-	module.exports = ReactDescriptor.createFactory(ReactTextComponent);
+	var ReactTextComponentFactory = function(text) {
+	  // Bypass validation and configuration
+	  return new ReactElement(ReactTextComponent, null, null, null, null, text);
+	};
+
+	ReactTextComponentFactory.type = ReactTextComponent;
+
+	module.exports = ReactTextComponentFactory;
 
 
 /***/ },
-/* 44 */
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule Object.assign
+	 */
+
+	// https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign
+
+	function assign(target, sources) {
+	  if (target == null) {
+	    throw new TypeError('Object.assign target cannot be null or undefined');
+	  }
+
+	  var to = Object(target);
+	  var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+	  for (var nextIndex = 1; nextIndex < arguments.length; nextIndex++) {
+	    var nextSource = arguments[nextIndex];
+	    if (nextSource == null) {
+	      continue;
+	    }
+
+	    var from = Object(nextSource);
+
+	    // We don't currently support accessors nor proxies. Therefore this
+	    // copy cannot throw. If we ever supported this then we must handle
+	    // exceptions and side-effects. We don't support symbols so they won't
+	    // be transferred.
+
+	    for (var key in from) {
+	      if (hasOwnProperty.call(from, key)) {
+	        to[key] = from[key];
+	      }
+	    }
+	  }
+
+	  return to;
+	};
+
+	module.exports = assign;
+
+
+/***/ },
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule deprecated
+	 */
+
+	var assign = __webpack_require__(50);
+	var warning = __webpack_require__(62);
+
+	/**
+	 * This will log a single deprecation notice per function and forward the call
+	 * on to the new API.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * @param {string} namespace The namespace of the call, eg 'React'
+	 * @param {string} oldName The old function name, eg 'renderComponent'
+	 * @param {string} newName The new function name, eg 'render'
+	 * @param {*} ctx The context this forwarded call should run in
+	 * @param {function} fn The function to forward on to
+	 * @return {*} Will be the value as returned from `fn`
+	 */
+	function deprecated(namespace, oldName, newName, ctx, fn) {
+	  var warned = false;
+	  if ("production" !== process.env.NODE_ENV) {
+	    var newFn = function() {
+	      ("production" !== process.env.NODE_ENV ? warning(
+	        warned,
+	        (namespace + "." + oldName + " will be deprecated in a future version. ") +
+	        ("Use " + namespace + "." + newName + " instead.")
+	      ) : null);
+	      warned = true;
+	      return fn.apply(ctx, arguments);
+	    };
+	    newFn.displayName = (namespace + "_" + oldName);
+	    // We need to make sure all properties of the original fn are copied over.
+	    // In particular, this is needed to support PropTypes
+	    return assign(newFn, fn);
+	  }
+
+	  return fn;
+	}
+
+	module.exports = deprecated;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule onlyChild
 	 */
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(33);
+	var ReactElement = __webpack_require__(37);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Returns the first child in a collection of children and verifies that there
@@ -13870,89 +15084,27 @@
 	 */
 	function onlyChild(children) {
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(children),
+	    ReactElement.isValidElement(children),
 	    'onlyChild must be passed a children with exactly one child.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(children)));
+	  ) : invariant(ReactElement.isValidElement(children)));
 	  return children;
 	}
 
 	module.exports = onlyChild;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule warning
-	 */
-
-	"use strict";
-
-	var emptyFunction = __webpack_require__(50);
-
-	/**
-	 * Similar to invariant but only logs a warning if the condition is not met.
-	 * This can be used to log issues in development environments in critical
-	 * paths. Removing the logging code for production environments will keep the
-	 * same logic and follow the same code paths.
-	 */
-
-	var warning = emptyFunction;
-
-	if ("production" !== process.env.NODE_ENV) {
-	  warning = function(condition, format ) {var args=Array.prototype.slice.call(arguments,2);
-	    if (format === undefined) {
-	      throw new Error(
-	        '`warning(condition, format, ...args)` requires a warning ' +
-	        'message argument'
-	      );
-	    }
-
-	    if (!condition) {
-	      var argIndex = 0;
-	      console.warn('Warning: ' + format.replace(/%s/g, function()  {return args[argIndex++];}));
-	    }
-	  };
-	}
-
-	module.exports = warning;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 46 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ExecutionEnvironment
 	 */
@@ -13992,23 +15144,16 @@
 
 
 /***/ },
-/* 47 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule shallowEqual
 	 */
@@ -14034,7 +15179,7 @@
 	      return false;
 	    }
 	  }
-	  // Test for B'a keys missing from A.
+	  // Test for B's keys missing from A.
 	  for (key in objB) {
 	    if (objB.hasOwnProperty(key) && !objA.hasOwnProperty(key)) {
 	      return false;
@@ -14047,23 +15192,16 @@
 
 
 /***/ },
-/* 48 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks
 	 * @providesModule ReactCSSTransitionGroupChild
@@ -14071,12 +15209,12 @@
 
 	"use strict";
 
-	var React = __webpack_require__(9);
+	var React = __webpack_require__(14);
 
-	var CSSCore = __webpack_require__(117);
-	var ReactTransitionEvents = __webpack_require__(118);
+	var CSSCore = __webpack_require__(120);
+	var ReactTransitionEvents = __webpack_require__(121);
 
-	var onlyChild = __webpack_require__(44);
+	var onlyChild = __webpack_require__(52);
 
 	// We don't remove the element from the DOM until we receive an animationend or
 	// transitionend event. If the user screws up and forgets to add an animation
@@ -14108,7 +15246,10 @@
 	    var activeClassName = className + '-active';
 	    var noEventTimeout = null;
 
-	    var endListener = function() {
+	    var endListener = function(e) {
+	      if (e && e.target !== node) {
+	        return;
+	      }
 	      if ("production" !== process.env.NODE_ENV) {
 	        clearTimeout(noEventTimeout);
 	      }
@@ -14186,26 +15327,19 @@
 
 	module.exports = ReactCSSTransitionGroupChild;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 49 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks static-only
 	 * @providesModule ReactTransitionChildMapping
@@ -14213,7 +15347,7 @@
 
 	"use strict";
 
-	var ReactChildren = __webpack_require__(28);
+	var ReactChildren = __webpack_require__(32);
 
 	var ReactTransitionChildMapping = {
 	  /**
@@ -14231,7 +15365,7 @@
 
 	  /**
 	   * When you're adding or removing children some may be added or removed in the
-	   * same render pass. We want ot show *both* since we want to simultaneously
+	   * same render pass. We want to show *both* since we want to simultaneously
 	   * animate elements in and out. This function takes a previous set of keys
 	   * and a new set of keys and merges them with its best guess of the correct
 	   * ordering. In the future we may expose some of the utilities in
@@ -14301,28 +15435,19 @@
 
 
 /***/ },
-/* 50 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule emptyFunction
 	 */
-
-	var copyProperties = __webpack_require__(54);
 
 	function makeEmptyFunction(arg) {
 	  return function() {
@@ -14337,89 +15462,614 @@
 	 */
 	function emptyFunction() {}
 
-	copyProperties(emptyFunction, {
-	  thatReturns: makeEmptyFunction,
-	  thatReturnsFalse: makeEmptyFunction(false),
-	  thatReturnsTrue: makeEmptyFunction(true),
-	  thatReturnsNull: makeEmptyFunction(null),
-	  thatReturnsThis: function() { return this; },
-	  thatReturnsArgument: function(arg) { return arg; }
-	});
+	emptyFunction.thatReturns = makeEmptyFunction;
+	emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+	emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+	emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+	emptyFunction.thatReturnsThis = function() { return this; };
+	emptyFunction.thatReturnsArgument = function(arg) { return arg; };
 
 	module.exports = emptyFunction;
 
 
 /***/ },
-/* 51 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule merge
+	 * @providesModule CallbackQueue
 	 */
 
 	"use strict";
 
-	var mergeInto = __webpack_require__(66);
+	var PooledClass = __webpack_require__(59);
+
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
 
 	/**
-	 * Shallow merges two structures into a return value, without mutating either.
+	 * A specialized pseudo-event module to help keep track of components waiting to
+	 * be notified when their DOM representations are available for use.
 	 *
-	 * @param {?object} one Optional object with properties to merge from.
-	 * @param {?object} two Optional object with properties to merge from.
-	 * @return {object} The shallow extension of one by two.
+	 * This implements `PooledClass`, so you should never need to instantiate this.
+	 * Instead, use `CallbackQueue.getPooled()`.
+	 *
+	 * @class ReactMountReady
+	 * @implements PooledClass
+	 * @internal
 	 */
-	var merge = function(one, two) {
-	  var result = {};
-	  mergeInto(result, one);
-	  mergeInto(result, two);
-	  return result;
-	};
+	function CallbackQueue() {
+	  this._callbacks = null;
+	  this._contexts = null;
+	}
 
-	module.exports = merge;
+	assign(CallbackQueue.prototype, {
 
+	  /**
+	   * Enqueues a callback to be invoked when `notifyAll` is invoked.
+	   *
+	   * @param {function} callback Invoked when `notifyAll` is invoked.
+	   * @param {?object} context Context to call `callback` with.
+	   * @internal
+	   */
+	  enqueue: function(callback, context) {
+	    this._callbacks = this._callbacks || [];
+	    this._contexts = this._contexts || [];
+	    this._callbacks.push(callback);
+	    this._contexts.push(context);
+	  },
+
+	  /**
+	   * Invokes all enqueued callbacks and clears the queue. This is invoked after
+	   * the DOM representation of a component has been created or updated.
+	   *
+	   * @internal
+	   */
+	  notifyAll: function() {
+	    var callbacks = this._callbacks;
+	    var contexts = this._contexts;
+	    if (callbacks) {
+	      ("production" !== process.env.NODE_ENV ? invariant(
+	        callbacks.length === contexts.length,
+	        "Mismatched list of contexts in callback queue"
+	      ) : invariant(callbacks.length === contexts.length));
+	      this._callbacks = null;
+	      this._contexts = null;
+	      for (var i = 0, l = callbacks.length; i < l; i++) {
+	        callbacks[i].call(contexts[i]);
+	      }
+	      callbacks.length = 0;
+	      contexts.length = 0;
+	    }
+	  },
+
+	  /**
+	   * Resets the internal queue.
+	   *
+	   * @internal
+	   */
+	  reset: function() {
+	    this._callbacks = null;
+	    this._contexts = null;
+	  },
+
+	  /**
+	   * `PooledClass` looks for this.
+	   */
+	  destructor: function() {
+	    this.reset();
+	  }
+
+	});
+
+	PooledClass.addPoolingTo(CallbackQueue);
+
+	module.exports = CallbackQueue;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 52 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule PooledClass
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(61);
+
+	/**
+	 * Static poolers. Several custom versions for each potential number of
+	 * arguments. A completely generic pooler is easy to implement, but would
+	 * require accessing the `arguments` object. In each of these, `this` refers to
+	 * the Class itself, not an instance. If any others are needed, simply add them
+	 * here, or in their own files.
+	 */
+	var oneArgumentPooler = function(copyFieldsFrom) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, copyFieldsFrom);
+	    return instance;
+	  } else {
+	    return new Klass(copyFieldsFrom);
+	  }
+	};
+
+	var twoArgumentPooler = function(a1, a2) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2);
+	  }
+	};
+
+	var threeArgumentPooler = function(a1, a2, a3) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2, a3);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2, a3);
+	  }
+	};
+
+	var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2, a3, a4, a5);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2, a3, a4, a5);
+	  }
+	};
+
+	var standardReleaser = function(instance) {
+	  var Klass = this;
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    instance instanceof Klass,
+	    'Trying to release an instance into a pool of a different type.'
+	  ) : invariant(instance instanceof Klass));
+	  if (instance.destructor) {
+	    instance.destructor();
+	  }
+	  if (Klass.instancePool.length < Klass.poolSize) {
+	    Klass.instancePool.push(instance);
+	  }
+	};
+
+	var DEFAULT_POOL_SIZE = 10;
+	var DEFAULT_POOLER = oneArgumentPooler;
+
+	/**
+	 * Augments `CopyConstructor` to be a poolable class, augmenting only the class
+	 * itself (statically) not adding any prototypical fields. Any CopyConstructor
+	 * you give this may have a `poolSize` property, and will look for a
+	 * prototypical `destructor` on instances (optional).
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * @param {Function} CopyConstructor Constructor that can be used to reset.
+	 * @param {Function} pooler Customizable pooler.
+	 */
+	var addPoolingTo = function(CopyConstructor, pooler) {
+	  var NewKlass = CopyConstructor;
+	  NewKlass.instancePool = [];
+	  NewKlass.getPooled = pooler || DEFAULT_POOLER;
+	  if (!NewKlass.poolSize) {
+	    NewKlass.poolSize = DEFAULT_POOL_SIZE;
+	  }
+	  NewKlass.release = standardReleaser;
+	  return NewKlass;
+	};
+
+	var PooledClass = {
+	  addPoolingTo: addPoolingTo,
+	  oneArgumentPooler: oneArgumentPooler,
+	  twoArgumentPooler: twoArgumentPooler,
+	  threeArgumentPooler: threeArgumentPooler,
+	  fiveArgumentPooler: fiveArgumentPooler
+	};
+
+	module.exports = PooledClass;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule Transaction
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(61);
+
+	/**
+	 * `Transaction` creates a black box that is able to wrap any method such that
+	 * certain invariants are maintained before and after the method is invoked
+	 * (Even if an exception is thrown while invoking the wrapped method). Whoever
+	 * instantiates a transaction can provide enforcers of the invariants at
+	 * creation time. The `Transaction` class itself will supply one additional
+	 * automatic invariant for you - the invariant that any transaction instance
+	 * should not be run while it is already being run. You would typically create a
+	 * single instance of a `Transaction` for reuse multiple times, that potentially
+	 * is used to wrap several different methods. Wrappers are extremely simple -
+	 * they only require implementing two methods.
+	 *
+	 * <pre>
+	 *                       wrappers (injected at creation time)
+	 *                                      +        +
+	 *                                      |        |
+	 *                    +-----------------|--------|--------------+
+	 *                    |                 v        |              |
+	 *                    |      +---------------+   |              |
+	 *                    |   +--|    wrapper1   |---|----+         |
+	 *                    |   |  +---------------+   v    |         |
+	 *                    |   |          +-------------+  |         |
+	 *                    |   |     +----|   wrapper2  |--------+   |
+	 *                    |   |     |    +-------------+  |     |   |
+	 *                    |   |     |                     |     |   |
+	 *                    |   v     v                     v     v   | wrapper
+	 *                    | +---+ +---+   +---------+   +---+ +---+ | invariants
+	 * perform(anyMethod) | |   | |   |   |         |   |   | |   | | maintained
+	 * +----------------->|-|---|-|---|-->|anyMethod|---|---|-|---|-|-------->
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | +---+ +---+   +---------+   +---+ +---+ |
+	 *                    |  initialize                    close    |
+	 *                    +-----------------------------------------+
+	 * </pre>
+	 *
+	 * Use cases:
+	 * - Preserving the input selection ranges before/after reconciliation.
+	 *   Restoring selection even in the event of an unexpected error.
+	 * - Deactivating events while rearranging the DOM, preventing blurs/focuses,
+	 *   while guaranteeing that afterwards, the event system is reactivated.
+	 * - Flushing a queue of collected DOM mutations to the main UI thread after a
+	 *   reconciliation takes place in a worker thread.
+	 * - Invoking any collected `componentDidUpdate` callbacks after rendering new
+	 *   content.
+	 * - (Future use case): Wrapping particular flushes of the `ReactWorker` queue
+	 *   to preserve the `scrollTop` (an automatic scroll aware DOM).
+	 * - (Future use case): Layout calculations before and after DOM upates.
+	 *
+	 * Transactional plugin API:
+	 * - A module that has an `initialize` method that returns any precomputation.
+	 * - and a `close` method that accepts the precomputation. `close` is invoked
+	 *   when the wrapped process is completed, or has failed.
+	 *
+	 * @param {Array<TransactionalWrapper>} transactionWrapper Wrapper modules
+	 * that implement `initialize` and `close`.
+	 * @return {Transaction} Single transaction for reuse in thread.
+	 *
+	 * @class Transaction
+	 */
+	var Mixin = {
+	  /**
+	   * Sets up this instance so that it is prepared for collecting metrics. Does
+	   * so such that this setup method may be used on an instance that is already
+	   * initialized, in a way that does not consume additional memory upon reuse.
+	   * That can be useful if you decide to make your subclass of this mixin a
+	   * "PooledClass".
+	   */
+	  reinitializeTransaction: function() {
+	    this.transactionWrappers = this.getTransactionWrappers();
+	    if (!this.wrapperInitData) {
+	      this.wrapperInitData = [];
+	    } else {
+	      this.wrapperInitData.length = 0;
+	    }
+	    this._isInTransaction = false;
+	  },
+
+	  _isInTransaction: false,
+
+	  /**
+	   * @abstract
+	   * @return {Array<TransactionWrapper>} Array of transaction wrappers.
+	   */
+	  getTransactionWrappers: null,
+
+	  isInTransaction: function() {
+	    return !!this._isInTransaction;
+	  },
+
+	  /**
+	   * Executes the function within a safety window. Use this for the top level
+	   * methods that result in large amounts of computation/mutations that would
+	   * need to be safety checked.
+	   *
+	   * @param {function} method Member of scope to call.
+	   * @param {Object} scope Scope to invoke from.
+	   * @param {Object?=} args... Arguments to pass to the method (optional).
+	   *                           Helps prevent need to bind in many cases.
+	   * @return Return value from `method`.
+	   */
+	  perform: function(method, scope, a, b, c, d, e, f) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !this.isInTransaction(),
+	      'Transaction.perform(...): Cannot initialize a transaction when there ' +
+	      'is already an outstanding transaction.'
+	    ) : invariant(!this.isInTransaction()));
+	    var errorThrown;
+	    var ret;
+	    try {
+	      this._isInTransaction = true;
+	      // Catching errors makes debugging more difficult, so we start with
+	      // errorThrown set to true before setting it to false after calling
+	      // close -- if it's still set to true in the finally block, it means
+	      // one of these calls threw.
+	      errorThrown = true;
+	      this.initializeAll(0);
+	      ret = method.call(scope, a, b, c, d, e, f);
+	      errorThrown = false;
+	    } finally {
+	      try {
+	        if (errorThrown) {
+	          // If `method` throws, prefer to show that stack trace over any thrown
+	          // by invoking `closeAll`.
+	          try {
+	            this.closeAll(0);
+	          } catch (err) {
+	          }
+	        } else {
+	          // Since `method` didn't throw, we don't want to silence the exception
+	          // here.
+	          this.closeAll(0);
+	        }
+	      } finally {
+	        this._isInTransaction = false;
+	      }
+	    }
+	    return ret;
+	  },
+
+	  initializeAll: function(startIndex) {
+	    var transactionWrappers = this.transactionWrappers;
+	    for (var i = startIndex; i < transactionWrappers.length; i++) {
+	      var wrapper = transactionWrappers[i];
+	      try {
+	        // Catching errors makes debugging more difficult, so we start with the
+	        // OBSERVED_ERROR state before overwriting it with the real return value
+	        // of initialize -- if it's still set to OBSERVED_ERROR in the finally
+	        // block, it means wrapper.initialize threw.
+	        this.wrapperInitData[i] = Transaction.OBSERVED_ERROR;
+	        this.wrapperInitData[i] = wrapper.initialize ?
+	          wrapper.initialize.call(this) :
+	          null;
+	      } finally {
+	        if (this.wrapperInitData[i] === Transaction.OBSERVED_ERROR) {
+	          // The initializer for wrapper i threw an error; initialize the
+	          // remaining wrappers but silence any exceptions from them to ensure
+	          // that the first error is the one to bubble up.
+	          try {
+	            this.initializeAll(i + 1);
+	          } catch (err) {
+	          }
+	        }
+	      }
+	    }
+	  },
+
+	  /**
+	   * Invokes each of `this.transactionWrappers.close[i]` functions, passing into
+	   * them the respective return values of `this.transactionWrappers.init[i]`
+	   * (`close`rs that correspond to initializers that failed will not be
+	   * invoked).
+	   */
+	  closeAll: function(startIndex) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      this.isInTransaction(),
+	      'Transaction.closeAll(): Cannot close transaction when none are open.'
+	    ) : invariant(this.isInTransaction()));
+	    var transactionWrappers = this.transactionWrappers;
+	    for (var i = startIndex; i < transactionWrappers.length; i++) {
+	      var wrapper = transactionWrappers[i];
+	      var initData = this.wrapperInitData[i];
+	      var errorThrown;
+	      try {
+	        // Catching errors makes debugging more difficult, so we start with
+	        // errorThrown set to true before setting it to false after calling
+	        // close -- if it's still set to true in the finally block, it means
+	        // wrapper.close threw.
+	        errorThrown = true;
+	        if (initData !== Transaction.OBSERVED_ERROR) {
+	          wrapper.close && wrapper.close.call(this, initData);
+	        }
+	        errorThrown = false;
+	      } finally {
+	        if (errorThrown) {
+	          // The closer for wrapper i threw an error; close the remaining
+	          // wrappers but silence any exceptions from them to ensure that the
+	          // first error is the one to bubble up.
+	          try {
+	            this.closeAll(i + 1);
+	          } catch (e) {
+	          }
+	        }
+	      }
+	    }
+	    this.wrapperInitData.length = 0;
+	  }
+	};
+
+	var Transaction = {
+
+	  Mixin: Mixin,
+
+	  /**
+	   * Token to look for to determine if an error occured.
+	   */
+	  OBSERVED_ERROR: {}
+
+	};
+
+	module.exports = Transaction;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule invariant
+	 */
+
+	"use strict";
+
+	/**
+	 * Use invariant() to assert state which your program assumes to be true.
+	 *
+	 * Provide sprintf-style format (only %s is supported) and arguments
+	 * to provide information about what broke and what you were
+	 * expecting.
+	 *
+	 * The invariant message will be stripped in production, but the invariant
+	 * will remain to ensure logic does not differ in production.
+	 */
+
+	var invariant = function(condition, format, a, b, c, d, e, f) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    if (format === undefined) {
+	      throw new Error('invariant requires an error message argument');
+	    }
+	  }
+
+	  if (!condition) {
+	    var error;
+	    if (format === undefined) {
+	      error = new Error(
+	        'Minified exception occurred; use the non-minified dev environment ' +
+	        'for the full error message and additional helpful warnings.'
+	      );
+	    } else {
+	      var args = [a, b, c, d, e, f];
+	      var argIndex = 0;
+	      error = new Error(
+	        'Invariant Violation: ' +
+	        format.replace(/%s/g, function() { return args[argIndex++]; })
+	      );
+	    }
+
+	    error.framesToPop = 1; // we don't care about invariant's own frame
+	    throw error;
+	  }
+	};
+
+	module.exports = invariant;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule warning
+	 */
+
+	"use strict";
+
+	var emptyFunction = __webpack_require__(57);
+
+	/**
+	 * Similar to invariant but only logs a warning if the condition is not met.
+	 * This can be used to log issues in development environments in critical
+	 * paths. Removing the logging code for production environments will keep the
+	 * same logic and follow the same code paths.
+	 */
+
+	var warning = emptyFunction;
+
+	if ("production" !== process.env.NODE_ENV) {
+	  warning = function(condition, format ) {var args=Array.prototype.slice.call(arguments,2);
+	    if (format === undefined) {
+	      throw new Error(
+	        '`warning(condition, format, ...args)` requires a warning ' +
+	        'message argument'
+	      );
+	    }
+
+	    if (!condition) {
+	      var argIndex = 0;
+	      console.warn('Warning: ' + format.replace(/%s/g, function()  {return args[argIndex++];}));
+	    }
+	  };
+	}
+
+	module.exports = warning;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPropTransferer
 	 */
 
 	"use strict";
 
-	var emptyFunction = __webpack_require__(50);
-	var invariant = __webpack_require__(55);
-	var joinClasses = __webpack_require__(119);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
+	var invariant = __webpack_require__(61);
+	var joinClasses = __webpack_require__(122);
+	var warning = __webpack_require__(62);
+
+	var didWarn = false;
 
 	/**
 	 * Creates a transfer strategy that will merge prop values using the supplied
@@ -14442,7 +16092,7 @@
 	  // `merge` overrides the first object's (`props[key]` above) keys using the
 	  // second object's (`value`) keys. An object's style's existing `propA` would
 	  // get overridden. Flip the order here.
-	  return merge(b, a);
+	  return assign({}, b, a);
 	});
 
 	/**
@@ -14459,14 +16109,6 @@
 	   * Transfer the `className` prop by merging them.
 	   */
 	  className: createTransferStrategy(joinClasses),
-	  /**
-	   * Never transfer the `key` prop.
-	   */
-	  key: emptyFunction,
-	  /**
-	   * Never transfer the `ref` prop.
-	   */
-	  ref: emptyFunction,
 	  /**
 	   * Transfer the `style` prop (which is an object) by merging them.
 	   */
@@ -14516,7 +16158,7 @@
 	   * @return {object} a new object containing both sets of props merged.
 	   */
 	  mergeProps: function(oldProps, newProps) {
-	    return transferInto(merge(oldProps), newProps);
+	    return transferInto(assign({}, oldProps), newProps);
 	  },
 
 	  /**
@@ -14532,26 +16174,39 @@
 	     *
 	     * This is usually used to pass down props to a returned root component.
 	     *
-	     * @param {ReactDescriptor} descriptor Component receiving the properties.
-	     * @return {ReactDescriptor} The supplied `component`.
+	     * @param {ReactElement} element Component receiving the properties.
+	     * @return {ReactElement} The supplied `component`.
 	     * @final
 	     * @protected
 	     */
-	    transferPropsTo: function(descriptor) {
+	    transferPropsTo: function(element) {
 	      ("production" !== process.env.NODE_ENV ? invariant(
-	        descriptor._owner === this,
+	        element._owner === this,
 	        '%s: You can\'t call transferPropsTo() on a component that you ' +
 	        'don\'t own, %s. This usually means you are calling ' +
 	        'transferPropsTo() on a component passed in as props or children.',
 	        this.constructor.displayName,
-	        descriptor.type.displayName
-	      ) : invariant(descriptor._owner === this));
+	        typeof element.type === 'string' ?
+	        element.type :
+	        element.type.displayName
+	      ) : invariant(element._owner === this));
 
-	      // Because descriptors are immutable we have to merge into the existing
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (!didWarn) {
+	          didWarn = true;
+	          ("production" !== process.env.NODE_ENV ? warning(
+	            false,
+	            'transferPropsTo is deprecated. ' +
+	            'See http://fb.me/react-transferpropsto for more information.'
+	          ) : null);
+	        }
+	      }
+
+	      // Because elements are immutable we have to merge into the existing
 	      // props object rather than clone it.
-	      transferInto(descriptor.props, this.props);
+	      transferInto(element.props, this.props);
 
-	      return descriptor;
+	      return element;
 	    }
 
 	  }
@@ -14559,26 +16214,19 @@
 
 	module.exports = ReactPropTransferer;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 53 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule keyOf
 	 */
@@ -14609,151 +16257,16 @@
 
 
 /***/ },
-/* 54 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule copyProperties
-	 */
-
-	/**
-	 * Copy properties from one or more objects (up to 5) into the first object.
-	 * This is a shallow copy. It mutates the first object and also returns it.
-	 *
-	 * NOTE: `arguments` has a very significant performance penalty, which is why
-	 * we don't support unlimited arguments.
-	 */
-	function copyProperties(obj, a, b, c, d, e, f) {
-	  obj = obj || {};
-
-	  if ("production" !== process.env.NODE_ENV) {
-	    if (f) {
-	      throw new Error('Too many arguments passed to copyProperties');
-	    }
-	  }
-
-	  var args = [a, b, c, d, e];
-	  var ii = 0, v;
-	  while (args[ii]) {
-	    v = args[ii++];
-	    for (var k in v) {
-	      obj[k] = v[k];
-	    }
-
-	    // IE ignores toString in object iteration.. See:
-	    // webreflection.blogspot.com/2007/07/quick-fix-internet-explorer-and.html
-	    if (v.hasOwnProperty && v.hasOwnProperty('toString') &&
-	        (typeof v.toString != 'undefined') && (obj.toString !== v.toString)) {
-	      obj.toString = v.toString;
-	    }
-	  }
-
-	  return obj;
-	}
-
-	module.exports = copyProperties;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule invariant
-	 */
-
-	"use strict";
-
-	/**
-	 * Use invariant() to assert state which your program assumes to be true.
-	 *
-	 * Provide sprintf-style format (only %s is supported) and arguments
-	 * to provide information about what broke and what you were
-	 * expecting.
-	 *
-	 * The invariant message will be stripped in production, but the invariant
-	 * will remain to ensure logic does not differ in production.
-	 */
-
-	var invariant = function(condition, format, a, b, c, d, e, f) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    if (format === undefined) {
-	      throw new Error('invariant requires an error message argument');
-	    }
-	  }
-
-	  if (!condition) {
-	    var error;
-	    if (format === undefined) {
-	      error = new Error(
-	        'Minified exception occurred; use the non-minified dev environment ' +
-	        'for the full error message and additional helpful warnings.'
-	      );
-	    } else {
-	      var args = [a, b, c, d, e, f];
-	      var argIndex = 0;
-	      error = new Error(
-	        'Invariant Violation: ' +
-	        format.replace(/%s/g, function() { return args[argIndex++]; })
-	      );
-	    }
-
-	    error.framesToPop = 1; // we don't care about invariant's own frame
-	    throw error;
-	  }
-	};
-
-	module.exports = invariant;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule DOMProperty
 	 * @typechecks static-only
@@ -14763,7 +16276,11 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
+
+	function checkMask(value, bitmask) {
+	  return (value & bitmask) === bitmask;
+	}
 
 	var DOMPropertyInjection = {
 	  /**
@@ -14851,19 +16368,19 @@
 
 	      var propConfig = Properties[propName];
 	      DOMProperty.mustUseAttribute[propName] =
-	        propConfig & DOMPropertyInjection.MUST_USE_ATTRIBUTE;
+	        checkMask(propConfig, DOMPropertyInjection.MUST_USE_ATTRIBUTE);
 	      DOMProperty.mustUseProperty[propName] =
-	        propConfig & DOMPropertyInjection.MUST_USE_PROPERTY;
+	        checkMask(propConfig, DOMPropertyInjection.MUST_USE_PROPERTY);
 	      DOMProperty.hasSideEffects[propName] =
-	        propConfig & DOMPropertyInjection.HAS_SIDE_EFFECTS;
+	        checkMask(propConfig, DOMPropertyInjection.HAS_SIDE_EFFECTS);
 	      DOMProperty.hasBooleanValue[propName] =
-	        propConfig & DOMPropertyInjection.HAS_BOOLEAN_VALUE;
+	        checkMask(propConfig, DOMPropertyInjection.HAS_BOOLEAN_VALUE);
 	      DOMProperty.hasNumericValue[propName] =
-	        propConfig & DOMPropertyInjection.HAS_NUMERIC_VALUE;
+	        checkMask(propConfig, DOMPropertyInjection.HAS_NUMERIC_VALUE);
 	      DOMProperty.hasPositiveNumericValue[propName] =
-	        propConfig & DOMPropertyInjection.HAS_POSITIVE_NUMERIC_VALUE;
+	        checkMask(propConfig, DOMPropertyInjection.HAS_POSITIVE_NUMERIC_VALUE);
 	      DOMProperty.hasOverloadedBooleanValue[propName] =
-	        propConfig & DOMPropertyInjection.HAS_OVERLOADED_BOOLEAN_VALUE;
+	        checkMask(propConfig, DOMPropertyInjection.HAS_OVERLOADED_BOOLEAN_VALUE);
 
 	      ("production" !== process.env.NODE_ENV ? invariant(
 	        !DOMProperty.mustUseAttribute[propName] ||
@@ -15039,31 +16556,24 @@
 
 	module.exports = DOMProperty;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 57 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDefaultPerfAnalysis
 	 */
 
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
 
 	// Don't try to save users less than 1.2ms (a number I made up)
 	var DONT_CARE_THRESHOLD = 1.2;
@@ -15118,7 +16628,11 @@
 
 	  for (var i = 0; i < measurements.length; i++) {
 	    var measurement = measurements[i];
-	    var allIDs = merge(measurement.exclusive, measurement.inclusive);
+	    var allIDs = assign(
+	      {},
+	      measurement.exclusive,
+	      measurement.inclusive
+	    );
 
 	    for (var id in allIDs) {
 	      displayName = measurement.displayNames[id].current;
@@ -15166,7 +16680,11 @@
 
 	  for (var i = 0; i < measurements.length; i++) {
 	    var measurement = measurements[i];
-	    var allIDs = merge(measurement.exclusive, measurement.inclusive);
+	    var allIDs = assign(
+	      {},
+	      measurement.exclusive,
+	      measurement.inclusive
+	    );
 	    var cleanComponents;
 
 	    if (onlyClean) {
@@ -15221,11 +16739,11 @@
 	  // the amount of time it took to render the entire subtree.
 	  var cleanComponents = {};
 	  var dirtyLeafIDs = Object.keys(measurement.writes);
-	  var allIDs = merge(measurement.exclusive, measurement.inclusive);
+	  var allIDs = assign({}, measurement.exclusive, measurement.inclusive);
 
 	  for (var id in allIDs) {
 	    var isDirty = false;
-	    // For each component that rendered, see if a component that triggerd
+	    // For each component that rendered, see if a component that triggered
 	    // a DOM op is in its subtree.
 	    for (var i = 0; i < dirtyLeafIDs.length; i++) {
 	      if (dirtyLeafIDs[i].indexOf(id) === 0) {
@@ -15251,29 +16769,22 @@
 
 
 /***/ },
-/* 58 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule performanceNow
 	 * @typechecks
 	 */
 
-	var performance = __webpack_require__(120);
+	var performance = __webpack_require__(123);
 
 	/**
 	 * Detect if we can use `window.performance.now()` and gracefully fallback to
@@ -15290,37 +16801,23 @@
 
 
 /***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(9);
-
-
-/***/ },
-/* 60 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EventConstants
 	 */
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(73);
+	var keyMirror = __webpack_require__(77);
 
 	var PropagationPhases = keyMirror({bubbled: null, captured: null});
 
@@ -15380,37 +16877,28 @@
 
 
 /***/ },
-/* 61 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EventPluginHub
 	 */
 
 	"use strict";
 
-	var EventPluginRegistry = __webpack_require__(123);
-	var EventPluginUtils = __webpack_require__(27);
+	var EventPluginRegistry = __webpack_require__(124);
+	var EventPluginUtils = __webpack_require__(31);
 
-	var accumulate = __webpack_require__(121);
-	var forEachAccumulated = __webpack_require__(122);
-	var invariant = __webpack_require__(55);
-	var isEventSupported = __webpack_require__(124);
-	var monitorCodeUse = __webpack_require__(81);
+	var accumulateInto = __webpack_require__(125);
+	var forEachAccumulated = __webpack_require__(126);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Internal store for event listeners
@@ -15544,15 +17032,6 @@
 	      registrationName, typeof listener
 	    ) : invariant(!listener || typeof listener === 'function'));
 
-	    if ("production" !== process.env.NODE_ENV) {
-	      // IE8 has no API for event capturing and the `onScroll` event doesn't
-	      // bubble.
-	      if (registrationName === 'onScroll' &&
-	          !isEventSupported('scroll', true)) {
-	        monitorCodeUse('react_no_scroll_event');
-	        console.warn('This browser doesn\'t support the `onScroll` event');
-	      }
-	    }
 	    var bankForRegistrationName =
 	      listenerBank[registrationName] || (listenerBank[registrationName] = {});
 	    bankForRegistrationName[id] = listener;
@@ -15621,7 +17100,7 @@
 	          nativeEvent
 	        );
 	        if (extractedEvents) {
-	          events = accumulate(events, extractedEvents);
+	          events = accumulateInto(events, extractedEvents);
 	        }
 	      }
 	    }
@@ -15637,7 +17116,7 @@
 	   */
 	  enqueueEvents: function(events) {
 	    if (events) {
-	      eventQueue = accumulate(eventQueue, events);
+	      eventQueue = accumulateInto(eventQueue, events);
 	    }
 	  },
 
@@ -15674,37 +17153,30 @@
 
 	module.exports = EventPluginHub;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 62 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EventPropagators
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPluginHub = __webpack_require__(61);
+	var EventConstants = __webpack_require__(68);
+	var EventPluginHub = __webpack_require__(69);
 
-	var accumulate = __webpack_require__(121);
-	var forEachAccumulated = __webpack_require__(122);
+	var accumulateInto = __webpack_require__(125);
+	var forEachAccumulated = __webpack_require__(126);
 
 	var PropagationPhases = EventConstants.PropagationPhases;
 	var getListener = EventPluginHub.getListener;
@@ -15734,8 +17206,9 @@
 	  var phase = upwards ? PropagationPhases.bubbled : PropagationPhases.captured;
 	  var listener = listenerAtPhase(domID, event, phase);
 	  if (listener) {
-	    event._dispatchListeners = accumulate(event._dispatchListeners, listener);
-	    event._dispatchIDs = accumulate(event._dispatchIDs, domID);
+	    event._dispatchListeners =
+	      accumulateInto(event._dispatchListeners, listener);
+	    event._dispatchIDs = accumulateInto(event._dispatchIDs, domID);
 	  }
 	}
 
@@ -15767,8 +17240,9 @@
 	    var registrationName = event.dispatchConfig.registrationName;
 	    var listener = getListener(id, registrationName);
 	    if (listener) {
-	      event._dispatchListeners = accumulate(event._dispatchListeners, listener);
-	      event._dispatchIDs = accumulate(event._dispatchIDs, id);
+	      event._dispatchListeners =
+	        accumulateInto(event._dispatchListeners, listener);
+	      event._dispatchIDs = accumulateInto(event._dispatchIDs, id);
 	    }
 	  }
 	}
@@ -15824,26 +17298,19 @@
 
 	module.exports = EventPropagators;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 63 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactBrowserEventEmitter
 	 * @typechecks static-only
@@ -15851,14 +17318,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPluginHub = __webpack_require__(61);
-	var EventPluginRegistry = __webpack_require__(123);
-	var ReactEventEmitterMixin = __webpack_require__(125);
-	var ViewportMetrics = __webpack_require__(126);
+	var EventConstants = __webpack_require__(68);
+	var EventPluginHub = __webpack_require__(69);
+	var EventPluginRegistry = __webpack_require__(124);
+	var ReactEventEmitterMixin = __webpack_require__(127);
+	var ViewportMetrics = __webpack_require__(128);
 
-	var isEventSupported = __webpack_require__(124);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var isEventSupported = __webpack_require__(88);
 
 	/**
 	 * Summary of `ReactBrowserEventEmitter` event handling:
@@ -15987,7 +17454,7 @@
 	 *
 	 * @internal
 	 */
-	var ReactBrowserEventEmitter = merge(ReactEventEmitterMixin, {
+	var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
 
 	  /**
 	   * Injectable event backend
@@ -16193,295 +17660,16 @@
 
 
 /***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactUpdates
-	 */
-
-	"use strict";
-
-	var CallbackQueue = __webpack_require__(128);
-	var PooledClass = __webpack_require__(68);
-	var ReactCurrentOwner = __webpack_require__(32);
-	var ReactPerf = __webpack_require__(40);
-	var Transaction = __webpack_require__(129);
-
-	var invariant = __webpack_require__(55);
-	var mixInto = __webpack_require__(80);
-	var warning = __webpack_require__(45);
-
-	var dirtyComponents = [];
-
-	var batchingStrategy = null;
-
-	function ensureInjected() {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactUpdates.ReactReconcileTransaction && batchingStrategy,
-	    'ReactUpdates: must inject a reconcile transaction class and batching ' +
-	    'strategy'
-	  ) : invariant(ReactUpdates.ReactReconcileTransaction && batchingStrategy));
-	}
-
-	var NESTED_UPDATES = {
-	  initialize: function() {
-	    this.dirtyComponentsLength = dirtyComponents.length;
-	  },
-	  close: function() {
-	    if (this.dirtyComponentsLength !== dirtyComponents.length) {
-	      // Additional updates were enqueued by componentDidUpdate handlers or
-	      // similar; before our own UPDATE_QUEUEING wrapper closes, we want to run
-	      // these new updates so that if A's componentDidUpdate calls setState on
-	      // B, B will update before the callback A's updater provided when calling
-	      // setState.
-	      dirtyComponents.splice(0, this.dirtyComponentsLength);
-	      flushBatchedUpdates();
-	    } else {
-	      dirtyComponents.length = 0;
-	    }
-	  }
-	};
-
-	var UPDATE_QUEUEING = {
-	  initialize: function() {
-	    this.callbackQueue.reset();
-	  },
-	  close: function() {
-	    this.callbackQueue.notifyAll();
-	  }
-	};
-
-	var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
-
-	function ReactUpdatesFlushTransaction() {
-	  this.reinitializeTransaction();
-	  this.dirtyComponentsLength = null;
-	  this.callbackQueue = CallbackQueue.getPooled(null);
-	  this.reconcileTransaction =
-	    ReactUpdates.ReactReconcileTransaction.getPooled();
-	}
-
-	mixInto(ReactUpdatesFlushTransaction, Transaction.Mixin);
-	mixInto(ReactUpdatesFlushTransaction, {
-	  getTransactionWrappers: function() {
-	    return TRANSACTION_WRAPPERS;
-	  },
-
-	  destructor: function() {
-	    this.dirtyComponentsLength = null;
-	    CallbackQueue.release(this.callbackQueue);
-	    this.callbackQueue = null;
-	    ReactUpdates.ReactReconcileTransaction.release(this.reconcileTransaction);
-	    this.reconcileTransaction = null;
-	  },
-
-	  perform: function(method, scope, a) {
-	    // Essentially calls `this.reconcileTransaction.perform(method, scope, a)`
-	    // with this transaction's wrappers around it.
-	    return Transaction.Mixin.perform.call(
-	      this,
-	      this.reconcileTransaction.perform,
-	      this.reconcileTransaction,
-	      method,
-	      scope,
-	      a
-	    );
-	  }
-	});
-
-	PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
-
-	function batchedUpdates(callback, a, b) {
-	  ensureInjected();
-	  batchingStrategy.batchedUpdates(callback, a, b);
-	}
-
-	/**
-	 * Array comparator for ReactComponents by owner depth
-	 *
-	 * @param {ReactComponent} c1 first component you're comparing
-	 * @param {ReactComponent} c2 second component you're comparing
-	 * @return {number} Return value usable by Array.prototype.sort().
-	 */
-	function mountDepthComparator(c1, c2) {
-	  return c1._mountDepth - c2._mountDepth;
-	}
-
-	function runBatchedUpdates(transaction) {
-	  var len = transaction.dirtyComponentsLength;
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    len === dirtyComponents.length,
-	    'Expected flush transaction\'s stored dirty-components length (%s) to ' +
-	    'match dirty-components array length (%s).',
-	    len,
-	    dirtyComponents.length
-	  ) : invariant(len === dirtyComponents.length));
-
-	  // Since reconciling a component higher in the owner hierarchy usually (not
-	  // always -- see shouldComponentUpdate()) will reconcile children, reconcile
-	  // them before their children by sorting the array.
-	  dirtyComponents.sort(mountDepthComparator);
-
-	  for (var i = 0; i < len; i++) {
-	    // If a component is unmounted before pending changes apply, ignore them
-	    // TODO: Queue unmounts in the same list to avoid this happening at all
-	    var component = dirtyComponents[i];
-	    if (component.isMounted()) {
-	      // If performUpdateIfNecessary happens to enqueue any new updates, we
-	      // shouldn't execute the callbacks until the next render happens, so
-	      // stash the callbacks first
-	      var callbacks = component._pendingCallbacks;
-	      component._pendingCallbacks = null;
-	      component.performUpdateIfNecessary(transaction.reconcileTransaction);
-
-	      if (callbacks) {
-	        for (var j = 0; j < callbacks.length; j++) {
-	          transaction.callbackQueue.enqueue(
-	            callbacks[j],
-	            component
-	          );
-	        }
-	      }
-	    }
-	  }
-	}
-
-	var flushBatchedUpdates = ReactPerf.measure(
-	  'ReactUpdates',
-	  'flushBatchedUpdates',
-	  function() {
-	    // ReactUpdatesFlushTransaction's wrappers will clear the dirtyComponents
-	    // array and perform any updates enqueued by mount-ready handlers (i.e.,
-	    // componentDidUpdate) but we need to check here too in order to catch
-	    // updates enqueued by setState callbacks.
-	    while (dirtyComponents.length) {
-	      var transaction = ReactUpdatesFlushTransaction.getPooled();
-	      transaction.perform(runBatchedUpdates, null, transaction);
-	      ReactUpdatesFlushTransaction.release(transaction);
-	    }
-	  }
-	);
-
-	/**
-	 * Mark a component as needing a rerender, adding an optional callback to a
-	 * list of functions which will be executed once the rerender occurs.
-	 */
-	function enqueueUpdate(component, callback) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !callback || typeof callback === "function",
-	    'enqueueUpdate(...): You called `setProps`, `replaceProps`, ' +
-	    '`setState`, `replaceState`, or `forceUpdate` with a callback that ' +
-	    'isn\'t callable.'
-	  ) : invariant(!callback || typeof callback === "function"));
-	  ensureInjected();
-
-	  // Various parts of our code (such as ReactCompositeComponent's
-	  // _renderValidatedComponent) assume that calls to render aren't nested;
-	  // verify that that's the case. (This is called by each top-level update
-	  // function, like setProps, setState, forceUpdate, etc.; creation and
-	  // destruction of top-level components is guarded in ReactMount.)
-	  ("production" !== process.env.NODE_ENV ? warning(
-	    ReactCurrentOwner.current == null,
-	    'enqueueUpdate(): Render methods should be a pure function of props ' +
-	    'and state; triggering nested component updates from render is not ' +
-	    'allowed. If necessary, trigger nested updates in ' +
-	    'componentDidUpdate.'
-	  ) : null);
-
-	  if (!batchingStrategy.isBatchingUpdates) {
-	    batchingStrategy.batchedUpdates(enqueueUpdate, component, callback);
-	    return;
-	  }
-
-	  dirtyComponents.push(component);
-
-	  if (callback) {
-	    if (component._pendingCallbacks) {
-	      component._pendingCallbacks.push(callback);
-	    } else {
-	      component._pendingCallbacks = [callback];
-	    }
-	  }
-	}
-
-	var ReactUpdatesInjection = {
-	  injectReconcileTransaction: function(ReconcileTransaction) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      ReconcileTransaction,
-	      'ReactUpdates: must provide a reconcile transaction class'
-	    ) : invariant(ReconcileTransaction));
-	    ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
-	  },
-
-	  injectBatchingStrategy: function(_batchingStrategy) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      _batchingStrategy,
-	      'ReactUpdates: must provide a batching strategy'
-	    ) : invariant(_batchingStrategy));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof _batchingStrategy.batchedUpdates === 'function',
-	      'ReactUpdates: must provide a batchedUpdates() function'
-	    ) : invariant(typeof _batchingStrategy.batchedUpdates === 'function'));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof _batchingStrategy.isBatchingUpdates === 'boolean',
-	      'ReactUpdates: must provide an isBatchingUpdates boolean attribute'
-	    ) : invariant(typeof _batchingStrategy.isBatchingUpdates === 'boolean'));
-	    batchingStrategy = _batchingStrategy;
-	  }
-	};
-
-	var ReactUpdates = {
-	  /**
-	   * React references `ReactReconcileTransaction` using this property in order
-	   * to allow dependency injection.
-	   *
-	   * @internal
-	   */
-	  ReactReconcileTransaction: null,
-
-	  batchedUpdates: batchedUpdates,
-	  enqueueUpdate: enqueueUpdate,
-	  flushBatchedUpdates: flushBatchedUpdates,
-	  injection: ReactUpdatesInjection
-	};
-
-	module.exports = ReactUpdates;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 65 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticEvent
 	 * @typechecks static-only
@@ -16489,12 +17677,11 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(68);
+	var PooledClass = __webpack_require__(59);
 
-	var emptyFunction = __webpack_require__(50);
-	var getEventTarget = __webpack_require__(130);
-	var merge = __webpack_require__(51);
-	var mergeInto = __webpack_require__(66);
+	var assign = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
+	var getEventTarget = __webpack_require__(129);
 
 	/**
 	 * @interface Event
@@ -16561,7 +17748,7 @@
 	  this.isPropagationStopped = emptyFunction.thatReturnsFalse;
 	}
 
-	mergeInto(SyntheticEvent.prototype, {
+	assign(SyntheticEvent.prototype, {
 
 	  preventDefault: function() {
 	    this.defaultPrevented = true;
@@ -16619,11 +17806,11 @@
 	  var Super = this;
 
 	  var prototype = Object.create(Super.prototype);
-	  mergeInto(prototype, Class.prototype);
+	  assign(prototype, Class.prototype);
 	  Class.prototype = prototype;
 	  Class.prototype.constructor = Class;
 
-	  Class.Interface = merge(Super.Interface, Interface);
+	  Class.Interface = assign({}, Super.Interface, Interface);
 	  Class.augmentClass = Super.augmentClass;
 
 	  PooledClass.addPoolingTo(Class, PooledClass.threeArgumentPooler);
@@ -16635,260 +17822,109 @@
 
 
 /***/ },
-/* 66 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule mergeInto
+	 * @providesModule escapeTextForBrowser
 	 * @typechecks static-only
 	 */
 
 	"use strict";
 
-	var mergeHelpers = __webpack_require__(127);
-
-	var checkMergeObjectArg = mergeHelpers.checkMergeObjectArg;
-	var checkMergeIntoObjectArg = mergeHelpers.checkMergeIntoObjectArg;
-
-	/**
-	 * Shallow merges two structures by mutating the first parameter.
-	 *
-	 * @param {object|function} one Object to be merged into.
-	 * @param {?object} two Optional object with properties to merge from.
-	 */
-	function mergeInto(one, two) {
-	  checkMergeIntoObjectArg(one);
-	  if (two != null) {
-	    checkMergeObjectArg(two);
-	    for (var key in two) {
-	      if (!two.hasOwnProperty(key)) {
-	        continue;
-	      }
-	      one[key] = two[key];
-	    }
-	  }
-	}
-
-	module.exports = mergeInto;
-
-
-/***/ },
-/* 67 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** Holder constructor.
-	 * @param {*} value value
-	 * @public
-	 * @class Holder
-	 * @classdesc Mutable cell holding some value. */
-	var Holder = function (value) {
-	  /** @private */
-	  this._value = value;
+	var ESCAPE_LOOKUP = {
+	  "&": "&amp;",
+	  ">": "&gt;",
+	  "<": "&lt;",
+	  "\"": "&quot;",
+	  "'": "&#x27;"
 	};
 
-	Holder.prototype = Object.freeze( /** @lends Holder.prototype */ {
+	var ESCAPE_REGEX = /[&><"']/g;
 
-	  /** Create new holder instance.
-	   * @param {*} value value
-	   * @return {Holder} fresh holder */
-	  init: function (value) {
-	    return new Holder(value);
-	  },
+	function escaper(match) {
+	  return ESCAPE_LOOKUP[match];
+	}
 
-	  /** Get value.
-	   * @return {*} */
-	  getValue: function () {
-	    return this._value;
-	  },
+	/**
+	 * Escapes text to prevent scripting attacks.
+	 *
+	 * @param {*} text Text value to escape.
+	 * @return {string} An escaped string.
+	 */
+	function escapeTextForBrowser(text) {
+	  return ('' + text).replace(ESCAPE_REGEX, escaper);
+	}
 
-	  /** Set value.
-	   * @param {*} newValue new value */
-	  setValue: function (newValue) {
-	    this._value = newValue;
-	  },
-
-	  /** Update value with a function.
-	   * @param {Function} update update function
-	   * @return {*} old value */
-	  updateValue: function (update) {
-	    var oldValue = this._value;
-	    this._value = update(oldValue);
-	    return oldValue;
-	  }
-
-	});
-
-	module.exports = new Holder(null);
+	module.exports = escapeTextForBrowser;
 
 
 /***/ },
-/* 68 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule PooledClass
+	 * @providesModule memoizeStringOnly
+	 * @typechecks static-only
 	 */
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
-
 	/**
-	 * Static poolers. Several custom versions for each potential number of
-	 * arguments. A completely generic pooler is easy to implement, but would
-	 * require accessing the `arguments` object. In each of these, `this` refers to
-	 * the Class itself, not an instance. If any others are needed, simply add them
-	 * here, or in their own files.
-	 */
-	var oneArgumentPooler = function(copyFieldsFrom) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, copyFieldsFrom);
-	    return instance;
-	  } else {
-	    return new Klass(copyFieldsFrom);
-	  }
-	};
-
-	var twoArgumentPooler = function(a1, a2) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2);
-	  }
-	};
-
-	var threeArgumentPooler = function(a1, a2, a3) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2, a3);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2, a3);
-	  }
-	};
-
-	var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2, a3, a4, a5);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2, a3, a4, a5);
-	  }
-	};
-
-	var standardReleaser = function(instance) {
-	  var Klass = this;
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    instance instanceof Klass,
-	    'Trying to release an instance into a pool of a different type.'
-	  ) : invariant(instance instanceof Klass));
-	  if (instance.destructor) {
-	    instance.destructor();
-	  }
-	  if (Klass.instancePool.length < Klass.poolSize) {
-	    Klass.instancePool.push(instance);
-	  }
-	};
-
-	var DEFAULT_POOL_SIZE = 10;
-	var DEFAULT_POOLER = oneArgumentPooler;
-
-	/**
-	 * Augments `CopyConstructor` to be a poolable class, augmenting only the class
-	 * itself (statically) not adding any prototypical fields. Any CopyConstructor
-	 * you give this may have a `poolSize` property, and will look for a
-	 * prototypical `destructor` on instances (optional).
+	 * Memoizes the return value of a function that accepts one string argument.
 	 *
-	 * @param {Function} CopyConstructor Constructor that can be used to reset.
-	 * @param {Function} pooler Customizable pooler.
+	 * @param {function} callback
+	 * @return {function}
 	 */
-	var addPoolingTo = function(CopyConstructor, pooler) {
-	  var NewKlass = CopyConstructor;
-	  NewKlass.instancePool = [];
-	  NewKlass.getPooled = pooler || DEFAULT_POOLER;
-	  if (!NewKlass.poolSize) {
-	    NewKlass.poolSize = DEFAULT_POOL_SIZE;
-	  }
-	  NewKlass.release = standardReleaser;
-	  return NewKlass;
-	};
+	function memoizeStringOnly(callback) {
+	  var cache = {};
+	  return function(string) {
+	    if (cache.hasOwnProperty(string)) {
+	      return cache[string];
+	    } else {
+	      return cache[string] = callback.call(this, string);
+	    }
+	  };
+	}
 
-	var PooledClass = {
-	  addPoolingTo: addPoolingTo,
-	  oneArgumentPooler: oneArgumentPooler,
-	  twoArgumentPooler: twoArgumentPooler,
-	  threeArgumentPooler: threeArgumentPooler,
-	  fiveArgumentPooler: fiveArgumentPooler
-	};
+	module.exports = memoizeStringOnly;
 
-	module.exports = PooledClass;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
 
 /***/ },
-/* 69 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule traverseAllChildren
 	 */
 
 	"use strict";
 
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactTextComponent = __webpack_require__(43);
+	var ReactElement = __webpack_require__(37);
+	var ReactInstanceHandles = __webpack_require__(42);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
 	var SUBSEPARATOR = ':';
@@ -16921,9 +17957,9 @@
 	 * @return {string}
 	 */
 	function getComponentKey(component, index) {
-	  if (component && component.props && component.props.key != null) {
+	  if (component && component.key != null) {
 	    // Explicit key
-	    return wrapUserProvidedKey(component.props.key);
+	    return wrapUserProvidedKey(component.key);
 	  }
 	  // Implicit key determined by the index in the set
 	  return index.toString(36);
@@ -16964,16 +18000,17 @@
 	 */
 	var traverseAllChildrenImpl =
 	  function(children, nameSoFar, indexSoFar, callback, traverseContext) {
+	    var nextName, nextIndex;
 	    var subtreeCount = 0;  // Count of children found in the current subtree.
 	    if (Array.isArray(children)) {
 	      for (var i = 0; i < children.length; i++) {
 	        var child = children[i];
-	        var nextName = (
+	        nextName = (
 	          nameSoFar +
 	          (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
 	          getComponentKey(child, i)
 	        );
-	        var nextIndex = indexSoFar + subtreeCount;
+	        nextIndex = indexSoFar + subtreeCount;
 	        subtreeCount += traverseAllChildrenImpl(
 	          child,
 	          nextName,
@@ -16993,40 +18030,32 @@
 	        // All of the above are perceived as null.
 	        callback(traverseContext, null, storageName, indexSoFar);
 	        subtreeCount = 1;
-	      } else if (children.type && children.type.prototype &&
-	                 children.type.prototype.mountComponentIntoNode) {
+	      } else if (type === 'string' || type === 'number' ||
+	                 ReactElement.isValidElement(children)) {
 	        callback(traverseContext, children, storageName, indexSoFar);
 	        subtreeCount = 1;
-	      } else {
-	        if (type === 'object') {
-	          ("production" !== process.env.NODE_ENV ? invariant(
-	            !children || children.nodeType !== 1,
-	            'traverseAllChildren(...): Encountered an invalid child; DOM ' +
-	            'elements are not valid children of React components.'
-	          ) : invariant(!children || children.nodeType !== 1));
-	          for (var key in children) {
-	            if (children.hasOwnProperty(key)) {
-	              subtreeCount += traverseAllChildrenImpl(
-	                children[key],
-	                (
-	                  nameSoFar + (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
-	                  wrapUserProvidedKey(key) + SUBSEPARATOR +
-	                  getComponentKey(children[key], 0)
-	                ),
-	                indexSoFar + subtreeCount,
-	                callback,
-	                traverseContext
-	              );
-	            }
+	      } else if (type === 'object') {
+	        ("production" !== process.env.NODE_ENV ? invariant(
+	          !children || children.nodeType !== 1,
+	          'traverseAllChildren(...): Encountered an invalid child; DOM ' +
+	          'elements are not valid children of React components.'
+	        ) : invariant(!children || children.nodeType !== 1));
+	        for (var key in children) {
+	          if (children.hasOwnProperty(key)) {
+	            nextName = (
+	              nameSoFar + (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
+	              wrapUserProvidedKey(key) + SUBSEPARATOR +
+	              getComponentKey(children[key], 0)
+	            );
+	            nextIndex = indexSoFar + subtreeCount;
+	            subtreeCount += traverseAllChildrenImpl(
+	              children[key],
+	              nextName,
+	              nextIndex,
+	              callback,
+	              traverseContext
+	            );
 	          }
-	        } else if (type === 'string') {
-	          var normalizedText = ReactTextComponent(children);
-	          callback(traverseContext, normalizedText, storageName, indexSoFar);
-	          subtreeCount += 1;
-	        } else if (type === 'number') {
-	          var normalizedNumber = ReactTextComponent('' + children);
-	          callback(traverseContext, normalizedNumber, storageName, indexSoFar);
-	          subtreeCount += 1;
 	        }
 	      }
 	    }
@@ -17059,131 +18088,27 @@
 
 	module.exports = traverseAllChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule escapeTextForBrowser
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var ESCAPE_LOOKUP = {
-	  "&": "&amp;",
-	  ">": "&gt;",
-	  "<": "&lt;",
-	  "\"": "&quot;",
-	  "'": "&#x27;"
-	};
-
-	var ESCAPE_REGEX = /[&><"']/g;
-
-	function escaper(match) {
-	  return ESCAPE_LOOKUP[match];
-	}
-
-	/**
-	 * Escapes text to prevent scripting attacks.
-	 *
-	 * @param {*} text Text value to escape.
-	 * @return {string} An escaped string.
-	 */
-	function escapeTextForBrowser(text) {
-	  return ('' + text).replace(ESCAPE_REGEX, escaper);
-	}
-
-	module.exports = escapeTextForBrowser;
-
-
-/***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule memoizeStringOnly
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * Memoizes the return value of a function that accepts one string argument.
-	 *
-	 * @param {function} callback
-	 * @return {function}
-	 */
-	function memoizeStringOnly(callback) {
-	  var cache = {};
-	  return function(string) {
-	    if (cache.hasOwnProperty(string)) {
-	      return cache[string];
-	    } else {
-	      return cache[string] = callback.call(this, string);
-	    }
-	  };
-	}
-
-	module.exports = memoizeStringOnly;
-
-
-/***/ },
-/* 72 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactOwner
 	 */
 
 	"use strict";
 
-	var emptyObject = __webpack_require__(131);
-	var invariant = __webpack_require__(55);
+	var emptyObject = __webpack_require__(130);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * ReactOwners are capable of storing references to owned components.
@@ -17322,26 +18247,19 @@
 
 	module.exports = ReactOwner;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 73 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule keyMirror
 	 * @typechecks static-only
@@ -17349,7 +18267,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Constructs an enumeration with keys equal to their value.
@@ -17387,322 +18305,28 @@
 
 	module.exports = keyMirror;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactDescriptorValidator
-	 */
-
-	/**
-	 * ReactDescriptorValidator provides a wrapper around a descriptor factory
-	 * which validates the props passed to the descriptor. This is intended to be
-	 * used only in DEV and could be replaced by a static type checker for languages
-	 * that support it.
-	 */
-
-	"use strict";
-
-	var ReactDescriptor = __webpack_require__(33);
-	var ReactPropTypeLocations = __webpack_require__(77);
-	var ReactCurrentOwner = __webpack_require__(32);
-
-	var monitorCodeUse = __webpack_require__(81);
-
-	/**
-	 * Warn if there's no key explicitly set on dynamic arrays of children or
-	 * object keys are not valid. This allows us to keep track of children between
-	 * updates.
-	 */
-	var ownerHasKeyUseWarning = {
-	  'react_key_warning': {},
-	  'react_numeric_key_warning': {}
-	};
-	var ownerHasMonitoredObjectMap = {};
-
-	var loggedTypeFailures = {};
-
-	var NUMERIC_PROPERTY_REGEX = /^\d+$/;
-
-	/**
-	 * Gets the current owner's displayName for use in warnings.
-	 *
-	 * @internal
-	 * @return {?string} Display name or undefined
-	 */
-	function getCurrentOwnerDisplayName() {
-	  var current = ReactCurrentOwner.current;
-	  return current && current.constructor.displayName || undefined;
-	}
-
-	/**
-	 * Warn if the component doesn't have an explicit key assigned to it.
-	 * This component is in an array. The array could grow and shrink or be
-	 * reordered. All children that haven't already been validated are required to
-	 * have a "key" property assigned to it.
-	 *
-	 * @internal
-	 * @param {ReactComponent} component Component that requires a key.
-	 * @param {*} parentType component's parent's type.
-	 */
-	function validateExplicitKey(component, parentType) {
-	  if (component._store.validated || component.props.key != null) {
-	    return;
-	  }
-	  component._store.validated = true;
-
-	  warnAndMonitorForKeyUse(
-	    'react_key_warning',
-	    'Each child in an array should have a unique "key" prop.',
-	    component,
-	    parentType
-	  );
-	}
-
-	/**
-	 * Warn if the key is being defined as an object property but has an incorrect
-	 * value.
-	 *
-	 * @internal
-	 * @param {string} name Property name of the key.
-	 * @param {ReactComponent} component Component that requires a key.
-	 * @param {*} parentType component's parent's type.
-	 */
-	function validatePropertyKey(name, component, parentType) {
-	  if (!NUMERIC_PROPERTY_REGEX.test(name)) {
-	    return;
-	  }
-	  warnAndMonitorForKeyUse(
-	    'react_numeric_key_warning',
-	    'Child objects should have non-numeric keys so ordering is preserved.',
-	    component,
-	    parentType
-	  );
-	}
-
-	/**
-	 * Shared warning and monitoring code for the key warnings.
-	 *
-	 * @internal
-	 * @param {string} warningID The id used when logging.
-	 * @param {string} message The base warning that gets output.
-	 * @param {ReactComponent} component Component that requires a key.
-	 * @param {*} parentType component's parent's type.
-	 */
-	function warnAndMonitorForKeyUse(warningID, message, component, parentType) {
-	  var ownerName = getCurrentOwnerDisplayName();
-	  var parentName = parentType.displayName;
-
-	  var useName = ownerName || parentName;
-	  var memoizer = ownerHasKeyUseWarning[warningID];
-	  if (memoizer.hasOwnProperty(useName)) {
-	    return;
-	  }
-	  memoizer[useName] = true;
-
-	  message += ownerName ?
-	    (" Check the render method of " + ownerName + ".") :
-	    (" Check the renderComponent call using <" + parentName + ">.");
-
-	  // Usually the current owner is the offender, but if it accepts children as a
-	  // property, it may be the creator of the child that's responsible for
-	  // assigning it a key.
-	  var childOwnerName = null;
-	  if (component._owner && component._owner !== ReactCurrentOwner.current) {
-	    // Name of the component that originally created this child.
-	    childOwnerName = component._owner.constructor.displayName;
-
-	    message += (" It was passed a child from " + childOwnerName + ".");
-	  }
-
-	  message += ' See http://fb.me/react-warning-keys for more information.';
-	  monitorCodeUse(warningID, {
-	    component: useName,
-	    componentOwner: childOwnerName
-	  });
-	  console.warn(message);
-	}
-
-	/**
-	 * Log that we're using an object map. We're considering deprecating this
-	 * feature and replace it with proper Map and ImmutableMap data structures.
-	 *
-	 * @internal
-	 */
-	function monitorUseOfObjectMap() {
-	  var currentName = getCurrentOwnerDisplayName() || '';
-	  if (ownerHasMonitoredObjectMap.hasOwnProperty(currentName)) {
-	    return;
-	  }
-	  ownerHasMonitoredObjectMap[currentName] = true;
-	  monitorCodeUse('react_object_map_children');
-	}
-
-	/**
-	 * Ensure that every component either is passed in a static location, in an
-	 * array with an explicit keys property defined, or in an object literal
-	 * with valid key property.
-	 *
-	 * @internal
-	 * @param {*} component Statically passed child of any type.
-	 * @param {*} parentType component's parent's type.
-	 * @return {boolean}
-	 */
-	function validateChildKeys(component, parentType) {
-	  if (Array.isArray(component)) {
-	    for (var i = 0; i < component.length; i++) {
-	      var child = component[i];
-	      if (ReactDescriptor.isValidDescriptor(child)) {
-	        validateExplicitKey(child, parentType);
-	      }
-	    }
-	  } else if (ReactDescriptor.isValidDescriptor(component)) {
-	    // This component was passed in a valid location.
-	    component._store.validated = true;
-	  } else if (component && typeof component === 'object') {
-	    monitorUseOfObjectMap();
-	    for (var name in component) {
-	      validatePropertyKey(name, component[name], parentType);
-	    }
-	  }
-	}
-
-	/**
-	 * Assert that the props are valid
-	 *
-	 * @param {string} componentName Name of the component for error messages.
-	 * @param {object} propTypes Map of prop name to a ReactPropType
-	 * @param {object} props
-	 * @param {string} location e.g. "prop", "context", "child context"
-	 * @private
-	 */
-	function checkPropTypes(componentName, propTypes, props, location) {
-	  for (var propName in propTypes) {
-	    if (propTypes.hasOwnProperty(propName)) {
-	      var error;
-	      // Prop type validation may throw. In case they do, we don't want to
-	      // fail the render phase where it didn't fail before. So we log it.
-	      // After these have been cleaned up, we'll let them throw.
-	      try {
-	        error = propTypes[propName](props, propName, componentName, location);
-	      } catch (ex) {
-	        error = ex;
-	      }
-	      if (error instanceof Error && !(error.message in loggedTypeFailures)) {
-	        // Only monitor this failure once because there tends to be a lot of the
-	        // same error.
-	        loggedTypeFailures[error.message] = true;
-	        // This will soon use the warning module
-	        monitorCodeUse(
-	          'react_failed_descriptor_type_check',
-	          { message: error.message }
-	        );
-	      }
-	    }
-	  }
-	}
-
-	var ReactDescriptorValidator = {
-
-	  /**
-	   * Wraps a descriptor factory function in another function which validates
-	   * the props and context of the descriptor and warns about any failed type
-	   * checks.
-	   *
-	   * @param {function} factory The original descriptor factory
-	   * @param {object?} propTypes A prop type definition set
-	   * @param {object?} contextTypes A context type definition set
-	   * @return {object} The component descriptor, which may be invalid.
-	   * @private
-	   */
-	  createFactory: function(factory, propTypes, contextTypes) {
-	    var validatedFactory = function(props, children) {
-	      var descriptor = factory.apply(this, arguments);
-
-	      for (var i = 1; i < arguments.length; i++) {
-	        validateChildKeys(arguments[i], descriptor.type);
-	      }
-
-	      var name = descriptor.type.displayName;
-	      if (propTypes) {
-	        checkPropTypes(
-	          name,
-	          propTypes,
-	          descriptor.props,
-	          ReactPropTypeLocations.prop
-	        );
-	      }
-	      if (contextTypes) {
-	        checkPropTypes(
-	          name,
-	          contextTypes,
-	          descriptor._context,
-	          ReactPropTypeLocations.context
-	        );
-	      }
-	      return descriptor;
-	    };
-
-	    validatedFactory.prototype = factory.prototype;
-	    validatedFactory.type = factory.type;
-
-	    // Copy static properties
-	    for (var key in factory) {
-	      if (factory.hasOwnProperty(key)) {
-	        validatedFactory[key] = factory[key];
-	      }
-	    }
-
-	    return validatedFactory;
-	  }
-
-	};
-
-	module.exports = ReactDescriptorValidator;
-
-
-/***/ },
-/* 75 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactEmptyComponent
 	 */
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var ReactElement = __webpack_require__(37);
+
+	var invariant = __webpack_require__(61);
 
 	var component;
 	// This registry keeps track of the React IDs of the components that rendered to
@@ -17711,7 +18335,7 @@
 
 	var ReactEmptyComponentInjection = {
 	  injectEmptyComponent: function(emptyComponent) {
-	    component = emptyComponent;
+	    component = ReactElement.createFactory(emptyComponent);
 	  }
 	};
 
@@ -17761,26 +18385,19 @@
 
 	module.exports = ReactEmptyComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 76 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactErrorUtils
 	 * @typechecks
@@ -17807,30 +18424,23 @@
 
 
 /***/ },
-/* 77 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPropTypeLocations
 	 */
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(73);
+	var keyMirror = __webpack_require__(77);
 
 	var ReactPropTypeLocations = keyMirror({
 	  prop: null,
@@ -17842,23 +18452,16 @@
 
 
 /***/ },
-/* 78 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPropTypeLocationNames
 	 */
@@ -17877,26 +18480,19 @@
 
 	module.exports = ReactPropTypeLocationNames;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 79 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule instantiateReactComponent
 	 * @typechecks static-only
@@ -17904,115 +18500,123 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var warning = __webpack_require__(62);
+
+	var ReactElement = __webpack_require__(37);
+	var ReactLegacyElement = __webpack_require__(43);
+	var ReactNativeComponent = __webpack_require__(131);
+	var ReactEmptyComponent = __webpack_require__(78);
 
 	/**
-	 * Validate a `componentDescriptor`. This should be exposed publicly in a follow
-	 * up diff.
+	 * Given an `element` create an instance that will actually be mounted.
 	 *
-	 * @param {object} descriptor
-	 * @return {boolean} Returns true if this is a valid descriptor of a Component.
-	 */
-	function isValidComponentDescriptor(descriptor) {
-	  return (
-	    descriptor &&
-	    typeof descriptor.type === 'function' &&
-	    typeof descriptor.type.prototype.mountComponent === 'function' &&
-	    typeof descriptor.type.prototype.receiveComponent === 'function'
-	  );
-	}
-
-	/**
-	 * Given a `componentDescriptor` create an instance that will actually be
-	 * mounted. Currently it just extracts an existing clone from composite
-	 * components but this is an implementation detail which will change.
-	 *
-	 * @param {object} descriptor
-	 * @return {object} A new instance of componentDescriptor's constructor.
+	 * @param {object} element
+	 * @param {*} parentCompositeType The composite type that resolved this.
+	 * @return {object} A new instance of the element's constructor.
 	 * @protected
 	 */
-	function instantiateReactComponent(descriptor) {
+	function instantiateReactComponent(element, parentCompositeType) {
+	  var instance;
 
-	  // TODO: Make warning
-	  // if (__DEV__) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      isValidComponentDescriptor(descriptor),
-	      'Only React Components are valid for mounting.'
-	    ) : invariant(isValidComponentDescriptor(descriptor)));
-	  // }
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      element && (typeof element.type === 'function' ||
+	                     typeof element.type === 'string'),
+	      'Only functions or strings can be mounted as React components.'
+	    ) : null);
 
-	  return new descriptor.type(descriptor);
+	    // Resolve mock instances
+	    if (element.type._mockedReactClassConstructor) {
+	      // If this is a mocked class, we treat the legacy factory as if it was the
+	      // class constructor for future proofing unit tests. Because this might
+	      // be mocked as a legacy factory, we ignore any warnings triggerd by
+	      // this temporary hack.
+	      ReactLegacyElement._isLegacyCallWarningEnabled = false;
+	      try {
+	        instance = new element.type._mockedReactClassConstructor(
+	          element.props
+	        );
+	      } finally {
+	        ReactLegacyElement._isLegacyCallWarningEnabled = true;
+	      }
+
+	      // If the mock implementation was a legacy factory, then it returns a
+	      // element. We need to turn this into a real component instance.
+	      if (ReactElement.isValidElement(instance)) {
+	        instance = new instance.type(instance.props);
+	      }
+
+	      var render = instance.render;
+	      if (!render) {
+	        // For auto-mocked factories, the prototype isn't shimmed and therefore
+	        // there is no render function on the instance. We replace the whole
+	        // component with an empty component instance instead.
+	        element = ReactEmptyComponent.getEmptyComponent();
+	      } else {
+	        if (render._isMockFunction && !render._getMockImplementation()) {
+	          // Auto-mocked components may have a prototype with a mocked render
+	          // function. For those, we'll need to mock the result of the render
+	          // since we consider undefined to be invalid results from render.
+	          render.mockImplementation(
+	            ReactEmptyComponent.getEmptyComponent
+	          );
+	        }
+	        instance.construct(element);
+	        return instance;
+	      }
+	    }
+	  }
+
+	  // Special case string values
+	  if (typeof element.type === 'string') {
+	    instance = ReactNativeComponent.createInstanceForTag(
+	      element.type,
+	      element.props,
+	      parentCompositeType
+	    );
+	  } else {
+	    // Normal case for non-mocks and non-strings
+	    instance = new element.type(element.props);
+	  }
+
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      typeof instance.construct === 'function' &&
+	      typeof instance.mountComponent === 'function' &&
+	      typeof instance.receiveComponent === 'function',
+	      'Only React Components can be mounted.'
+	    ) : null);
+	  }
+
+	  // This actually sets up the internal instance. This will become decoupled
+	  // from the public instance in a future diff.
+	  instance.construct(element);
+
+	  return instance;
 	}
 
 	module.exports = instantiateReactComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule mixInto
-	 */
-
-	"use strict";
-
-	/**
-	 * Simply copies properties to the prototype.
-	 */
-	var mixInto = function(constructor, methodBag) {
-	  var methodName;
-	  for (methodName in methodBag) {
-	    if (!methodBag.hasOwnProperty(methodName)) {
-	      continue;
-	    }
-	    constructor.prototype[methodName] = methodBag[methodName];
-	  }
-	};
-
-	module.exports = mixInto;
-
-
-/***/ },
-/* 81 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule monitorCodeUse
 	 */
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Provides open-source compatible instrumentation for monitoring certain API
@@ -18030,84 +18634,76 @@
 
 	module.exports = monitorCodeUse;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 82 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule mapObject
 	 */
 
-	"use strict";
+	'use strict';
+
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 	/**
-	 * For each key/value pair, invokes callback func and constructs a resulting
-	 * object which contains, for every key in obj, values that are the result of
-	 * of invoking the function:
+	 * Executes the provided `callback` once for each enumerable own property in the
+	 * object and constructs a new object from the results. The `callback` is
+	 * invoked with three arguments:
 	 *
-	 *   func(value, key, iteration)
+	 *  - the property value
+	 *  - the property name
+	 *  - the object being traversed
 	 *
-	 * Grepable names:
+	 * Properties that are added after the call to `mapObject` will not be visited
+	 * by `callback`. If the values of existing properties are changed, the value
+	 * passed to `callback` will be the value at the time `mapObject` visits them.
+	 * Properties that are deleted before being visited are not visited.
 	 *
-	 *   function objectMap()
-	 *   function objMap()
+	 * @grep function objectMap()
+	 * @grep function objMap()
 	 *
-	 * @param {?object} obj Object to map keys over
-	 * @param {function} func Invoked for each key/val pair.
-	 * @param {?*} context
-	 * @return {?object} Result of mapping or null if obj is falsey
+	 * @param {?object} object
+	 * @param {function} callback
+	 * @param {*} context
+	 * @return {?object}
 	 */
-	function mapObject(obj, func, context) {
-	  if (!obj) {
+	function mapObject(object, callback, context) {
+	  if (!object) {
 	    return null;
 	  }
-	  var i = 0;
-	  var ret = {};
-	  for (var key in obj) {
-	    if (obj.hasOwnProperty(key)) {
-	      ret[key] = func.call(context, obj[key], key, i++);
+	  var result = {};
+	  for (var name in object) {
+	    if (hasOwnProperty.call(object, name)) {
+	      result[name] = callback.call(context, object[name], name, object);
 	    }
 	  }
-	  return ret;
+	  return result;
 	}
 
 	module.exports = mapObject;
 
 
 /***/ },
-/* 83 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule shouldUpdateReactComponent
 	 * @typechecks static-only
@@ -18116,22 +18712,21 @@
 	"use strict";
 
 	/**
-	 * Given a `prevDescriptor` and `nextDescriptor`, determines if the existing
+	 * Given a `prevElement` and `nextElement`, determines if the existing
 	 * instance should be updated as opposed to being destroyed or replaced by a new
-	 * instance. Both arguments are descriptors. This ensures that this logic can
+	 * instance. Both arguments are elements. This ensures that this logic can
 	 * operate on stateless trees without any backing instance.
 	 *
-	 * @param {?object} prevDescriptor
-	 * @param {?object} nextDescriptor
+	 * @param {?object} prevElement
+	 * @param {?object} nextElement
 	 * @return {boolean} True if the existing instance should be updated.
 	 * @protected
 	 */
-	function shouldUpdateReactComponent(prevDescriptor, nextDescriptor) {
-	  if (prevDescriptor && nextDescriptor &&
-	      prevDescriptor.type === nextDescriptor.type && (
-	        (prevDescriptor.props && prevDescriptor.props.key) ===
-	        (nextDescriptor.props && nextDescriptor.props.key)
-	      ) && prevDescriptor._owner === nextDescriptor._owner) {
+	function shouldUpdateReactComponent(prevElement, nextElement) {
+	  if (prevElement && nextElement &&
+	      prevElement.type === nextElement.type &&
+	      prevElement.key === nextElement.key &&
+	      prevElement._owner === nextElement._owner) {
 	    return true;
 	  }
 	  return false;
@@ -18141,23 +18736,16 @@
 
 
 /***/ },
-/* 84 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule CSSPropertyOperations
 	 * @typechecks static-only
@@ -18165,15 +18753,43 @@
 
 	"use strict";
 
-	var CSSProperty = __webpack_require__(133);
+	var CSSProperty = __webpack_require__(132);
+	var ExecutionEnvironment = __webpack_require__(53);
 
+	var camelizeStyleName = __webpack_require__(133);
 	var dangerousStyleValue = __webpack_require__(134);
 	var hyphenateStyleName = __webpack_require__(135);
-	var memoizeStringOnly = __webpack_require__(71);
+	var memoizeStringOnly = __webpack_require__(74);
+	var warning = __webpack_require__(62);
 
 	var processStyleName = memoizeStringOnly(function(styleName) {
 	  return hyphenateStyleName(styleName);
 	});
+
+	var styleFloatAccessor = 'cssFloat';
+	if (ExecutionEnvironment.canUseDOM) {
+	  // IE8 only supports accessing cssFloat (standard) as styleFloat
+	  if (document.documentElement.style.cssFloat === undefined) {
+	    styleFloatAccessor = 'styleFloat';
+	  }
+	}
+
+	if ("production" !== process.env.NODE_ENV) {
+	  var warnedStyleNames = {};
+
+	  var warnHyphenatedStyleName = function(name) {
+	    if (warnedStyleNames.hasOwnProperty(name) && warnedStyleNames[name]) {
+	      return;
+	    }
+
+	    warnedStyleNames[name] = true;
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      false,
+	      'Unsupported style property ' + name + '. Did you mean ' +
+	      camelizeStyleName(name) + '?'
+	    ) : null);
+	  };
+	}
 
 	/**
 	 * Operations for dealing with CSS properties.
@@ -18198,6 +18814,11 @@
 	      if (!styles.hasOwnProperty(styleName)) {
 	        continue;
 	      }
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (styleName.indexOf('-') > -1) {
+	          warnHyphenatedStyleName(styleName);
+	        }
+	      }
 	      var styleValue = styles[styleName];
 	      if (styleValue != null) {
 	        serialized += processStyleName(styleName) + ':';
@@ -18220,7 +18841,15 @@
 	      if (!styles.hasOwnProperty(styleName)) {
 	        continue;
 	      }
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (styleName.indexOf('-') > -1) {
+	          warnHyphenatedStyleName(styleName);
+	        }
+	      }
 	      var styleValue = dangerousStyleValue(styleName, styles[styleName]);
+	      if (styleName === 'float') {
+	        styleName = styleFloatAccessor;
+	      }
 	      if (styleValue) {
 	        style[styleName] = styleValue;
 	      } else {
@@ -18241,36 +18870,30 @@
 	};
 
 	module.exports = CSSPropertyOperations;
-
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 85 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactBrowserComponentMixin
 	 */
 
 	"use strict";
 
-	var ReactEmptyComponent = __webpack_require__(75);
-	var ReactMount = __webpack_require__(38);
+	var ReactEmptyComponent = __webpack_require__(78);
+	var ReactMount = __webpack_require__(44);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	var ReactBrowserComponentMixin = {
 	  /**
@@ -18294,68 +18917,88 @@
 
 	module.exports = ReactBrowserComponentMixin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 86 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactRootIndex
-	 * @typechecks
+	 * @providesModule isEventSupported
 	 */
 
 	"use strict";
 
-	var ReactRootIndexInjection = {
-	  /**
-	   * @param {function} _createReactRootIndex
-	   */
-	  injectCreateReactRootIndex: function(_createReactRootIndex) {
-	    ReactRootIndex.createReactRootIndex = _createReactRootIndex;
+	var ExecutionEnvironment = __webpack_require__(53);
+
+	var useHasFeature;
+	if (ExecutionEnvironment.canUseDOM) {
+	  useHasFeature =
+	    document.implementation &&
+	    document.implementation.hasFeature &&
+	    // always returns true in newer browsers as per the standard.
+	    // @see http://dom.spec.whatwg.org/#dom-domimplementation-hasfeature
+	    document.implementation.hasFeature('', '') !== true;
+	}
+
+	/**
+	 * Checks if an event is supported in the current execution environment.
+	 *
+	 * NOTE: This will not work correctly for non-generic events such as `change`,
+	 * `reset`, `load`, `error`, and `select`.
+	 *
+	 * Borrows from Modernizr.
+	 *
+	 * @param {string} eventNameSuffix Event name, e.g. "click".
+	 * @param {?boolean} capture Check if the capture phase is supported.
+	 * @return {boolean} True if the event is supported.
+	 * @internal
+	 * @license Modernizr 3.0.0pre (Custom Build) | MIT
+	 */
+	function isEventSupported(eventNameSuffix, capture) {
+	  if (!ExecutionEnvironment.canUseDOM ||
+	      capture && !('addEventListener' in document)) {
+	    return false;
 	  }
-	};
 
-	var ReactRootIndex = {
-	  createReactRootIndex: null,
-	  injection: ReactRootIndexInjection
-	};
+	  var eventName = 'on' + eventNameSuffix;
+	  var isSupported = eventName in document;
 
-	module.exports = ReactRootIndex;
+	  if (!isSupported) {
+	    var element = document.createElement('div');
+	    element.setAttribute(eventName, 'return;');
+	    isSupported = typeof element[eventName] === 'function';
+	  }
+
+	  if (!isSupported && useHasFeature && eventNameSuffix === 'wheel') {
+	    // This is the only way to test support for the `wheel` event in IE9+.
+	    isSupported = document.implementation.hasFeature('Events.wheel', '3.0');
+	  }
+
+	  return isSupported;
+	}
+
+	module.exports = isEventSupported;
 
 
 /***/ },
-/* 87 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013 Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule BeforeInputEventPlugin
 	 * @typechecks static-only
@@ -18363,12 +19006,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPropagators = __webpack_require__(62);
-	var ExecutionEnvironment = __webpack_require__(46);
-	var SyntheticInputEvent = __webpack_require__(132);
+	var EventConstants = __webpack_require__(68);
+	var EventPropagators = __webpack_require__(70);
+	var ExecutionEnvironment = __webpack_require__(53);
+	var SyntheticInputEvent = __webpack_require__(136);
 
-	var keyOf = __webpack_require__(53);
+	var keyOf = __webpack_require__(64);
 
 	var canUseTextInputEvent = (
 	  ExecutionEnvironment.canUseDOM &&
@@ -18412,6 +19055,9 @@
 
 	// Track characters inserted via keypress and composition events.
 	var fallbackChars = null;
+
+	// Track whether we've ever handled a keypress on the space key.
+	var hasSpaceKeypress = false;
 
 	/**
 	 * Return whether a native keypress event is assumed to be a command.
@@ -18482,7 +19128,8 @@
 	            return;
 	          }
 
-	          chars = String.fromCharCode(which);
+	          hasSpaceKeypress = true;
+	          chars = SPACEBAR_CHAR;
 	          break;
 
 	        case topLevelTypes.topTextInput:
@@ -18490,8 +19137,9 @@
 	          chars = nativeEvent.data;
 
 	          // If it's a spacebar character, assume that we have already handled
-	          // it at the keypress level and bail immediately.
-	          if (chars === SPACEBAR_CHAR) {
+	          // it at the keypress level and bail immediately. Android Chrome
+	          // doesn't give us keycodes, so we need to blacklist it.
+	          if (chars === SPACEBAR_CHAR && hasSpaceKeypress) {
 	            return;
 	          }
 
@@ -18567,39 +19215,32 @@
 
 
 /***/ },
-/* 88 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ChangeEventPlugin
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPluginHub = __webpack_require__(61);
-	var EventPropagators = __webpack_require__(62);
-	var ExecutionEnvironment = __webpack_require__(46);
-	var ReactUpdates = __webpack_require__(64);
-	var SyntheticEvent = __webpack_require__(65);
+	var EventConstants = __webpack_require__(68);
+	var EventPluginHub = __webpack_require__(69);
+	var EventPropagators = __webpack_require__(70);
+	var ExecutionEnvironment = __webpack_require__(53);
+	var ReactUpdates = __webpack_require__(18);
+	var SyntheticEvent = __webpack_require__(72);
 
-	var isEventSupported = __webpack_require__(124);
-	var isTextInputElement = __webpack_require__(136);
-	var keyOf = __webpack_require__(53);
+	var isEventSupported = __webpack_require__(88);
+	var isTextInputElement = __webpack_require__(137);
+	var keyOf = __webpack_require__(64);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -18960,23 +19601,16 @@
 
 
 /***/ },
-/* 89 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ClientReactRootIndex
 	 * @typechecks
@@ -18996,23 +19630,16 @@
 
 
 /***/ },
-/* 90 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule CompositionEventPlugin
 	 * @typechecks static-only
@@ -19020,14 +19647,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPropagators = __webpack_require__(62);
-	var ExecutionEnvironment = __webpack_require__(46);
-	var ReactInputSelection = __webpack_require__(137);
-	var SyntheticCompositionEvent = __webpack_require__(138);
+	var EventConstants = __webpack_require__(68);
+	var EventPropagators = __webpack_require__(70);
+	var ExecutionEnvironment = __webpack_require__(53);
+	var ReactInputSelection = __webpack_require__(138);
+	var SyntheticCompositionEvent = __webpack_require__(139);
 
-	var getTextContentAccessor = __webpack_require__(139);
-	var keyOf = __webpack_require__(53);
+	var getTextContentAccessor = __webpack_require__(140);
+	var keyOf = __webpack_require__(64);
 
 	var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 	var START_KEYCODE = 229;
@@ -19266,30 +19893,23 @@
 
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule DefaultEventPluginOrder
 	 */
 
 	"use strict";
 
-	 var keyOf = __webpack_require__(53);
+	 var keyOf = __webpack_require__(64);
 
 	/**
 	 * Module that is injectable into `EventPluginHub`, that specifies a
@@ -19317,23 +19937,16 @@
 
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EnterLeaveEventPlugin
 	 * @typechecks static-only
@@ -19341,12 +19954,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPropagators = __webpack_require__(62);
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var EventConstants = __webpack_require__(68);
+	var EventPropagators = __webpack_require__(70);
+	var SyntheticMouseEvent = __webpack_require__(141);
 
-	var ReactMount = __webpack_require__(38);
-	var keyOf = __webpack_require__(53);
+	var ReactMount = __webpack_require__(44);
+	var keyOf = __webpack_require__(64);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 	var getFirstReactDOM = ReactMount.getFirstReactDOM;
@@ -19468,23 +20081,16 @@
 
 
 /***/ },
-/* 93 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule HTMLDOMPropertyConfig
 	 */
@@ -19493,8 +20099,8 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
-	var ExecutionEnvironment = __webpack_require__(46);
+	var DOMProperty = __webpack_require__(65);
+	var ExecutionEnvironment = __webpack_require__(53);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
@@ -19529,6 +20135,7 @@
 	     * Standard Properties
 	     */
 	    accept: null,
+	    acceptCharset: null,
 	    accessKey: null,
 	    action: null,
 	    allowFullScreen: MUST_USE_ATTRIBUTE | HAS_BOOLEAN_VALUE,
@@ -19543,6 +20150,7 @@
 	    cellSpacing: null,
 	    charSet: MUST_USE_ATTRIBUTE,
 	    checked: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
+	    classID: MUST_USE_ATTRIBUTE,
 	    // To set className on SVG elements, it's necessary to use .setAttribute;
 	    // this works on HTML elements too in all browsers except IE8. Conveniently,
 	    // IE8 doesn't support SVG and so we can simply use the attribute in
@@ -19578,8 +20186,9 @@
 	    id: MUST_USE_PROPERTY,
 	    label: null,
 	    lang: null,
-	    list: null,
+	    list: MUST_USE_ATTRIBUTE,
 	    loop: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
+	    manifest: MUST_USE_ATTRIBUTE,
 	    max: null,
 	    maxLength: MUST_USE_ATTRIBUTE,
 	    media: MUST_USE_ATTRIBUTE,
@@ -19604,9 +20213,7 @@
 	    rowSpan: null,
 	    sandbox: null,
 	    scope: null,
-	    scrollLeft: MUST_USE_PROPERTY,
 	    scrolling: null,
-	    scrollTop: MUST_USE_PROPERTY,
 	    seamless: MUST_USE_ATTRIBUTE | HAS_BOOLEAN_VALUE,
 	    selected: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
 	    shape: null,
@@ -19640,6 +20247,7 @@
 	    property: null // Supports OG in meta tags
 	  },
 	  DOMAttributeNames: {
+	    acceptCharset: 'accept-charset',
 	    className: 'class',
 	    htmlFor: 'for',
 	    httpEquiv: 'http-equiv'
@@ -19663,23 +20271,16 @@
 
 
 /***/ },
-/* 94 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule MobileSafariClickEventPlugin
 	 * @typechecks static-only
@@ -19687,9 +20288,9 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
+	var EventConstants = __webpack_require__(68);
 
-	var emptyFunction = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -19732,23 +20333,16 @@
 
 
 /***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactComponentBrowserEnvironment
 	 */
@@ -19757,15 +20351,15 @@
 
 	"use strict";
 
-	var ReactDOMIDOperations = __webpack_require__(141);
-	var ReactMarkupChecksum = __webpack_require__(115);
-	var ReactMount = __webpack_require__(38);
-	var ReactPerf = __webpack_require__(40);
-	var ReactReconcileTransaction = __webpack_require__(142);
+	var ReactDOMIDOperations = __webpack_require__(142);
+	var ReactMarkupChecksum = __webpack_require__(118);
+	var ReactMount = __webpack_require__(44);
+	var ReactPerf = __webpack_require__(46);
+	var ReactReconcileTransaction = __webpack_require__(143);
 
-	var getReactRootElementInContainer = __webpack_require__(112);
-	var invariant = __webpack_require__(55);
-	var setInnerHTML = __webpack_require__(143);
+	var getReactRootElementInContainer = __webpack_require__(115);
+	var invariant = __webpack_require__(61);
+	var setInnerHTML = __webpack_require__(144);
 
 
 	var ELEMENT_NODE_TYPE = 1;
@@ -19861,37 +20455,30 @@
 
 	module.exports = ReactComponentBrowserEnvironment;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDefaultBatchingStrategy
 	 */
 
 	"use strict";
 
-	var ReactUpdates = __webpack_require__(64);
-	var Transaction = __webpack_require__(129);
+	var ReactUpdates = __webpack_require__(18);
+	var Transaction = __webpack_require__(60);
 
-	var emptyFunction = __webpack_require__(50);
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
 
 	var RESET_BATCHED_UPDATES = {
 	  initialize: emptyFunction,
@@ -19911,12 +20498,15 @@
 	  this.reinitializeTransaction();
 	}
 
-	mixInto(ReactDefaultBatchingStrategyTransaction, Transaction.Mixin);
-	mixInto(ReactDefaultBatchingStrategyTransaction, {
-	  getTransactionWrappers: function() {
-	    return TRANSACTION_WRAPPERS;
+	assign(
+	  ReactDefaultBatchingStrategyTransaction.prototype,
+	  Transaction.Mixin,
+	  {
+	    getTransactionWrappers: function() {
+	      return TRANSACTION_WRAPPERS;
+	    }
 	  }
-	});
+	);
 
 	var transaction = new ReactDefaultBatchingStrategyTransaction();
 
@@ -19945,38 +20535,32 @@
 
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMButton
 	 */
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var AutoFocusMixin = __webpack_require__(145);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
 
-	var keyMirror = __webpack_require__(73);
+	var keyMirror = __webpack_require__(77);
 
-	// Store a reference to the <button> `ReactDOMComponent`.
-	var button = ReactDOM.button;
+	// Store a reference to the <button> `ReactDOMComponent`. TODO: use string
+	var button = ReactElement.createFactory(ReactDOM.button.type);
 
 	var mouseListenerNames = keyMirror({
 	  onClick: true,
@@ -20020,37 +20604,31 @@
 
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMForm
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var LocalEventTrapMixin = __webpack_require__(145);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var EventConstants = __webpack_require__(68);
+	var LocalEventTrapMixin = __webpack_require__(146);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
 
-	// Store a reference to the <form> `ReactDOMComponent`.
-	var form = ReactDOM.form;
+	// Store a reference to the <form> `ReactDOMComponent`. TODO: use string
+	var form = ReactElement.createFactory(ReactDOM.form.type);
 
 	/**
 	 * Since onSubmit doesn't bubble OR capture on the top level in IE8, we need
@@ -20067,7 +20645,7 @@
 	    // TODO: Instead of using `ReactDOM` directly, we should use JSX. However,
 	    // `jshint` fails to parse JSX so in order for linting to work in the open
 	    // source repo, we need to just use `ReactDOM.form`.
-	    return this.transferPropsTo(form(null, this.props.children));
+	    return form(this.props);
 	  },
 
 	  componentDidMount: function() {
@@ -20080,37 +20658,31 @@
 
 
 /***/ },
-/* 99 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMImg
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var LocalEventTrapMixin = __webpack_require__(145);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var EventConstants = __webpack_require__(68);
+	var LocalEventTrapMixin = __webpack_require__(146);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
 
-	// Store a reference to the <img> `ReactDOMComponent`.
-	var img = ReactDOM.img;
+	// Store a reference to the <img> `ReactDOMComponent`. TODO: use string
+	var img = ReactElement.createFactory(ReactDOM.img.type);
 
 	/**
 	 * Since onLoad doesn't bubble OR capture on the top level in IE8, we need to
@@ -20138,44 +20710,46 @@
 
 
 /***/ },
-/* 100 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMInput
 	 */
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var DOMPropertyOperations = __webpack_require__(26);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
-	var ReactMount = __webpack_require__(38);
+	var AutoFocusMixin = __webpack_require__(145);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var LinkedValueUtils = __webpack_require__(147);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
+	var ReactMount = __webpack_require__(44);
+	var ReactUpdates = __webpack_require__(18);
 
-	var invariant = __webpack_require__(55);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
 
-	// Store a reference to the <input> `ReactDOMComponent`.
-	var input = ReactDOM.input;
+	// Store a reference to the <input> `ReactDOMComponent`. TODO: use string
+	var input = ReactElement.createFactory(ReactDOM.input.type);
 
 	var instancesByReactID = {};
+
+	function forceUpdateIfMounted() {
+	  /*jshint validthis:true */
+	  if (this.isMounted()) {
+	    this.forceUpdate();
+	  }
+	}
 
 	/**
 	 * Implements an <input> native component that allows setting these optional
@@ -20201,28 +20775,23 @@
 	  getInitialState: function() {
 	    var defaultValue = this.props.defaultValue;
 	    return {
-	      checked: this.props.defaultChecked || false,
-	      value: defaultValue != null ? defaultValue : null
+	      initialChecked: this.props.defaultChecked || false,
+	      initialValue: defaultValue != null ? defaultValue : null
 	    };
-	  },
-
-	  shouldComponentUpdate: function() {
-	    // Defer any updates to this component during the `onChange` handler.
-	    return !this._isChanging;
 	  },
 
 	  render: function() {
 	    // Clone `this.props` so we don't mutate the input.
-	    var props = merge(this.props);
+	    var props = assign({}, this.props);
 
 	    props.defaultChecked = null;
 	    props.defaultValue = null;
 
 	    var value = LinkedValueUtils.getValue(this);
-	    props.value = value != null ? value : this.state.value;
+	    props.value = value != null ? value : this.state.initialValue;
 
 	    var checked = LinkedValueUtils.getChecked(this);
-	    props.checked = checked != null ? checked : this.state.checked;
+	    props.checked = checked != null ? checked : this.state.initialChecked;
 
 	    props.onChange = this._handleChange;
 
@@ -20262,14 +20831,12 @@
 	    var returnValue;
 	    var onChange = LinkedValueUtils.getOnChange(this);
 	    if (onChange) {
-	      this._isChanging = true;
 	      returnValue = onChange.call(this, event);
-	      this._isChanging = false;
 	    }
-	    this.setState({
-	      checked: event.target.checked,
-	      value: event.target.value
-	    });
+	    // Here we use asap to wait until all updates have propagated, which
+	    // is important when using controlled components within layers:
+	    // https://github.com/facebook/react/issues/1698
+	    ReactUpdates.asap(forceUpdateIfMounted, this);
 
 	    var name = this.props.name;
 	    if (this.props.type === 'radio' && name != null) {
@@ -20307,13 +20874,10 @@
 	          'ReactDOMInput: Unknown radio button ID %s.',
 	          otherID
 	        ) : invariant(otherInstance));
-	        // In some cases, this will actually change the `checked` state value.
-	        // In other cases, there's no change but this forces a reconcile upon
-	        // which componentDidUpdate will reset the DOM property to whatever it
-	        // should be.
-	        otherInstance.setState({
-	          checked: false
-	        });
+	        // If this is a controlled radio button group, forcing the input that
+	        // was previously checked to update will cause it to be come re-checked
+	        // as appropriate.
+	        ReactUpdates.asap(forceUpdateIfMounted, otherInstance);
 	      }
 	    }
 
@@ -20324,40 +20888,34 @@
 
 	module.exports = ReactDOMInput;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 101 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMOption
 	 */
 
 	"use strict";
 
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
 
-	var warning = __webpack_require__(45);
+	var warning = __webpack_require__(62);
 
-	// Store a reference to the <option> `ReactDOMComponent`.
-	var option = ReactDOM.option;
+	// Store a reference to the <option> `ReactDOMComponent`. TODO: use string
+	var option = ReactElement.createFactory(ReactDOM.option.type);
 
 	/**
 	 * Implements an <option> native component that warns when `selected` is set.
@@ -20386,42 +20944,45 @@
 
 	module.exports = ReactDOMOption;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 102 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMSelect
 	 */
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var AutoFocusMixin = __webpack_require__(145);
+	var LinkedValueUtils = __webpack_require__(147);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
+	var ReactUpdates = __webpack_require__(18);
 
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
 
-	// Store a reference to the <select> `ReactDOMComponent`.
-	var select = ReactDOM.select;
+	// Store a reference to the <select> `ReactDOMComponent`. TODO: use string
+	var select = ReactElement.createFactory(ReactDOM.select.type);
+
+	function updateWithPendingValueIfMounted() {
+	  /*jshint validthis:true */
+	  if (this.isMounted()) {
+	    this.setState({value: this._pendingValue});
+	    this._pendingValue = 0;
+	  }
+	}
 
 	/**
 	 * Validation function for `value` and `defaultValue`.
@@ -20508,6 +21069,10 @@
 	    return {value: this.props.defaultValue || (this.props.multiple ? [] : '')};
 	  },
 
+	  componentWillMount: function() {
+	    this._pendingValue = null;
+	  },
+
 	  componentWillReceiveProps: function(nextProps) {
 	    if (!this.props.multiple && nextProps.multiple) {
 	      this.setState({value: [this.state.value]});
@@ -20516,14 +21081,9 @@
 	    }
 	  },
 
-	  shouldComponentUpdate: function() {
-	    // Defer any updates to this component during the `onChange` handler.
-	    return !this._isChanging;
-	  },
-
 	  render: function() {
 	    // Clone `this.props` so we don't mutate the input.
-	    var props = merge(this.props);
+	    var props = assign({}, this.props);
 
 	    props.onChange = this._handleChange;
 	    props.value = null;
@@ -20548,9 +21108,7 @@
 	    var returnValue;
 	    var onChange = LinkedValueUtils.getOnChange(this);
 	    if (onChange) {
-	      this._isChanging = true;
 	      returnValue = onChange.call(this, event);
-	      this._isChanging = false;
 	    }
 
 	    var selectedValue;
@@ -20566,7 +21124,8 @@
 	      selectedValue = event.target.value;
 	    }
 
-	    this.setState({value: selectedValue});
+	    this._pendingValue = selectedValue;
+	    ReactUpdates.asap(updateWithPendingValueIfMounted, this);
 	    return returnValue;
 	  }
 
@@ -20576,43 +21135,45 @@
 
 
 /***/ },
-/* 103 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMTextarea
 	 */
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var DOMPropertyOperations = __webpack_require__(26);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(85);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
+	var AutoFocusMixin = __webpack_require__(145);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var LinkedValueUtils = __webpack_require__(147);
+	var ReactBrowserComponentMixin = __webpack_require__(87);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
+	var ReactDOM = __webpack_require__(39);
+	var ReactUpdates = __webpack_require__(18);
 
-	var invariant = __webpack_require__(55);
-	var merge = __webpack_require__(51);
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
 
-	var warning = __webpack_require__(45);
+	var warning = __webpack_require__(62);
 
-	// Store a reference to the <textarea> `ReactDOMComponent`.
-	var textarea = ReactDOM.textarea;
+	// Store a reference to the <textarea> `ReactDOMComponent`. TODO: use string
+	var textarea = ReactElement.createFactory(ReactDOM.textarea.type);
+
+	function forceUpdateIfMounted() {
+	  /*jshint validthis:true */
+	  if (this.isMounted()) {
+	    this.forceUpdate();
+	  }
+	}
 
 	/**
 	 * Implements a <textarea> native component that allows setting `value`, and
@@ -20673,14 +21234,9 @@
 	    };
 	  },
 
-	  shouldComponentUpdate: function() {
-	    // Defer any updates to this component during the `onChange` handler.
-	    return !this._isChanging;
-	  },
-
 	  render: function() {
 	    // Clone `this.props` so we don't mutate the input.
-	    var props = merge(this.props);
+	    var props = assign({}, this.props);
 
 	    ("production" !== process.env.NODE_ENV ? invariant(
 	      props.dangerouslySetInnerHTML == null,
@@ -20710,11 +21266,9 @@
 	    var returnValue;
 	    var onChange = LinkedValueUtils.getOnChange(this);
 	    if (onChange) {
-	      this._isChanging = true;
 	      returnValue = onChange.call(this, event);
-	      this._isChanging = false;
 	    }
-	    this.setState({value: event.target.value});
+	    ReactUpdates.asap(forceUpdateIfMounted, this);
 	    return returnValue;
 	  }
 
@@ -20722,26 +21276,19 @@
 
 	module.exports = ReactDOMTextarea;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 104 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactEventListener
 	 * @typechecks static-only
@@ -20749,16 +21296,16 @@
 
 	"use strict";
 
-	var EventListener = __webpack_require__(147);
-	var ExecutionEnvironment = __webpack_require__(46);
-	var PooledClass = __webpack_require__(68);
-	var ReactInstanceHandles = __webpack_require__(37);
-	var ReactMount = __webpack_require__(38);
-	var ReactUpdates = __webpack_require__(64);
+	var EventListener = __webpack_require__(148);
+	var ExecutionEnvironment = __webpack_require__(53);
+	var PooledClass = __webpack_require__(59);
+	var ReactInstanceHandles = __webpack_require__(42);
+	var ReactMount = __webpack_require__(44);
+	var ReactUpdates = __webpack_require__(18);
 
-	var getEventTarget = __webpack_require__(130);
-	var getUnboundedScrollPosition = __webpack_require__(148);
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
+	var getEventTarget = __webpack_require__(129);
+	var getUnboundedScrollPosition = __webpack_require__(149);
 
 	/**
 	 * Finds the parent React component of `node`.
@@ -20784,7 +21331,7 @@
 	  this.nativeEvent = nativeEvent;
 	  this.ancestors = [];
 	}
-	mixInto(TopLevelCallbackBookKeeping, {
+	assign(TopLevelCallbackBookKeeping.prototype, {
 	  destructor: function() {
 	    this.topLevelType = null;
 	    this.nativeEvent = null;
@@ -20920,39 +21467,32 @@
 
 
 /***/ },
-/* 105 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactInjection
 	 */
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
-	var EventPluginHub = __webpack_require__(61);
-	var ReactComponent = __webpack_require__(29);
-	var ReactCompositeComponent = __webpack_require__(30);
-	var ReactDOM = __webpack_require__(34);
-	var ReactEmptyComponent = __webpack_require__(75);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
-	var ReactPerf = __webpack_require__(40);
-	var ReactRootIndex = __webpack_require__(86);
-	var ReactUpdates = __webpack_require__(64);
+	var DOMProperty = __webpack_require__(65);
+	var EventPluginHub = __webpack_require__(69);
+	var ReactComponent = __webpack_require__(33);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactEmptyComponent = __webpack_require__(78);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
+	var ReactNativeComponent = __webpack_require__(131);
+	var ReactPerf = __webpack_require__(46);
+	var ReactRootIndex = __webpack_require__(113);
+	var ReactUpdates = __webpack_require__(18);
 
 	var ReactInjection = {
 	  Component: ReactComponent.injection,
@@ -20960,8 +21500,8 @@
 	  DOMProperty: DOMProperty.injection,
 	  EmptyComponent: ReactEmptyComponent.injection,
 	  EventPluginHub: EventPluginHub.injection,
-	  DOM: ReactDOM.injection,
 	  EventEmitter: ReactBrowserEventEmitter.injection,
+	  NativeComponent: ReactNativeComponent.injection,
 	  Perf: ReactPerf.injection,
 	  RootIndex: ReactRootIndex.injection,
 	  Updates: ReactUpdates.injection
@@ -20971,38 +21511,31 @@
 
 
 /***/ },
-/* 106 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SelectEventPlugin
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPropagators = __webpack_require__(62);
-	var ReactInputSelection = __webpack_require__(137);
-	var SyntheticEvent = __webpack_require__(65);
+	var EventConstants = __webpack_require__(68);
+	var EventPropagators = __webpack_require__(70);
+	var ReactInputSelection = __webpack_require__(138);
+	var SyntheticEvent = __webpack_require__(72);
 
-	var getActiveElement = __webpack_require__(149);
-	var isTextInputElement = __webpack_require__(136);
-	var keyOf = __webpack_require__(53);
-	var shallowEqual = __webpack_require__(47);
+	var getActiveElement = __webpack_require__(150);
+	var isTextInputElement = __webpack_require__(137);
+	var keyOf = __webpack_require__(64);
+	var shallowEqual = __webpack_require__(54);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -21045,6 +21578,14 @@
 	      start: node.selectionStart,
 	      end: node.selectionEnd
 	    };
+	  } else if (window.getSelection) {
+	    var selection = window.getSelection();
+	    return {
+	      anchorNode: selection.anchorNode,
+	      anchorOffset: selection.anchorOffset,
+	      focusNode: selection.focusNode,
+	      focusOffset: selection.focusOffset
+	    };
 	  } else if (document.selection) {
 	    var range = document.selection.createRange();
 	    return {
@@ -21052,14 +21593,6 @@
 	      text: range.text,
 	      top: range.boundingTop,
 	      left: range.boundingLeft
-	    };
-	  } else {
-	    var selection = window.getSelection();
-	    return {
-	      anchorNode: selection.anchorNode,
-	      anchorOffset: selection.anchorOffset,
-	      focusNode: selection.focusNode,
-	      focusOffset: selection.focusOffset
 	    };
 	  }
 	}
@@ -21177,23 +21710,16 @@
 
 
 /***/ },
-/* 107 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ServerReactRootIndex
 	 * @typechecks
@@ -21219,44 +21745,40 @@
 
 
 /***/ },
-/* 108 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SimpleEventPlugin
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(60);
-	var EventPluginUtils = __webpack_require__(27);
-	var EventPropagators = __webpack_require__(62);
-	var SyntheticClipboardEvent = __webpack_require__(150);
-	var SyntheticEvent = __webpack_require__(65);
-	var SyntheticFocusEvent = __webpack_require__(151);
-	var SyntheticKeyboardEvent = __webpack_require__(152);
-	var SyntheticMouseEvent = __webpack_require__(140);
-	var SyntheticDragEvent = __webpack_require__(153);
-	var SyntheticTouchEvent = __webpack_require__(154);
-	var SyntheticUIEvent = __webpack_require__(155);
-	var SyntheticWheelEvent = __webpack_require__(156);
+	var EventConstants = __webpack_require__(68);
+	var EventPluginUtils = __webpack_require__(31);
+	var EventPropagators = __webpack_require__(70);
+	var SyntheticClipboardEvent = __webpack_require__(151);
+	var SyntheticEvent = __webpack_require__(72);
+	var SyntheticFocusEvent = __webpack_require__(152);
+	var SyntheticKeyboardEvent = __webpack_require__(153);
+	var SyntheticMouseEvent = __webpack_require__(141);
+	var SyntheticDragEvent = __webpack_require__(154);
+	var SyntheticTouchEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(156);
+	var SyntheticWheelEvent = __webpack_require__(157);
 
-	var invariant = __webpack_require__(55);
-	var keyOf = __webpack_require__(53);
+	var getEventCharCode = __webpack_require__(158);
+
+	var invariant = __webpack_require__(61);
+	var keyOf = __webpack_require__(64);
+	var warning = __webpack_require__(62);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -21523,7 +22045,7 @@
 
 	  /**
 	   * Same as the default implementation, except cancels the event when return
-	   * value is false.
+	   * value is false. This behavior will be disabled in a future release.
 	   *
 	   * @param {object} Event to be dispatched.
 	   * @param {function} Application-level callback.
@@ -21531,6 +22053,14 @@
 	   */
 	  executeDispatch: function(event, listener, domID) {
 	    var returnValue = EventPluginUtils.executeDispatch(event, listener, domID);
+
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      typeof returnValue !== 'boolean',
+	      'Returning `false` from an event handler is deprecated and will be ' +
+	      'ignored in a future release. Instead, manually call ' +
+	      'e.stopPropagation() or e.preventDefault(), as appropriate.'
+	    ) : null);
+
 	    if (returnValue === false) {
 	      event.stopPropagation();
 	      event.preventDefault();
@@ -21567,8 +22097,9 @@
 	        break;
 	      case topLevelTypes.topKeyPress:
 	        // FireFox creates a keypress event for function keys too. This removes
-	        // the unwanted keypress events.
-	        if (nativeEvent.charCode === 0) {
+	        // the unwanted keypress events. Enter is however both printable and
+	        // non-printable. One would expect Tab to be as well (but it isn't).
+	        if (getEventCharCode(nativeEvent) === 0) {
 	          return null;
 	        }
 	        /* falls through */
@@ -21642,26 +22173,19 @@
 
 	module.exports = SimpleEventPlugin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 109 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SVGDOMPropertyConfig
 	 */
@@ -21670,7 +22194,7 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(56);
+	var DOMProperty = __webpack_require__(65);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 
@@ -21748,23 +22272,16 @@
 
 
 /***/ },
-/* 110 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule createFullPageComponent
 	 * @typechecks
@@ -21773,9 +22290,10 @@
 	"use strict";
 
 	// Defeat circular references by requiring this directly.
-	var ReactCompositeComponent = __webpack_require__(30);
+	var ReactCompositeComponent = __webpack_require__(34);
+	var ReactElement = __webpack_require__(37);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Create a component that will throw an exception when unmounted.
@@ -21785,14 +22303,14 @@
 	 * take advantage of React's reconciliation for styling and <title>
 	 * management. So we just document it and throw in dangerous cases.
 	 *
-	 * @param {function} componentClass convenience constructor to wrap
+	 * @param {string} tag The tag to wrap
 	 * @return {function} convenience constructor of new component
 	 */
-	function createFullPageComponent(componentClass) {
+	function createFullPageComponent(tag) {
+	  var elementFactory = ReactElement.createFactory(tag);
+
 	  var FullPageComponent = ReactCompositeComponent.createClass({
-	    displayName: 'ReactFullPageComponent' + (
-	      componentClass.type.displayName || ''
-	    ),
+	    displayName: 'ReactFullPageComponent' + tag,
 
 	    componentWillUnmount: function() {
 	      ("production" !== process.env.NODE_ENV ? invariant(
@@ -21806,7 +22324,7 @@
 	    },
 
 	    render: function() {
-	      return this.transferPropsTo(componentClass(null, this.props.children));
+	      return elementFactory(this.props);
 	    }
 	  });
 
@@ -21815,32 +22333,60 @@
 
 	module.exports = createFullPageComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 111 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule ReactRootIndex
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var ReactRootIndexInjection = {
+	  /**
+	   * @param {function} _createReactRootIndex
+	   */
+	  injectCreateReactRootIndex: function(_createReactRootIndex) {
+	    ReactRootIndex.createReactRootIndex = _createReactRootIndex;
+	  }
+	};
+
+	var ReactRootIndex = {
+	  createReactRootIndex: null,
+	  injection: ReactRootIndexInjection
+	};
+
+	module.exports = ReactRootIndex;
+
+
+/***/ },
+/* 114 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule containsNode
 	 * @typechecks
 	 */
 
-	var isTextNode = __webpack_require__(157);
+	var isTextNode = __webpack_require__(159);
 
 	/*jslint bitwise:true */
 
@@ -21873,23 +22419,16 @@
 
 
 /***/ },
-/* 112 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getReactRootElementInContainer
 	 */
@@ -21919,30 +22458,23 @@
 
 
 /***/ },
-/* 113 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactMultiChildUpdateTypes
 	 */
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(73);
+	var keyMirror = __webpack_require__(77);
 
 	/**
 	 * When a component's children are updated, a series of update configuration
@@ -21963,31 +22495,26 @@
 
 
 /***/ },
-/* 114 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule flattenChildren
 	 */
 
 	"use strict";
 
-	var traverseAllChildren = __webpack_require__(69);
-	var warning = __webpack_require__(45);
+	var ReactTextComponent = __webpack_require__(49);
+
+	var traverseAllChildren = __webpack_require__(75);
+	var warning = __webpack_require__(62);
 
 	/**
 	 * @param {function} traverseContext Context passed through traversal.
@@ -22006,7 +22533,18 @@
 	    name
 	  ) : null);
 	  if (keyUnique && child != null) {
-	    result[name] = child;
+	    var type = typeof child;
+	    var normalizedValue;
+
+	    if (type === 'string') {
+	      normalizedValue = ReactTextComponent(child);
+	    } else if (type === 'number') {
+	      normalizedValue = ReactTextComponent('' + child);
+	    } else {
+	      normalizedValue = child;
+	    }
+
+	    result[name] = normalizedValue;
 	  }
 	}
 
@@ -22026,33 +22564,26 @@
 
 	module.exports = flattenChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 115 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactMarkupChecksum
 	 */
 
 	"use strict";
 
-	var adler32 = __webpack_require__(159);
+	var adler32 = __webpack_require__(160);
 
 	var ReactMarkupChecksum = {
 	  CHECKSUM_ATTR_NAME: 'data-react-checksum',
@@ -22088,23 +22619,16 @@
 
 
 /***/ },
-/* 116 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactServerRenderingTransaction
 	 * @typechecks
@@ -22112,13 +22636,13 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(68);
-	var CallbackQueue = __webpack_require__(128);
-	var ReactPutListenerQueue = __webpack_require__(158);
-	var Transaction = __webpack_require__(129);
+	var PooledClass = __webpack_require__(59);
+	var CallbackQueue = __webpack_require__(58);
+	var ReactPutListenerQueue = __webpack_require__(161);
+	var Transaction = __webpack_require__(60);
 
-	var emptyFunction = __webpack_require__(50);
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
 
 	/**
 	 * Provides a `CallbackQueue` queue for collecting `onDOMReady` callbacks
@@ -22200,8 +22724,11 @@
 	};
 
 
-	mixInto(ReactServerRenderingTransaction, Transaction.Mixin);
-	mixInto(ReactServerRenderingTransaction, Mixin);
+	assign(
+	  ReactServerRenderingTransaction.prototype,
+	  Transaction.Mixin,
+	  Mixin
+	);
 
 	PooledClass.addPoolingTo(ReactServerRenderingTransaction);
 
@@ -22209,29 +22736,22 @@
 
 
 /***/ },
-/* 117 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule CSSCore
 	 * @typechecks
 	 */
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * The CSSCore module specifies the API (and implements most of the methods)
@@ -22311,7 +22831,7 @@
 	   *
 	   * @param {DOMNode|DOMWindow} element the element to set the class on
 	   * @param {string} className the CSS className
-	   * @returns {boolean} true if the element has the class, false if not
+	   * @return {boolean} true if the element has the class, false if not
 	   */
 	  hasClass: function(element, className) {
 	    ("production" !== process.env.NODE_ENV ? invariant(
@@ -22328,33 +22848,26 @@
 
 	module.exports = CSSCore;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 118 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactTransitionEvents
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
 	/**
 	 * EVENT_NAME_MAP is used to determine which event fired when a
@@ -22453,23 +22966,16 @@
 
 
 /***/ },
-/* 119 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule joinClasses
 	 * @typechecks static-only
@@ -22493,7 +22999,9 @@
 	  if (argLength > 1) {
 	    for (var ii = 1; ii < argLength; ii++) {
 	      nextClass = arguments[ii];
-	      nextClass && (className += ' ' + nextClass);
+	      if (nextClass) {
+	        className = (className ? className + ' ' : '') + nextClass;
+	      }
 	    }
 	  }
 	  return className;
@@ -22503,23 +23011,16 @@
 
 
 /***/ },
-/* 120 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule performance
 	 * @typechecks
@@ -22527,7 +23028,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
 	var performance;
 
@@ -22542,126 +23043,16 @@
 
 
 /***/ },
-/* 121 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule accumulate
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(55);
-
-	/**
-	 * Accumulates items that must not be null or undefined.
-	 *
-	 * This is used to conserve memory by avoiding array allocations.
-	 *
-	 * @return {*|array<*>} An accumulation of items.
-	 */
-	function accumulate(current, next) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    next != null,
-	    'accumulate(...): Accumulated items must be not be null or undefined.'
-	  ) : invariant(next != null));
-	  if (current == null) {
-	    return next;
-	  } else {
-	    // Both are not empty. Warning: Never call x.concat(y) when you are not
-	    // certain that x is an Array (x could be a string with concat method).
-	    var currentIsArray = Array.isArray(current);
-	    var nextIsArray = Array.isArray(next);
-	    if (currentIsArray) {
-	      return current.concat(next);
-	    } else {
-	      if (nextIsArray) {
-	        return [current].concat(next);
-	      } else {
-	        return [current, next];
-	      }
-	    }
-	  }
-	}
-
-	module.exports = accumulate;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 122 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule forEachAccumulated
-	 */
-
-	"use strict";
-
-	/**
-	 * @param {array} an "accumulation" of items which is either an Array or
-	 * a single item. Useful when paired with the `accumulate` module. This is a
-	 * simple utility that allows us to reason about a collection of items, but
-	 * handling the case when there is exactly one item (and we do not need to
-	 * allocate an array).
-	 */
-	var forEachAccumulated = function(arr, cb, scope) {
-	  if (Array.isArray(arr)) {
-	    arr.forEach(cb, scope);
-	  } else if (arr) {
-	    cb.call(scope, arr);
-	  }
-	};
-
-	module.exports = forEachAccumulated;
-
-
-/***/ },
-/* 123 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule EventPluginRegistry
 	 * @typechecks static-only
@@ -22669,7 +23060,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Injectable ordering of event plugins.
@@ -22932,109 +23323,130 @@
 
 	module.exports = EventPluginRegistry;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 124 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule isEventSupported
-	 */
-
-	"use strict";
-
-	var ExecutionEnvironment = __webpack_require__(46);
-
-	var useHasFeature;
-	if (ExecutionEnvironment.canUseDOM) {
-	  useHasFeature =
-	    document.implementation &&
-	    document.implementation.hasFeature &&
-	    // always returns true in newer browsers as per the standard.
-	    // @see http://dom.spec.whatwg.org/#dom-domimplementation-hasfeature
-	    document.implementation.hasFeature('', '') !== true;
-	}
-
-	/**
-	 * Checks if an event is supported in the current execution environment.
-	 *
-	 * NOTE: This will not work correctly for non-generic events such as `change`,
-	 * `reset`, `load`, `error`, and `select`.
-	 *
-	 * Borrows from Modernizr.
-	 *
-	 * @param {string} eventNameSuffix Event name, e.g. "click".
-	 * @param {?boolean} capture Check if the capture phase is supported.
-	 * @return {boolean} True if the event is supported.
-	 * @internal
-	 * @license Modernizr 3.0.0pre (Custom Build) | MIT
-	 */
-	function isEventSupported(eventNameSuffix, capture) {
-	  if (!ExecutionEnvironment.canUseDOM ||
-	      capture && !('addEventListener' in document)) {
-	    return false;
-	  }
-
-	  var eventName = 'on' + eventNameSuffix;
-	  var isSupported = eventName in document;
-
-	  if (!isSupported) {
-	    var element = document.createElement('div');
-	    element.setAttribute(eventName, 'return;');
-	    isSupported = typeof element[eventName] === 'function';
-	  }
-
-	  if (!isSupported && useHasFeature && eventNameSuffix === 'wheel') {
-	    // This is the only way to test support for the `wheel` event in IE9+.
-	    isSupported = document.implementation.hasFeature('Events.wheel', '3.0');
-	  }
-
-	  return isSupported;
-	}
-
-	module.exports = isEventSupported;
-
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
 /* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule accumulateInto
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(61);
+
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * Accumulates items that must not be null or undefined into the first one. This
+	 * is used to conserve memory by avoiding array allocations, and thus sacrifices
+	 * API cleanness. Since `current` can be null before being passed in and not
+	 * null after this function, make sure to assign it back to `current`:
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * `a = accumulateInto(a, b);`
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This API should be sparingly used. Try `accumulate` for something cleaner.
+	 *
+	 * @return {*|array<*>} An accumulation of items.
+	 */
+
+	function accumulateInto(current, next) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    next != null,
+	    'accumulateInto(...): Accumulated items must not be null or undefined.'
+	  ) : invariant(next != null));
+	  if (current == null) {
+	    return next;
+	  }
+
+	  // Both are not empty. Warning: Never call x.concat(y) when you are not
+	  // certain that x is an Array (x could be a string with concat method).
+	  var currentIsArray = Array.isArray(current);
+	  var nextIsArray = Array.isArray(next);
+
+	  if (currentIsArray && nextIsArray) {
+	    current.push.apply(current, next);
+	    return current;
+	  }
+
+	  if (currentIsArray) {
+	    current.push(next);
+	    return current;
+	  }
+
+	  if (nextIsArray) {
+	    // A bit too dangerous to mutate `next`.
+	    return [current].concat(next);
+	  }
+
+	  return [current, next];
+	}
+
+	module.exports = accumulateInto;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 126 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule forEachAccumulated
+	 */
+
+	"use strict";
+
+	/**
+	 * @param {array} an "accumulation" of items which is either an Array or
+	 * a single item. Useful when paired with the `accumulate` module. This is a
+	 * simple utility that allows us to reason about a collection of items, but
+	 * handling the case when there is exactly one item (and we do not need to
+	 * allocate an array).
+	 */
+	var forEachAccumulated = function(arr, cb, scope) {
+	  if (Array.isArray(arr)) {
+	    arr.forEach(cb, scope);
+	  } else if (arr) {
+	    cb.call(scope, arr);
+	  }
+	};
+
+	module.exports = forEachAccumulated;
+
+
+/***/ },
+/* 127 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactEventEmitterMixin
 	 */
 
 	"use strict";
 
-	var EventPluginHub = __webpack_require__(61);
+	var EventPluginHub = __webpack_require__(69);
 
 	function runEventQueueInBatch(events) {
 	  EventPluginHub.enqueueEvents(events);
@@ -23072,30 +23484,23 @@
 
 
 /***/ },
-/* 126 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ViewportMetrics
 	 */
 
 	"use strict";
 
-	var getUnboundedScrollPosition = __webpack_require__(148);
+	var getUnboundedScrollPosition = __webpack_require__(149);
 
 	var ViewportMetrics = {
 
@@ -23115,538 +23520,16 @@
 
 
 /***/ },
-/* 127 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule mergeHelpers
-	 *
-	 * requiresPolyfills: Array.isArray
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(55);
-	var keyMirror = __webpack_require__(73);
-
-	/**
-	 * Maximum number of levels to traverse. Will catch circular structures.
-	 * @const
-	 */
-	var MAX_MERGE_DEPTH = 36;
-
-	/**
-	 * We won't worry about edge cases like new String('x') or new Boolean(true).
-	 * Functions are considered terminals, and arrays are not.
-	 * @param {*} o The item/object/value to test.
-	 * @return {boolean} true iff the argument is a terminal.
-	 */
-	var isTerminal = function(o) {
-	  return typeof o !== 'object' || o === null;
-	};
-
-	var mergeHelpers = {
-
-	  MAX_MERGE_DEPTH: MAX_MERGE_DEPTH,
-
-	  isTerminal: isTerminal,
-
-	  /**
-	   * Converts null/undefined values into empty object.
-	   *
-	   * @param {?Object=} arg Argument to be normalized (nullable optional)
-	   * @return {!Object}
-	   */
-	  normalizeMergeArg: function(arg) {
-	    return arg === undefined || arg === null ? {} : arg;
-	  },
-
-	  /**
-	   * If merging Arrays, a merge strategy *must* be supplied. If not, it is
-	   * likely the caller's fault. If this function is ever called with anything
-	   * but `one` and `two` being `Array`s, it is the fault of the merge utilities.
-	   *
-	   * @param {*} one Array to merge into.
-	   * @param {*} two Array to merge from.
-	   */
-	  checkMergeArrayArgs: function(one, two) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(one) && Array.isArray(two),
-	      'Tried to merge arrays, instead got %s and %s.',
-	      one,
-	      two
-	    ) : invariant(Array.isArray(one) && Array.isArray(two)));
-	  },
-
-	  /**
-	   * @param {*} one Object to merge into.
-	   * @param {*} two Object to merge from.
-	   */
-	  checkMergeObjectArgs: function(one, two) {
-	    mergeHelpers.checkMergeObjectArg(one);
-	    mergeHelpers.checkMergeObjectArg(two);
-	  },
-
-	  /**
-	   * @param {*} arg
-	   */
-	  checkMergeObjectArg: function(arg) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !isTerminal(arg) && !Array.isArray(arg),
-	      'Tried to merge an object, instead got %s.',
-	      arg
-	    ) : invariant(!isTerminal(arg) && !Array.isArray(arg)));
-	  },
-
-	  /**
-	   * @param {*} arg
-	   */
-	  checkMergeIntoObjectArg: function(arg) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      (!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg),
-	      'Tried to merge into an object, instead got %s.',
-	      arg
-	    ) : invariant((!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg)));
-	  },
-
-	  /**
-	   * Checks that a merge was not given a circular object or an object that had
-	   * too great of depth.
-	   *
-	   * @param {number} Level of recursion to validate against maximum.
-	   */
-	  checkMergeLevel: function(level) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      level < MAX_MERGE_DEPTH,
-	      'Maximum deep merge depth exceeded. You may be attempting to merge ' +
-	      'circular structures in an unsupported way.'
-	    ) : invariant(level < MAX_MERGE_DEPTH));
-	  },
-
-	  /**
-	   * Checks that the supplied merge strategy is valid.
-	   *
-	   * @param {string} Array merge strategy.
-	   */
-	  checkArrayStrategy: function(strategy) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      strategy === undefined || strategy in mergeHelpers.ArrayStrategies,
-	      'You must provide an array strategy to deep merge functions to ' +
-	      'instruct the deep merge how to resolve merging two arrays.'
-	    ) : invariant(strategy === undefined || strategy in mergeHelpers.ArrayStrategies));
-	  },
-
-	  /**
-	   * Set of possible behaviors of merge algorithms when encountering two Arrays
-	   * that must be merged together.
-	   * - `clobber`: The left `Array` is ignored.
-	   * - `indexByIndex`: The result is achieved by recursively deep merging at
-	   *   each index. (not yet supported.)
-	   */
-	  ArrayStrategies: keyMirror({
-	    Clobber: true,
-	    IndexByIndex: true
-	  })
-
-	};
-
-	module.exports = mergeHelpers;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 128 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule CallbackQueue
-	 */
-
-	"use strict";
-
-	var PooledClass = __webpack_require__(68);
-
-	var invariant = __webpack_require__(55);
-	var mixInto = __webpack_require__(80);
-
-	/**
-	 * A specialized pseudo-event module to help keep track of components waiting to
-	 * be notified when their DOM representations are available for use.
-	 *
-	 * This implements `PooledClass`, so you should never need to instantiate this.
-	 * Instead, use `CallbackQueue.getPooled()`.
-	 *
-	 * @class ReactMountReady
-	 * @implements PooledClass
-	 * @internal
-	 */
-	function CallbackQueue() {
-	  this._callbacks = null;
-	  this._contexts = null;
-	}
-
-	mixInto(CallbackQueue, {
-
-	  /**
-	   * Enqueues a callback to be invoked when `notifyAll` is invoked.
-	   *
-	   * @param {function} callback Invoked when `notifyAll` is invoked.
-	   * @param {?object} context Context to call `callback` with.
-	   * @internal
-	   */
-	  enqueue: function(callback, context) {
-	    this._callbacks = this._callbacks || [];
-	    this._contexts = this._contexts || [];
-	    this._callbacks.push(callback);
-	    this._contexts.push(context);
-	  },
-
-	  /**
-	   * Invokes all enqueued callbacks and clears the queue. This is invoked after
-	   * the DOM representation of a component has been created or updated.
-	   *
-	   * @internal
-	   */
-	  notifyAll: function() {
-	    var callbacks = this._callbacks;
-	    var contexts = this._contexts;
-	    if (callbacks) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        callbacks.length === contexts.length,
-	        "Mismatched list of contexts in callback queue"
-	      ) : invariant(callbacks.length === contexts.length));
-	      this._callbacks = null;
-	      this._contexts = null;
-	      for (var i = 0, l = callbacks.length; i < l; i++) {
-	        callbacks[i].call(contexts[i]);
-	      }
-	      callbacks.length = 0;
-	      contexts.length = 0;
-	    }
-	  },
-
-	  /**
-	   * Resets the internal queue.
-	   *
-	   * @internal
-	   */
-	  reset: function() {
-	    this._callbacks = null;
-	    this._contexts = null;
-	  },
-
-	  /**
-	   * `PooledClass` looks for this.
-	   */
-	  destructor: function() {
-	    this.reset();
-	  }
-
-	});
-
-	PooledClass.addPoolingTo(CallbackQueue);
-
-	module.exports = CallbackQueue;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
 /* 129 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule Transaction
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(55);
-
 	/**
-	 * `Transaction` creates a black box that is able to wrap any method such that
-	 * certain invariants are maintained before and after the method is invoked
-	 * (Even if an exception is thrown while invoking the wrapped method). Whoever
-	 * instantiates a transaction can provide enforcers of the invariants at
-	 * creation time. The `Transaction` class itself will supply one additional
-	 * automatic invariant for you - the invariant that any transaction instance
-	 * should not be run while it is already being run. You would typically create a
-	 * single instance of a `Transaction` for reuse multiple times, that potentially
-	 * is used to wrap several different methods. Wrappers are extremely simple -
-	 * they only require implementing two methods.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * <pre>
-	 *                       wrappers (injected at creation time)
-	 *                                      +        +
-	 *                                      |        |
-	 *                    +-----------------|--------|--------------+
-	 *                    |                 v        |              |
-	 *                    |      +---------------+   |              |
-	 *                    |   +--|    wrapper1   |---|----+         |
-	 *                    |   |  +---------------+   v    |         |
-	 *                    |   |          +-------------+  |         |
-	 *                    |   |     +----|   wrapper2  |--------+   |
-	 *                    |   |     |    +-------------+  |     |   |
-	 *                    |   |     |                     |     |   |
-	 *                    |   v     v                     v     v   | wrapper
-	 *                    | +---+ +---+   +---------+   +---+ +---+ | invariants
-	 * perform(anyMethod) | |   | |   |   |         |   |   | |   | | maintained
-	 * +----------------->|-|---|-|---|-->|anyMethod|---|---|-|---|-|-------->
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | +---+ +---+   +---------+   +---+ +---+ |
-	 *                    |  initialize                    close    |
-	 *                    +-----------------------------------------+
-	 * </pre>
-	 *
-	 * Use cases:
-	 * - Preserving the input selection ranges before/after reconciliation.
-	 *   Restoring selection even in the event of an unexpected error.
-	 * - Deactivating events while rearranging the DOM, preventing blurs/focuses,
-	 *   while guaranteeing that afterwards, the event system is reactivated.
-	 * - Flushing a queue of collected DOM mutations to the main UI thread after a
-	 *   reconciliation takes place in a worker thread.
-	 * - Invoking any collected `componentDidUpdate` callbacks after rendering new
-	 *   content.
-	 * - (Future use case): Wrapping particular flushes of the `ReactWorker` queue
-	 *   to preserve the `scrollTop` (an automatic scroll aware DOM).
-	 * - (Future use case): Layout calculations before and after DOM upates.
-	 *
-	 * Transactional plugin API:
-	 * - A module that has an `initialize` method that returns any precomputation.
-	 * - and a `close` method that accepts the precomputation. `close` is invoked
-	 *   when the wrapped process is completed, or has failed.
-	 *
-	 * @param {Array<TransactionalWrapper>} transactionWrapper Wrapper modules
-	 * that implement `initialize` and `close`.
-	 * @return {Transaction} Single transaction for reuse in thread.
-	 *
-	 * @class Transaction
-	 */
-	var Mixin = {
-	  /**
-	   * Sets up this instance so that it is prepared for collecting metrics. Does
-	   * so such that this setup method may be used on an instance that is already
-	   * initialized, in a way that does not consume additional memory upon reuse.
-	   * That can be useful if you decide to make your subclass of this mixin a
-	   * "PooledClass".
-	   */
-	  reinitializeTransaction: function() {
-	    this.transactionWrappers = this.getTransactionWrappers();
-	    if (!this.wrapperInitData) {
-	      this.wrapperInitData = [];
-	    } else {
-	      this.wrapperInitData.length = 0;
-	    }
-	    this._isInTransaction = false;
-	  },
-
-	  _isInTransaction: false,
-
-	  /**
-	   * @abstract
-	   * @return {Array<TransactionWrapper>} Array of transaction wrappers.
-	   */
-	  getTransactionWrappers: null,
-
-	  isInTransaction: function() {
-	    return !!this._isInTransaction;
-	  },
-
-	  /**
-	   * Executes the function within a safety window. Use this for the top level
-	   * methods that result in large amounts of computation/mutations that would
-	   * need to be safety checked.
-	   *
-	   * @param {function} method Member of scope to call.
-	   * @param {Object} scope Scope to invoke from.
-	   * @param {Object?=} args... Arguments to pass to the method (optional).
-	   *                           Helps prevent need to bind in many cases.
-	   * @return Return value from `method`.
-	   */
-	  perform: function(method, scope, a, b, c, d, e, f) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !this.isInTransaction(),
-	      'Transaction.perform(...): Cannot initialize a transaction when there ' +
-	      'is already an outstanding transaction.'
-	    ) : invariant(!this.isInTransaction()));
-	    var errorThrown;
-	    var ret;
-	    try {
-	      this._isInTransaction = true;
-	      // Catching errors makes debugging more difficult, so we start with
-	      // errorThrown set to true before setting it to false after calling
-	      // close -- if it's still set to true in the finally block, it means
-	      // one of these calls threw.
-	      errorThrown = true;
-	      this.initializeAll(0);
-	      ret = method.call(scope, a, b, c, d, e, f);
-	      errorThrown = false;
-	    } finally {
-	      try {
-	        if (errorThrown) {
-	          // If `method` throws, prefer to show that stack trace over any thrown
-	          // by invoking `closeAll`.
-	          try {
-	            this.closeAll(0);
-	          } catch (err) {
-	          }
-	        } else {
-	          // Since `method` didn't throw, we don't want to silence the exception
-	          // here.
-	          this.closeAll(0);
-	        }
-	      } finally {
-	        this._isInTransaction = false;
-	      }
-	    }
-	    return ret;
-	  },
-
-	  initializeAll: function(startIndex) {
-	    var transactionWrappers = this.transactionWrappers;
-	    for (var i = startIndex; i < transactionWrappers.length; i++) {
-	      var wrapper = transactionWrappers[i];
-	      try {
-	        // Catching errors makes debugging more difficult, so we start with the
-	        // OBSERVED_ERROR state before overwriting it with the real return value
-	        // of initialize -- if it's still set to OBSERVED_ERROR in the finally
-	        // block, it means wrapper.initialize threw.
-	        this.wrapperInitData[i] = Transaction.OBSERVED_ERROR;
-	        this.wrapperInitData[i] = wrapper.initialize ?
-	          wrapper.initialize.call(this) :
-	          null;
-	      } finally {
-	        if (this.wrapperInitData[i] === Transaction.OBSERVED_ERROR) {
-	          // The initializer for wrapper i threw an error; initialize the
-	          // remaining wrappers but silence any exceptions from them to ensure
-	          // that the first error is the one to bubble up.
-	          try {
-	            this.initializeAll(i + 1);
-	          } catch (err) {
-	          }
-	        }
-	      }
-	    }
-	  },
-
-	  /**
-	   * Invokes each of `this.transactionWrappers.close[i]` functions, passing into
-	   * them the respective return values of `this.transactionWrappers.init[i]`
-	   * (`close`rs that correspond to initializers that failed will not be
-	   * invoked).
-	   */
-	  closeAll: function(startIndex) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      this.isInTransaction(),
-	      'Transaction.closeAll(): Cannot close transaction when none are open.'
-	    ) : invariant(this.isInTransaction()));
-	    var transactionWrappers = this.transactionWrappers;
-	    for (var i = startIndex; i < transactionWrappers.length; i++) {
-	      var wrapper = transactionWrappers[i];
-	      var initData = this.wrapperInitData[i];
-	      var errorThrown;
-	      try {
-	        // Catching errors makes debugging more difficult, so we start with
-	        // errorThrown set to true before setting it to false after calling
-	        // close -- if it's still set to true in the finally block, it means
-	        // wrapper.close threw.
-	        errorThrown = true;
-	        if (initData !== Transaction.OBSERVED_ERROR) {
-	          wrapper.close && wrapper.close.call(this, initData);
-	        }
-	        errorThrown = false;
-	      } finally {
-	        if (errorThrown) {
-	          // The closer for wrapper i threw an error; close the remaining
-	          // wrappers but silence any exceptions from them to ensure that the
-	          // first error is the one to bubble up.
-	          try {
-	            this.closeAll(i + 1);
-	          } catch (e) {
-	          }
-	        }
-	      }
-	    }
-	    this.wrapperInitData.length = 0;
-	  }
-	};
-
-	var Transaction = {
-
-	  Mixin: Mixin,
-
-	  /**
-	   * Token to look for to determine if an error occured.
-	   */
-	  OBSERVED_ERROR: {}
-
-	};
-
-	module.exports = Transaction;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
-
-/***/ },
-/* 130 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getEventTarget
 	 * @typechecks static-only
@@ -23672,23 +23555,16 @@
 
 
 /***/ },
-/* 131 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule emptyObject
 	 */
@@ -23703,84 +23579,95 @@
 
 	module.exports = emptyObject;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
+
+/***/ },
+/* 131 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactNativeComponent
+	 */
+
+	"use strict";
+
+	var assign = __webpack_require__(50);
+	var invariant = __webpack_require__(61);
+
+	var genericComponentClass = null;
+	// This registry keeps track of wrapper classes around native tags
+	var tagToComponentClass = {};
+
+	var ReactNativeComponentInjection = {
+	  // This accepts a class that receives the tag string. This is a catch all
+	  // that can render any kind of tag.
+	  injectGenericComponentClass: function(componentClass) {
+	    genericComponentClass = componentClass;
+	  },
+	  // This accepts a keyed object with classes as values. Each key represents a
+	  // tag. That particular tag will use this class instead of the generic one.
+	  injectComponentClasses: function(componentClasses) {
+	    assign(tagToComponentClass, componentClasses);
+	  }
+	};
+
+	/**
+	 * Create an internal class for a specific tag.
+	 *
+	 * @param {string} tag The tag for which to create an internal instance.
+	 * @param {any} props The props passed to the instance constructor.
+	 * @return {ReactComponent} component The injected empty component.
+	 */
+	function createInstanceForTag(tag, props, parentType) {
+	  var componentClass = tagToComponentClass[tag];
+	  if (componentClass == null) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      genericComponentClass,
+	      'There is no registered component for the tag %s',
+	      tag
+	    ) : invariant(genericComponentClass));
+	    return new genericComponentClass(tag, props);
+	  }
+	  if (parentType === tag) {
+	    // Avoid recursion
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      genericComponentClass,
+	      'There is no registered component for the tag %s',
+	      tag
+	    ) : invariant(genericComponentClass));
+	    return new genericComponentClass(tag, props);
+	  }
+	  // Unwrap legacy factories
+	  return new componentClass.type(props);
+	}
+
+	var ReactNativeComponent = {
+	  createInstanceForTag: createInstanceForTag,
+	  injection: ReactNativeComponentInjection,
+	};
+
+	module.exports = ReactNativeComponent;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
 /* 132 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule SyntheticInputEvent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var SyntheticEvent = __webpack_require__(65);
-
-	/**
-	 * @interface Event
-	 * @see http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105
-	 *      /#events-inputevents
-	 */
-	var InputEventInterface = {
-	  data: null
-	};
-
-	/**
-	 * @param {object} dispatchConfig Configuration used to dispatch this event.
-	 * @param {string} dispatchMarker Marker identifying the event target.
-	 * @param {object} nativeEvent Native browser event.
-	 * @extends {SyntheticUIEvent}
-	 */
-	function SyntheticInputEvent(
-	  dispatchConfig,
-	  dispatchMarker,
-	  nativeEvent) {
-	  SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
-	}
-
-	SyntheticEvent.augmentClass(
-	  SyntheticInputEvent,
-	  InputEventInterface
-	);
-
-	module.exports = SyntheticInputEvent;
-
-
-
-/***/ },
-/* 133 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule CSSProperty
 	 */
@@ -23891,23 +23778,62 @@
 
 
 /***/ },
+/* 133 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule camelizeStyleName
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var camelize = __webpack_require__(162);
+
+	var msPattern = /^-ms-/;
+
+	/**
+	 * Camelcases a hyphenated CSS property name, for example:
+	 *
+	 *   > camelizeStyleName('background-color')
+	 *   < "backgroundColor"
+	 *   > camelizeStyleName('-moz-transition')
+	 *   < "MozTransition"
+	 *   > camelizeStyleName('-ms-transition')
+	 *   < "msTransition"
+	 *
+	 * As Andi Smith suggests
+	 * (http://www.andismith.com/blog/2012/02/modernizr-prefixed/), an `-ms` prefix
+	 * is converted to lowercase `ms`.
+	 *
+	 * @param {string} string
+	 * @return {string}
+	 */
+	function camelizeStyleName(string) {
+	  return camelize(string.replace(msPattern, 'ms-'));
+	}
+
+	module.exports = camelizeStyleName;
+
+
+/***/ },
 /* 134 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule dangerousStyleValue
 	 * @typechecks static-only
@@ -23915,7 +23841,7 @@
 
 	"use strict";
 
-	var CSSProperty = __webpack_require__(133);
+	var CSSProperty = __webpack_require__(132);
 
 	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
 
@@ -23964,19 +23890,12 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule hyphenateStyleName
 	 * @typechecks
@@ -23984,18 +23903,18 @@
 
 	"use strict";
 
-	var hyphenate = __webpack_require__(160);
+	var hyphenate = __webpack_require__(163);
 
 	var msPattern = /^ms-/;
 
 	/**
 	 * Hyphenates a camelcased CSS property name, for example:
 	 *
-	 *   > hyphenate('backgroundColor')
+	 *   > hyphenateStyleName('backgroundColor')
 	 *   < "background-color"
-	 *   > hyphenate('MozTransition')
+	 *   > hyphenateStyleName('MozTransition')
 	 *   < "-moz-transition"
-	 *   > hyphenate('msTransition')
+	 *   > hyphenateStyleName('msTransition')
 	 *   < "-ms-transition"
 	 *
 	 * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
@@ -24016,19 +23935,63 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013 Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule SyntheticInputEvent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var SyntheticEvent = __webpack_require__(72);
+
+	/**
+	 * @interface Event
+	 * @see http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105
+	 *      /#events-inputevents
+	 */
+	var InputEventInterface = {
+	  data: null
+	};
+
+	/**
+	 * @param {object} dispatchConfig Configuration used to dispatch this event.
+	 * @param {string} dispatchMarker Marker identifying the event target.
+	 * @param {object} nativeEvent Native browser event.
+	 * @extends {SyntheticUIEvent}
+	 */
+	function SyntheticInputEvent(
+	  dispatchConfig,
+	  dispatchMarker,
+	  nativeEvent) {
+	  SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
+	}
+
+	SyntheticEvent.augmentClass(
+	  SyntheticInputEvent,
+	  InputEventInterface
+	);
+
+	module.exports = SyntheticInputEvent;
+
+
+
+/***/ },
+/* 137 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule isTextInputElement
 	 */
@@ -24067,34 +24030,27 @@
 
 
 /***/ },
-/* 137 */
+/* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactInputSelection
 	 */
 
 	"use strict";
 
-	var ReactDOMSelection = __webpack_require__(161);
+	var ReactDOMSelection = __webpack_require__(164);
 
-	var containsNode = __webpack_require__(111);
-	var focusNode = __webpack_require__(162);
-	var getActiveElement = __webpack_require__(149);
+	var containsNode = __webpack_require__(114);
+	var focusNode = __webpack_require__(165);
+	var getActiveElement = __webpack_require__(150);
 
 	function isInDocument(node) {
 	  return containsNode(document.documentElement, node);
@@ -24214,23 +24170,16 @@
 
 
 /***/ },
-/* 138 */
+/* 139 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticCompositionEvent
 	 * @typechecks static-only
@@ -24238,7 +24187,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(65);
+	var SyntheticEvent = __webpack_require__(72);
 
 	/**
 	 * @interface Event
@@ -24271,30 +24220,23 @@
 
 
 /***/ },
-/* 139 */
+/* 140 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getTextContentAccessor
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
 	var contentKey = null;
 
@@ -24319,23 +24261,16 @@
 
 
 /***/ },
-/* 140 */
+/* 141 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticMouseEvent
 	 * @typechecks static-only
@@ -24343,10 +24278,10 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
-	var ViewportMetrics = __webpack_require__(126);
+	var SyntheticUIEvent = __webpack_require__(156);
+	var ViewportMetrics = __webpack_require__(128);
 
-	var getEventModifierState = __webpack_require__(163);
+	var getEventModifierState = __webpack_require__(166);
 
 	/**
 	 * @interface MouseEvent
@@ -24413,23 +24348,16 @@
 
 
 /***/ },
-/* 141 */
+/* 142 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMIDOperations
 	 * @typechecks static-only
@@ -24439,14 +24367,14 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(84);
-	var DOMChildrenOperations = __webpack_require__(164);
-	var DOMPropertyOperations = __webpack_require__(26);
-	var ReactMount = __webpack_require__(38);
-	var ReactPerf = __webpack_require__(40);
+	var CSSPropertyOperations = __webpack_require__(86);
+	var DOMChildrenOperations = __webpack_require__(167);
+	var DOMPropertyOperations = __webpack_require__(30);
+	var ReactMount = __webpack_require__(44);
+	var ReactPerf = __webpack_require__(46);
 
-	var invariant = __webpack_require__(55);
-	var setInnerHTML = __webpack_require__(143);
+	var invariant = __webpack_require__(61);
+	var setInnerHTML = __webpack_require__(144);
 
 	/**
 	 * Errors for properties that should not be updated with `updatePropertyById()`.
@@ -24606,26 +24534,19 @@
 
 	module.exports = ReactDOMIDOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 142 */
+/* 143 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactReconcileTransaction
 	 * @typechecks static-only
@@ -24633,14 +24554,14 @@
 
 	"use strict";
 
-	var CallbackQueue = __webpack_require__(128);
-	var PooledClass = __webpack_require__(68);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
-	var ReactInputSelection = __webpack_require__(137);
-	var ReactPutListenerQueue = __webpack_require__(158);
-	var Transaction = __webpack_require__(129);
+	var CallbackQueue = __webpack_require__(58);
+	var PooledClass = __webpack_require__(59);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
+	var ReactInputSelection = __webpack_require__(138);
+	var ReactPutListenerQueue = __webpack_require__(161);
+	var Transaction = __webpack_require__(60);
 
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
 
 	/**
 	 * Ensures that, when possible, the selection range (currently selected text
@@ -24788,8 +24709,7 @@
 	};
 
 
-	mixInto(ReactReconcileTransaction, Transaction.Mixin);
-	mixInto(ReactReconcileTransaction, Mixin);
+	assign(ReactReconcileTransaction.prototype, Transaction.Mixin, Mixin);
 
 	PooledClass.addPoolingTo(ReactReconcileTransaction);
 
@@ -24797,30 +24717,26 @@
 
 
 /***/ },
-/* 143 */
+/* 144 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule setInnerHTML
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
+
+	var WHITESPACE_TEST = /^[ \r\n\t\f]/;
+	var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
 
 	/**
 	 * Set the innerHTML property of a node, ensuring that whitespace is preserved
@@ -24858,13 +24774,8 @@
 	      // thin air on IE8, this only happens if there is no visible text
 	      // in-front of the non-visible tags. Piggyback on the whitespace fix
 	      // and simply check if any non-visible tags appear in the source.
-	      if (html.match(/^[ \r\n\t\f]/) ||
-	          html[0] === '<' && (
-	            html.indexOf('<noscript') !== -1 ||
-	            html.indexOf('<script') !== -1 ||
-	            html.indexOf('<style') !== -1 ||
-	            html.indexOf('<meta') !== -1 ||
-	            html.indexOf('<link') !== -1)) {
+	      if (WHITESPACE_TEST.test(html) ||
+	          html[0] === '<' && NONVISIBLE_TEST.test(html)) {
 	        // Recover leading whitespace by temporarily prepending any character.
 	        // \uFEFF has the potential advantage of being zero-width/invisible.
 	        node.innerHTML = '\uFEFF' + html;
@@ -24888,23 +24799,16 @@
 
 
 /***/ },
-/* 144 */
+/* 145 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule AutoFocusMixin
 	 * @typechecks static-only
@@ -24912,7 +24816,7 @@
 
 	"use strict";
 
-	var focusNode = __webpack_require__(162);
+	var focusNode = __webpack_require__(165);
 
 	var AutoFocusMixin = {
 	  componentDidMount: function() {
@@ -24926,34 +24830,27 @@
 
 
 /***/ },
-/* 145 */
+/* 146 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule LocalEventTrapMixin
 	 */
 
 	"use strict";
 
-	var ReactBrowserEventEmitter = __webpack_require__(63);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
 
-	var accumulate = __webpack_require__(121);
-	var forEachAccumulated = __webpack_require__(122);
-	var invariant = __webpack_require__(55);
+	var accumulateInto = __webpack_require__(125);
+	var forEachAccumulated = __webpack_require__(126);
+	var invariant = __webpack_require__(61);
 
 	function remove(event) {
 	  event.remove();
@@ -24967,7 +24864,8 @@
 	      handlerBaseName,
 	      this.getDOMNode()
 	    );
-	    this._localEventListeners = accumulate(this._localEventListeners, listener);
+	    this._localEventListeners =
+	      accumulateInto(this._localEventListeners, listener);
 	  },
 
 	  // trapCapturedEvent would look nearly identical. We don't implement that
@@ -24982,26 +24880,19 @@
 
 	module.exports = LocalEventTrapMixin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 146 */
+/* 147 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule LinkedValueUtils
 	 * @typechecks static-only
@@ -25009,9 +24900,9 @@
 
 	"use strict";
 
-	var ReactPropTypes = __webpack_require__(41);
+	var ReactPropTypes = __webpack_require__(47);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	var hasReadOnlyValue = {
 	  'button': true,
@@ -25148,18 +25039,32 @@
 
 	module.exports = LinkedValueUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 147 */
+/* 148 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
 	 * @providesModule EventListener
 	 * @typechecks
 	 */
 
-	var emptyFunction = __webpack_require__(50);
+	var emptyFunction = __webpack_require__(57);
 
 	/**
 	 * Upstream version of event listener. Does not take into account specific
@@ -25227,26 +25132,19 @@
 
 	module.exports = EventListener;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 148 */
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getUnboundedScrollPosition
 	 * @typechecks
@@ -25281,23 +25179,16 @@
 
 
 /***/ },
-/* 149 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getActiveElement
 	 * @typechecks
@@ -25321,23 +25212,16 @@
 
 
 /***/ },
-/* 150 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticClipboardEvent
 	 * @typechecks static-only
@@ -25345,7 +25229,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(65);
+	var SyntheticEvent = __webpack_require__(72);
 
 	/**
 	 * @interface Event
@@ -25378,23 +25262,16 @@
 
 
 /***/ },
-/* 151 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticFocusEvent
 	 * @typechecks static-only
@@ -25402,7 +25279,7 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(156);
 
 	/**
 	 * @interface FocusEvent
@@ -25428,23 +25305,16 @@
 
 
 /***/ },
-/* 152 */
+/* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticKeyboardEvent
 	 * @typechecks static-only
@@ -25452,10 +25322,11 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(156);
 
-	var getEventKey = __webpack_require__(165);
-	var getEventModifierState = __webpack_require__(163);
+	var getEventCharCode = __webpack_require__(158);
+	var getEventKey = __webpack_require__(168);
+	var getEventModifierState = __webpack_require__(166);
 
 	/**
 	 * @interface KeyboardEvent
@@ -25476,11 +25347,10 @@
 	    // `charCode` is the result of a KeyPress event and represents the value of
 	    // the actual printable character.
 
-	    // KeyPress is deprecated but its replacement is not yet final and not
-	    // implemented in any major browser.
+	    // KeyPress is deprecated, but its replacement is not yet final and not
+	    // implemented in any major browser. Only KeyPress has charCode.
 	    if (event.type === 'keypress') {
-	      // IE8 does not implement "charCode", but "keyCode" has the correct value.
-	      return 'charCode' in event ? event.charCode : event.keyCode;
+	      return getEventCharCode(event);
 	    }
 	    return 0;
 	  },
@@ -25499,9 +25369,14 @@
 	  },
 	  which: function(event) {
 	    // `which` is an alias for either `keyCode` or `charCode` depending on the
-	    // type of the event. There is no need to determine the type of the event
-	    // as `keyCode` and `charCode` are either aliased or default to zero.
-	    return event.keyCode || event.charCode;
+	    // type of the event.
+	    if (event.type === 'keypress') {
+	      return getEventCharCode(event);
+	    }
+	    if (event.type === 'keydown' || event.type === 'keyup') {
+	      return event.keyCode;
+	    }
+	    return 0;
 	  }
 	};
 
@@ -25521,23 +25396,16 @@
 
 
 /***/ },
-/* 153 */
+/* 154 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticDragEvent
 	 * @typechecks static-only
@@ -25545,7 +25413,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var SyntheticMouseEvent = __webpack_require__(141);
 
 	/**
 	 * @interface DragEvent
@@ -25571,23 +25439,16 @@
 
 
 /***/ },
-/* 154 */
+/* 155 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticTouchEvent
 	 * @typechecks static-only
@@ -25595,9 +25456,9 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(156);
 
-	var getEventModifierState = __webpack_require__(163);
+	var getEventModifierState = __webpack_require__(166);
 
 	/**
 	 * @interface TouchEvent
@@ -25630,23 +25491,16 @@
 
 
 /***/ },
-/* 155 */
+/* 156 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticUIEvent
 	 * @typechecks static-only
@@ -25654,9 +25508,9 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(65);
+	var SyntheticEvent = __webpack_require__(72);
 
-	var getEventTarget = __webpack_require__(130);
+	var getEventTarget = __webpack_require__(129);
 
 	/**
 	 * @interface UIEvent
@@ -25703,23 +25557,16 @@
 
 
 /***/ },
-/* 156 */
+/* 157 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule SyntheticWheelEvent
 	 * @typechecks static-only
@@ -25727,7 +25574,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var SyntheticMouseEvent = __webpack_require__(141);
 
 	/**
 	 * @interface WheelEvent
@@ -25775,29 +25622,78 @@
 
 
 /***/ },
-/* 157 */
+/* 158 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule getEventCharCode
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	/**
+	 * `charCode` represents the actual "character code" and is safe to use with
+	 * `String.fromCharCode`. As such, only keys that correspond to printable
+	 * characters produce a valid `charCode`, the only exception to this is Enter.
+	 * The Tab-key is considered non-printable and does not have a `charCode`,
+	 * presumably because it does not produce a tab-character in browsers.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * @param {object} nativeEvent Native browser event.
+	 * @return {string} Normalized `charCode` property.
+	 */
+	function getEventCharCode(nativeEvent) {
+	  var charCode;
+	  var keyCode = nativeEvent.keyCode;
+
+	  if ('charCode' in nativeEvent) {
+	    charCode = nativeEvent.charCode;
+
+	    // FF does not set `charCode` for the Enter-key, check against `keyCode`.
+	    if (charCode === 0 && keyCode === 13) {
+	      charCode = 13;
+	    }
+	  } else {
+	    // IE8 does not implement `charCode`, but `keyCode` has the correct value.
+	    charCode = keyCode;
+	  }
+
+	  // Some non-printable keys are reported in `charCode`/`keyCode`, discard them.
+	  // Must not discard the (non-)printable Enter-key.
+	  if (charCode >= 32 || charCode === 13) {
+	    return charCode;
+	  }
+
+	  return 0;
+	}
+
+	module.exports = getEventCharCode;
+
+
+/***/ },
+/* 159 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule isTextNode
 	 * @typechecks
 	 */
 
-	var isNode = __webpack_require__(166);
+	var isNode = __webpack_require__(169);
 
 	/**
 	 * @param {*} object The object to check.
@@ -25811,39 +25707,70 @@
 
 
 /***/ },
-/* 158 */
+/* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 * @providesModule adler32
+	 */
+
+	/* jslint bitwise:true */
+
+	"use strict";
+
+	var MOD = 65521;
+
+	// This is a clean-room implementation of adler32 designed for detecting
+	// if markup is not what we expect it to be. It does not need to be
+	// cryptographically strong, only reasonably good at detecting if markup
+	// generated on the server is different than that on the client.
+	function adler32(data) {
+	  var a = 1;
+	  var b = 0;
+	  for (var i = 0; i < data.length; i++) {
+	    a = (a + data.charCodeAt(i)) % MOD;
+	    b = (b + a) % MOD;
+	  }
+	  return a | (b << 16);
+	}
+
+	module.exports = adler32;
+
+
+/***/ },
+/* 161 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactPutListenerQueue
 	 */
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(68);
-	var ReactBrowserEventEmitter = __webpack_require__(63);
+	var PooledClass = __webpack_require__(59);
+	var ReactBrowserEventEmitter = __webpack_require__(71);
 
-	var mixInto = __webpack_require__(80);
+	var assign = __webpack_require__(50);
 
 	function ReactPutListenerQueue() {
 	  this.listenersToPut = [];
 	}
 
-	mixInto(ReactPutListenerQueue, {
+	assign(ReactPutListenerQueue.prototype, {
 	  enqueuePutListener: function(rootNodeID, propKey, propValue) {
 	    this.listenersToPut.push({
 	      rootNodeID: rootNodeID,
@@ -25878,68 +25805,52 @@
 
 
 /***/ },
-/* 159 */
+/* 162 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule adler32
+	 * @providesModule camelize
+	 * @typechecks
 	 */
 
-	/* jslint bitwise:true */
+	var _hyphenPattern = /-(.)/g;
 
-	"use strict";
-
-	var MOD = 65521;
-
-	// This is a clean-room implementation of adler32 designed for detecting
-	// if markup is not what we expect it to be. It does not need to be
-	// cryptographically strong, only reasonable good at detecting if markup
-	// generated on the server is different than that on the client.
-	function adler32(data) {
-	  var a = 1;
-	  var b = 0;
-	  for (var i = 0; i < data.length; i++) {
-	    a = (a + data.charCodeAt(i)) % MOD;
-	    b = (b + a) % MOD;
-	  }
-	  return a | (b << 16);
+	/**
+	 * Camelcases a hyphenated string, for example:
+	 *
+	 *   > camelize('background-color')
+	 *   < "backgroundColor"
+	 *
+	 * @param {string} string
+	 * @return {string}
+	 */
+	function camelize(string) {
+	  return string.replace(_hyphenPattern, function(_, character) {
+	    return character.toUpperCase();
+	  });
 	}
 
-	module.exports = adler32;
+	module.exports = camelize;
 
 
 /***/ },
-/* 160 */
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule hyphenate
 	 * @typechecks
@@ -25967,33 +25878,26 @@
 
 
 /***/ },
-/* 161 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule ReactDOMSelection
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
-	var getNodeForCharacterOffset = __webpack_require__(168);
-	var getTextContentAccessor = __webpack_require__(139);
+	var getNodeForCharacterOffset = __webpack_require__(170);
+	var getTextContentAccessor = __webpack_require__(140);
 
 	/**
 	 * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -26042,9 +25946,9 @@
 	 * @return {?object}
 	 */
 	function getModernOffsets(node) {
-	  var selection = window.getSelection();
+	  var selection = window.getSelection && window.getSelection();
 
-	  if (selection.rangeCount === 0) {
+	  if (!selection || selection.rangeCount === 0) {
 	    return null;
 	  }
 
@@ -26086,7 +25990,6 @@
 	  detectionRange.setStart(anchorNode, anchorOffset);
 	  detectionRange.setEnd(focusNode, focusOffset);
 	  var isBackward = detectionRange.collapsed;
-	  detectionRange.detach();
 
 	  return {
 	    start: isBackward ? end : start,
@@ -26133,8 +26036,11 @@
 	 * @param {object} offsets
 	 */
 	function setModernOffsets(node, offsets) {
-	  var selection = window.getSelection();
+	  if (!window.getSelection) {
+	    return;
+	  }
 
+	  var selection = window.getSelection();
 	  var length = node[getTextContentAccessor()].length;
 	  var start = Math.min(offsets.start, length);
 	  var end = typeof offsets.end === 'undefined' ?
@@ -26163,8 +26069,6 @@
 	      range.setEnd(endMarker.node, endMarker.offset);
 	      selection.addRange(range);
 	    }
-
-	    range.detach();
 	  }
 	}
 
@@ -26187,23 +26091,16 @@
 
 
 /***/ },
-/* 162 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule focusNode
 	 */
@@ -26211,14 +26108,15 @@
 	"use strict";
 
 	/**
-	 * IE8 throws if an input/textarea is disabled and we try to focus it.
-	 * Focus only when necessary.
-	 *
 	 * @param {DOMElement} node input/textarea to focus
 	 */
 	function focusNode(node) {
-	  if (!node.disabled) {
+	  // IE8 can throw "Can't move focus to the control because it is invisible,
+	  // not enabled, or of a type that does not accept the focus." for all kinds of
+	  // reasons that are too expensive and fragile to test.
+	  try {
 	    node.focus();
+	  } catch(e) {
 	  }
 	}
 
@@ -26226,23 +26124,16 @@
 
 
 /***/ },
-/* 163 */
+/* 166 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013 Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getEventModifierState
 	 * @typechecks static-only
@@ -26284,23 +26175,16 @@
 
 
 /***/ },
-/* 164 */
+/* 167 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule DOMChildrenOperations
 	 * @typechecks static-only
@@ -26308,11 +26192,11 @@
 
 	"use strict";
 
-	var Danger = __webpack_require__(167);
-	var ReactMultiChildUpdateTypes = __webpack_require__(113);
+	var Danger = __webpack_require__(171);
+	var ReactMultiChildUpdateTypes = __webpack_require__(116);
 
-	var getTextContentAccessor = __webpack_require__(139);
-	var invariant = __webpack_require__(55);
+	var getTextContentAccessor = __webpack_require__(140);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * The DOM property to use when setting text content.
@@ -26408,9 +26292,9 @@
 	          'processUpdates(): Unable to find child %s of element. This ' +
 	          'probably means the DOM was unexpectedly mutated (e.g., by the ' +
 	          'browser), usually due to forgetting a <tbody> when using tables, ' +
-	          'nesting <p> or <a> tags, or using non-SVG elements in an <svg> '+
-	          'parent. Try inspecting the child nodes of the element with React ' +
-	          'ID `%s`.',
+	          'nesting tags like <form>, <p>, or <a>, or using non-SVG elements '+
+	          'in an <svg> parent. Try inspecting the child nodes of the element ' +
+	          'with React ID `%s`.',
 	          updatedIndex,
 	          parentID
 	        ) : invariant(updatedChild));
@@ -26466,26 +26350,19 @@
 
 	module.exports = DOMChildrenOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 165 */
+/* 168 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getEventKey
 	 * @typechecks static-only
@@ -26493,7 +26370,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(55);
+	var getEventCharCode = __webpack_require__(158);
 
 	/**
 	 * Normalization of deprecated HTML5 `key` values
@@ -26515,7 +26392,7 @@
 	};
 
 	/**
-	 * Translation from legacy `which`/`keyCode` to HTML5 `key`
+	 * Translation from legacy `keyCode` to HTML5 `key`
 	 * Only special keys supported, all others depend on keyboard layout or browser
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names
 	 */
@@ -26567,11 +26444,7 @@
 
 	  // Browser does not implement `key`, polyfill as much of it as we can.
 	  if (nativeEvent.type === 'keypress') {
-	    // Create the character from the `charCode` ourselves and use as an almost
-	    // perfect replacement.
-	    var charCode = 'charCode' in nativeEvent ?
-	      nativeEvent.charCode :
-	      nativeEvent.keyCode;
+	    var charCode = getEventCharCode(nativeEvent);
 
 	    // The enter-key is technically both printable and non-printable and can
 	    // thus be captured by `keypress`, no other non-printable key should.
@@ -26582,32 +26455,23 @@
 	    // `keyCode` value, almost all function keys have a universal value.
 	    return translateToKey[nativeEvent.keyCode] || 'Unidentified';
 	  }
-
-	  ("production" !== process.env.NODE_ENV ? invariant(false, "Unexpected keyboard event type: %s", nativeEvent.type) : invariant(false));
+	  return '';
 	}
 
 	module.exports = getEventKey;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+
 
 /***/ },
-/* 166 */
+/* 169 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule isNode
 	 * @typechecks
@@ -26630,23 +26494,95 @@
 
 
 /***/ },
-/* 167 */
+/* 170 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule getNodeForCharacterOffset
+	 */
+
+	"use strict";
+
+	/**
+	 * Given any node return the first leaf node without children.
+	 *
+	 * @param {DOMElement|DOMTextNode} node
+	 * @return {DOMElement|DOMTextNode}
+	 */
+	function getLeafNode(node) {
+	  while (node && node.firstChild) {
+	    node = node.firstChild;
+	  }
+	  return node;
+	}
+
+	/**
+	 * Get the next sibling within a container. This will walk up the
+	 * DOM if a node's siblings have been exhausted.
+	 *
+	 * @param {DOMElement|DOMTextNode} node
+	 * @return {?DOMElement|DOMTextNode}
+	 */
+	function getSiblingNode(node) {
+	  while (node) {
+	    if (node.nextSibling) {
+	      return node.nextSibling;
+	    }
+	    node = node.parentNode;
+	  }
+	}
+
+	/**
+	 * Get object describing the nodes which contain characters at offset.
+	 *
+	 * @param {DOMElement|DOMTextNode} root
+	 * @param {number} offset
+	 * @return {?object}
+	 */
+	function getNodeForCharacterOffset(root, offset) {
+	  var node = getLeafNode(root);
+	  var nodeStart = 0;
+	  var nodeEnd = 0;
+
+	  while (node) {
+	    if (node.nodeType == 3) {
+	      nodeEnd = nodeStart + node.textContent.length;
+
+	      if (nodeStart <= offset && nodeEnd >= offset) {
+	        return {
+	          node: node,
+	          offset: offset - nodeStart
+	        };
+	      }
+
+	      nodeStart = nodeEnd;
+	    }
+
+	    node = getLeafNode(getSiblingNode(node));
+	  }
+	}
+
+	module.exports = getNodeForCharacterOffset;
+
+
+/***/ },
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule Danger
 	 * @typechecks static-only
@@ -26656,12 +26592,12 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
-	var createNodesFromMarkup = __webpack_require__(169);
-	var emptyFunction = __webpack_require__(50);
-	var getMarkupWrap = __webpack_require__(170);
-	var invariant = __webpack_require__(55);
+	var createNodesFromMarkup = __webpack_require__(172);
+	var emptyFunction = __webpack_require__(57);
+	var getMarkupWrap = __webpack_require__(173);
+	var invariant = __webpack_require__(61);
 
 	var OPEN_TAG_NAME_EXP = /^(<[^ \/>]+)/;
 	var RESULT_INDEX_ATTR = 'data-danger-index';
@@ -26695,9 +26631,10 @@
 	  dangerouslyRenderMarkup: function(markupList) {
 	    ("production" !== process.env.NODE_ENV ? invariant(
 	      ExecutionEnvironment.canUseDOM,
-	      'dangerouslyRenderMarkup(...): Cannot render markup in a Worker ' +
-	      'thread. This is likely a bug in the framework. Please report ' +
-	      'immediately.'
+	      'dangerouslyRenderMarkup(...): Cannot render markup in a worker ' +
+	      'thread. Make sure `window` and `document` are available globally ' +
+	      'before requiring React when unit testing or use ' +
+	      'React.renderToString for server rendering.'
 	    ) : invariant(ExecutionEnvironment.canUseDOM));
 	    var nodeName;
 	    var markupByNodeName = {};
@@ -26801,8 +26738,9 @@
 	    ("production" !== process.env.NODE_ENV ? invariant(
 	      ExecutionEnvironment.canUseDOM,
 	      'dangerouslyReplaceNodeWithMarkup(...): Cannot render markup in a ' +
-	      'worker thread. This is likely a bug in the framework. Please report ' +
-	      'immediately.'
+	      'worker thread. Make sure `window` and `document` are available ' +
+	      'globally before requiring React when unit testing or use ' +
+	      'React.renderToString for server rendering.'
 	    ) : invariant(ExecutionEnvironment.canUseDOM));
 	    ("production" !== process.env.NODE_ENV ? invariant(markup, 'dangerouslyReplaceNodeWithMarkup(...): Missing markup.') : invariant(markup));
 	    ("production" !== process.env.NODE_ENV ? invariant(
@@ -26821,112 +26759,19 @@
 
 	module.exports = Danger;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 168 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule getNodeForCharacterOffset
-	 */
-
-	"use strict";
-
-	/**
-	 * Given any node return the first leaf node without children.
-	 *
-	 * @param {DOMElement|DOMTextNode} node
-	 * @return {DOMElement|DOMTextNode}
-	 */
-	function getLeafNode(node) {
-	  while (node && node.firstChild) {
-	    node = node.firstChild;
-	  }
-	  return node;
-	}
-
-	/**
-	 * Get the next sibling within a container. This will walk up the
-	 * DOM if a node's siblings have been exhausted.
-	 *
-	 * @param {DOMElement|DOMTextNode} node
-	 * @return {?DOMElement|DOMTextNode}
-	 */
-	function getSiblingNode(node) {
-	  while (node) {
-	    if (node.nextSibling) {
-	      return node.nextSibling;
-	    }
-	    node = node.parentNode;
-	  }
-	}
-
-	/**
-	 * Get object describing the nodes which contain characters at offset.
-	 *
-	 * @param {DOMElement|DOMTextNode} root
-	 * @param {number} offset
-	 * @return {?object}
-	 */
-	function getNodeForCharacterOffset(root, offset) {
-	  var node = getLeafNode(root);
-	  var nodeStart = 0;
-	  var nodeEnd = 0;
-
-	  while (node) {
-	    if (node.nodeType == 3) {
-	      nodeEnd = nodeStart + node.textContent.length;
-
-	      if (nodeStart <= offset && nodeEnd >= offset) {
-	        return {
-	          node: node,
-	          offset: offset - nodeStart
-	        };
-	      }
-
-	      nodeStart = nodeEnd;
-	    }
-
-	    node = getLeafNode(getSiblingNode(node));
-	  }
-	}
-
-	module.exports = getNodeForCharacterOffset;
-
-
-/***/ },
-/* 169 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule createNodesFromMarkup
 	 * @typechecks
@@ -26934,11 +26779,11 @@
 
 	/*jslint evil: true, sub: true */
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
-	var createArrayFrom = __webpack_require__(171);
-	var getMarkupWrap = __webpack_require__(170);
-	var invariant = __webpack_require__(55);
+	var createArrayFrom = __webpack_require__(174);
+	var getMarkupWrap = __webpack_require__(173);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Dummy container used to render all markup.
@@ -27007,33 +26852,26 @@
 
 	module.exports = createNodesFromMarkup;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 170 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule getMarkupWrap
 	 */
 
-	var ExecutionEnvironment = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(53);
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Dummy container used to detect which wraps are necessary.
@@ -27134,32 +26972,25 @@
 
 	module.exports = getMarkupWrap;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ },
-/* 171 */
+/* 174 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-2014 Facebook, Inc.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule createArrayFrom
 	 * @typechecks
 	 */
 
-	var toArray = __webpack_require__(172);
+	var toArray = __webpack_require__(175);
 
 	/**
 	 * Perform a heuristic test to determine if an object is "array-like".
@@ -27234,29 +27065,22 @@
 
 
 /***/ },
-/* 172 */
+/* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014 Facebook, Inc.
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @providesModule toArray
 	 * @typechecks
 	 */
 
-	var invariant = __webpack_require__(55);
+	var invariant = __webpack_require__(61);
 
 	/**
 	 * Convert array-like objects to arrays.
@@ -27313,7 +27137,7 @@
 
 	module.exports = toArray;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(24)))
 
 /***/ }
 /******/ ])
