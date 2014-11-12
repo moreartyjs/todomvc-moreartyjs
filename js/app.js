@@ -17,12 +17,7 @@ var state = {
   }]
 };
 
-var Ctx = Morearty.createContext(
-  state, {},
-  { // configuration
-    requestAnimationFrameEnabled: true
-  }
-);
+var Ctx = Morearty.createContext(state);
 
 var Bootstrap = React.createClass({
   displayName: 'AppRoot',
