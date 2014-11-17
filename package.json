@@ -1,6 +1,6 @@
 {
   "name": "todomvc-moreartyjs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Moreartyjs demo app with react hot reload",
   "main": "index.js",
   "scripts": {

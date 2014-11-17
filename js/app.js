@@ -19,20 +19,6 @@ var state = {
 
 var Ctx = Morearty.createContext(state);
 
-var Bootstrap = React.createClass({
-  displayName: 'AppRoot',
-
-  componentWillMount: function () {
-    Ctx.init(this);
-  },
-
-  render: function () {
-    return React.withContext({ morearty: Ctx }, function () { // pass Morearty context downside
-      return <App binding={ Ctx.getBinding() } />;            // your App component
-    });
-  }
-});
-
 var App = React.createClass({
   displayName: 'App',
 
@@ -258,6 +244,8 @@ var Footer = React.createClass({
     );
   }
 });
+
+var Bootstrap = Ctx.bootstrap(App);
 
 React.render(
   <Bootstrap />,
