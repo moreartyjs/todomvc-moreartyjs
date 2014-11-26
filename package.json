@@ -25,7 +25,7 @@
   "homepage": "https://github.com/moreartyjs/todomvc-moreartyjs",
   "dependencies": {
     "director": "^1.2.3",
-    "immutable": "^3.0.x",
+    "immutable": "~3.2.x",
     "morearty": "^0.7.x",
     "react": "^0.12.x"
   },
