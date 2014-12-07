@@ -6,7 +6,7 @@ module.exports = {
   entry: [
     'webpack-dev-server/client?http://localhost:3000',
     'webpack/hot/only-dev-server',
-    './js/app'
+    './js/bootstrap'
   ],
   output: {
     path: __dirname,
@@ -18,11 +18,12 @@ module.exports = {
     new webpack.NoErrorsPlugin()
   ],
   resolve: {
-    extensions: ['', '.js']
+    extensions: ['', '.js', '.jsx']
   },
   module: {
     loaders: [
-      { test: /\.js$/, loaders: ['react-hot', 'jsx'] },
+      { test: /\.js$/, loaders: ['react-hot'] },
+      { test: /\.jsx$/, loaders: ['react-hot', 'jsx'] }
     ]
   }
 };

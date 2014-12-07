@@ -5,13 +5,14 @@ var Immutable = require('immutable');
 
 var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 var currentId = 2;
+var Bootstrap;
 
 // initial state
 var state = {
   nowShowing: 'all',
   items: [{
     id: 1,
-    title: 'My first task',
+    title: 'My first task sdfsddfgs',
     completed: false,
     editing: false
   }]
@@ -245,9 +246,7 @@ var Footer = React.createClass({
   }
 });
 
-var Bootstrap = Ctx.bootstrap(App);
-
-React.render(
-  <Bootstrap />,
-  document.getElementById('root')
-);
+module.exports = {
+  Ctx: Ctx,
+  App: App
+};
