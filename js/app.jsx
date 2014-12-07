@@ -12,7 +12,7 @@ var state = {
   nowShowing: 'all',
   items: [{
     id: 1,
-    title: 'My first task sdfsddfgs',
+    title: 'My first task',
     completed: false,
     editing: false
   }]
