@@ -51,10 +51,26 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Morearty = __webpack_require__(2);
-	var React = window.React = __webpack_require__(3);
-	var Router = __webpack_require__(4).Router;
-	var Immutable = __webpack_require__(5);
+	var React = __webpack_require__(3);
+	var app = __webpack_require__(2);
+	var App = app.App, Ctx = app.Ctx;
+
+	var Bootstrap = React.createFactory(Ctx.bootstrap(App));
+
+	React.render(
+	  Bootstrap(),
+	  document.getElementById('root')
+	);
+
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Morearty = __webpack_require__(6);
+	var React = window.React = __webpack_require__(4);
+	var Router = __webpack_require__(8).Router;
+	var Immutable = __webpack_require__(9);
 
 	var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 	var currentId = 2;
@@ -306,21 +322,276 @@
 
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(6);
+	module.exports = __webpack_require__(5);
 
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(7);
 
 
 /***/ },
-/* 4 */
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule React
+	 */
+
+	"use strict";
+
+	var DOMPropertyOperations = __webpack_require__(10);
+	var EventPluginUtils = __webpack_require__(11);
+	var ReactChildren = __webpack_require__(12);
+	var ReactComponent = __webpack_require__(13);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactContext = __webpack_require__(15);
+	var ReactCurrentOwner = __webpack_require__(16);
+	var ReactElement = __webpack_require__(17);
+	var ReactElementValidator = __webpack_require__(18);
+	var ReactDOM = __webpack_require__(19);
+	var ReactDOMComponent = __webpack_require__(20);
+	var ReactDefaultInjection = __webpack_require__(21);
+	var ReactInstanceHandles = __webpack_require__(22);
+	var ReactLegacyElement = __webpack_require__(23);
+	var ReactMount = __webpack_require__(24);
+	var ReactMultiChild = __webpack_require__(25);
+	var ReactPerf = __webpack_require__(26);
+	var ReactPropTypes = __webpack_require__(27);
+	var ReactServerRendering = __webpack_require__(28);
+	var ReactTextComponent = __webpack_require__(29);
+
+	var assign = __webpack_require__(30);
+	var deprecated = __webpack_require__(31);
+	var onlyChild = __webpack_require__(32);
+
+	ReactDefaultInjection.inject();
+
+	var createElement = ReactElement.createElement;
+	var createFactory = ReactElement.createFactory;
+
+	if ("production" !== process.env.NODE_ENV) {
+	  createElement = ReactElementValidator.createElement;
+	  createFactory = ReactElementValidator.createFactory;
+	}
+
+	// TODO: Drop legacy elements once classes no longer export these factories
+	createElement = ReactLegacyElement.wrapCreateElement(
+	  createElement
+	);
+	createFactory = ReactLegacyElement.wrapCreateFactory(
+	  createFactory
+	);
+
+	var render = ReactPerf.measure('React', 'render', ReactMount.render);
+
+	var React = {
+	  Children: {
+	    map: ReactChildren.map,
+	    forEach: ReactChildren.forEach,
+	    count: ReactChildren.count,
+	    only: onlyChild
+	  },
+	  DOM: ReactDOM,
+	  PropTypes: ReactPropTypes,
+	  initializeTouchEvents: function(shouldUseTouch) {
+	    EventPluginUtils.useTouchEvents = shouldUseTouch;
+	  },
+	  createClass: ReactCompositeComponent.createClass,
+	  createElement: createElement,
+	  createFactory: createFactory,
+	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
+	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
+	  render: render,
+	  renderToString: ReactServerRendering.renderToString,
+	  renderToStaticMarkup: ReactServerRendering.renderToStaticMarkup,
+	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
+	  isValidClass: ReactLegacyElement.isValidClass,
+	  isValidElement: ReactElement.isValidElement,
+	  withContext: ReactContext.withContext,
+
+	  // Hook for JSX spread, don't use this for anything else.
+	  __spread: assign,
+
+	  // Deprecations (remove for 0.13)
+	  renderComponent: deprecated(
+	    'React',
+	    'renderComponent',
+	    'render',
+	    this,
+	    render
+	  ),
+	  renderComponentToString: deprecated(
+	    'React',
+	    'renderComponentToString',
+	    'renderToString',
+	    this,
+	    ReactServerRendering.renderToString
+	  ),
+	  renderComponentToStaticMarkup: deprecated(
+	    'React',
+	    'renderComponentToStaticMarkup',
+	    'renderToStaticMarkup',
+	    this,
+	    ReactServerRendering.renderToStaticMarkup
+	  ),
+	  isValidComponent: deprecated(
+	    'React',
+	    'isValidComponent',
+	    'isValidElement',
+	    this,
+	    ReactElement.isValidElement
+	  )
+	};
+
+	// Inject the runtime into a devtools global hook regardless of browser.
+	// Allows for debugging when the hook is injected on the page.
+	if (
+	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' &&
+	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.inject === 'function') {
+	  __REACT_DEVTOOLS_GLOBAL_HOOK__.inject({
+	    Component: ReactComponent,
+	    CurrentOwner: ReactCurrentOwner,
+	    DOMComponent: ReactDOMComponent,
+	    DOMPropertyOperations: DOMPropertyOperations,
+	    InstanceHandles: ReactInstanceHandles,
+	    Mount: ReactMount,
+	    MultiChild: ReactMultiChild,
+	    TextComponent: ReactTextComponent
+	  });
+	}
+
+	if ("production" !== process.env.NODE_ENV) {
+	  var ExecutionEnvironment = __webpack_require__(33);
+	  if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
+
+	    // If we're in Chrome, look for the devtools marker and provide a download
+	    // link if not installed.
+	    if (navigator.userAgent.indexOf('Chrome') > -1) {
+	      if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined') {
+	        console.debug(
+	          'Download the React DevTools for a better development experience: ' +
+	          'http://fb.me/react-devtools'
+	        );
+	      }
+	    }
+
+	    var expectedFeatures = [
+	      // shims
+	      Array.isArray,
+	      Array.prototype.every,
+	      Array.prototype.forEach,
+	      Array.prototype.indexOf,
+	      Array.prototype.map,
+	      Date.now,
+	      Function.prototype.bind,
+	      Object.keys,
+	      String.prototype.split,
+	      String.prototype.trim,
+
+	      // shams
+	      Object.create,
+	      Object.freeze
+	    ];
+
+	    for (var i = 0; i < expectedFeatures.length; i++) {
+	      if (!expectedFeatures[i]) {
+	        console.error(
+	          'One or more ES5 shim/shams expected by React are not available: ' +
+	          'http://fb.me/react-warning-polyfills'
+	        );
+	        break;
+	      }
+	    }
+	  }
+	}
+
+	// Version exists only in the open-source version of React, not in Facebook's
+	// internal version.
+	React.version = '0.12.2';
+
+	module.exports = React;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(34);
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactWithAddons
+	 */
+
+	/**
+	 * This module exists purely in the open source project, and is meant as a way
+	 * to create a separate standalone build of React. This build has "addons", or
+	 * functionality we've built and think might be useful but doesn't have a good
+	 * place to live inside React core.
+	 */
+
+	"use strict";
+
+	var LinkedStateMixin = __webpack_require__(35);
+	var React = __webpack_require__(5);
+	var ReactComponentWithPureRenderMixin =
+	  __webpack_require__(36);
+	var ReactCSSTransitionGroup = __webpack_require__(37);
+	var ReactTransitionGroup = __webpack_require__(38);
+	var ReactUpdates = __webpack_require__(39);
+
+	var cx = __webpack_require__(40);
+	var cloneWithProps = __webpack_require__(41);
+	var update = __webpack_require__(42);
+
+	React.addons = {
+	  CSSTransitionGroup: ReactCSSTransitionGroup,
+	  LinkedStateMixin: LinkedStateMixin,
+	  PureRenderMixin: ReactComponentWithPureRenderMixin,
+	  TransitionGroup: ReactTransitionGroup,
+
+	  batchedUpdates: ReactUpdates.batchedUpdates,
+	  classSet: cx,
+	  cloneWithProps: cloneWithProps,
+	  update: update
+	};
+
+	if ("production" !== process.env.NODE_ENV) {
+	  React.addons.Perf = __webpack_require__(43);
+	  React.addons.TestUtils = __webpack_require__(44);
+	}
+
+	module.exports = React;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -1050,7 +1321,7 @@
 	}(true ? exports : window));
 
 /***/ },
-/* 5 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4968,4110 +5239,7 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * @name Morearty
-	 * @namespace
-	 * @classdesc Morearty main module. Exposes [createContext]{@link Morearty.createContext} function.
-	 */
-	var Imm      = __webpack_require__(5);
-	var React    = __webpack_require__(8);
-	var Util     = __webpack_require__(9);
-	var Binding  = __webpack_require__(10);
-	var History  = __webpack_require__(11);
-	var Callback = __webpack_require__(13);
-	var DOM      = __webpack_require__(12);
-
-	var MERGE_STRATEGY = Object.freeze({
-	  OVERWRITE: 'overwrite',
-	  OVERWRITE_EMPTY: 'overwrite-empty',
-	  MERGE_PRESERVE: 'merge-preserve',
-	  MERGE_REPLACE: 'merge-replace'
-	});
-
-	var getBinding, bindingChanged, stateChanged;
-
-	getBinding = function (props, key) {
-	  var binding = props.binding;
-	  return key ? binding[key] : binding;
-	};
-
-	bindingChanged = function (context, currentBinding, previousBinding) {
-	  return currentBinding !== previousBinding ||
-	      (context._stateChanged && currentBinding.isChanged(context._previousState)) ||
-	      (context._metaChanged && context._metaBinding.sub(currentBinding.getPath()).isChanged(context._previousMetaState));
-	};
-
-	stateChanged = function (context, currentBinding, previousBinding) {
-	  if (currentBinding instanceof Binding) {
-	    return bindingChanged(context, currentBinding, previousBinding);
-	  } else {
-	    if (context._stateChanged || context._metaChanged) {
-	      var keys = Object.keys(currentBinding);
-	      return !!Util.find(keys, function (key) {
-	        var binding = currentBinding[key];
-	        return binding && bindingChanged(context, binding, previousBinding[key]);
-	      });
-	    } else {
-	      return false;
-	    }
-	  }
-	};
-
-	var merge = function (mergeStrategy, defaultState, stateBinding) {
-	  var tx = stateBinding.atomically();
-
-	  if (typeof mergeStrategy === 'function') {
-	    tx = tx.update(function (currentState) {
-	      return mergeStrategy(currentState, defaultState);
-	    });
-	  } else {
-	    switch (mergeStrategy) {
-	      case MERGE_STRATEGY.OVERWRITE:
-	        tx = tx.set(defaultState);
-	        break;
-	      case MERGE_STRATEGY.OVERWRITE_EMPTY:
-	        tx = tx.update(function (currentState) {
-	          var empty = Util.undefinedOrNull(currentState) ||
-	            (currentState instanceof Imm.Iterable && currentState.count() === 0);
-	          return empty ? defaultState : currentState;
-	        });
-	        break;
-	      case MERGE_STRATEGY.MERGE_PRESERVE:
-	        tx = tx.merge(true, defaultState);
-	        break;
-	      case MERGE_STRATEGY.MERGE_REPLACE:
-	        tx = tx.merge(false, defaultState);
-	        break;
-	      default:
-	        throw new Error('Invalid merge strategy: ' + mergeStrategy);
-	    }
-	  }
-
-	  tx.commit({ notify: false });
-	};
-
-	var getRenderRoutine = function (self) {
-	  var requestAnimationFrame = (typeof window !== 'undefined') && window.requestAnimationFrame;
-	  var fallback = function (f) { setTimeout(f, 1000 / 60); };
-
-	  if (self._options.requestAnimationFrameEnabled) {
-	    if (requestAnimationFrame) return requestAnimationFrame;
-	    else {
-	      console.warn('Morearty: requestAnimationFrame is not available, will render in setTimeout');
-	      return fallback;
-	    }
-	  } else {
-	    return fallback;
-	  }
-	};
-
-	/** Morearty context constructor.
-	 * @param {Binding} binding state binding
-	 * @param {Binding} metaBinding meta state binding
-	 * @param {Object} options options
-	 * @public
-	 * @class Context
-	 * @classdesc Represents Morearty context.
-	 * <p>Exposed modules:
-	 * <ul>
-	 *   <li>[Util]{@link Util};</li>
-	 *   <li>[Binding]{@link Binding};</li>
-	 *   <li>[History]{@link History};</li>
-	 *   <li>[Callback]{@link Callback};</li>
-	 *   <li>[DOM]{@link DOM}.</li>
-	 * </ul> */
-	var Context = function (binding, metaBinding, options) {
-	  /** @private */
-	  this._initialMetaState = metaBinding.get();
-	  /** @private */
-	  this._previousMetaState = null;
-	  /** @private */
-	  this._metaBinding = metaBinding;
-	  /** @private */
-	  this._metaChanged = false;
-
-	  /** @private */
-	  this._initialState = binding.get();
-	  /** @protected
-	   * @ignore */
-	  this._previousState = null;
-	  /** @private */
-	  this._stateBinding = binding;
-	  /** @private */
-	  this._stateChanged = false;
-
-	  /** @private */
-	  this._options = options;
-
-	  /** @private */
-	  this._renderQueued = false;
-	  /** @private */
-	  this._fullUpdateQueued = false;
-	  /** @protected
-	   * @ignore */
-	  this._fullUpdateInProgress = false;
-	};
-
-	Context.prototype = Object.freeze( /** @lends Context.prototype */ {
-	  /** Get state binding.
-	   * @return {Binding} state binding
-	   * @see Binding */
-	  getBinding: function () {
-	    return this._stateBinding;
-	  },
-
-	  /** Get meta binding.
-	   * @return {Binding} meta binding
-	   * @see Binding */
-	  getMetaBinding: function () {
-	    return this._metaBinding;
-	  },
-
-	  /** Get current state.
-	   * @return {Immutable.Map} current state */
-	  getCurrentState: function () {
-	    return this.getBinding().get();
-	  },
-
-	  /** Get previous state (before last render).
-	   * @return {Immutable.Map} previous state */
-	  getPreviousState: function () {
-	    return this._previousState;
-	  },
-
-	  /** Get current meta state.
-	   * @returns {Immutable.Map} current meta state */
-	  getCurrentMeta: function () {
-	    var metaBinding = this.getMetaBinding();
-	    return metaBinding ? metaBinding.get() : undefined;
-	  },
-
-	  /** Get previous meta state (before last render).
-	   * @return {Immutable.Map} previous meta state */
-	  getPreviousMeta: function () {
-	    return this._previousMetaState;
-	  },
-
-	  /** Create a copy of this context sharing same bindings and options.
-	   * @returns {Context} */
-	  copy: function () {
-	    return new Context(this._stateBinding, this._metaBinding, this._options);
-	  },
-
-	  /** Revert to initial state.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Object} [options] options object, supported options are:
-	   * <ul>
-	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification;</li>
-	   *   <li>resetMeta - should meta state be reverted, true by default, set to false to disable.</li>
-	   * </ul> */
-	  resetState: function (subpath, options) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?options'
-	    );
-
-	    var pathAsArray = args.subpath ? Binding.asArrayPath(args.subpath) : [];
-
-	    var tx = this.getBinding().atomically();
-	    tx.set(pathAsArray, this._initialState.getIn(pathAsArray));
-
-	    var effectiveOptions = args.options || {};
-	    if (effectiveOptions.resetMeta !== false) {
-	      tx.set(this.getMetaBinding(), pathAsArray, this._initialMetaState.getIn(pathAsArray));
-	    }
-
-	    tx.commit({ notify: effectiveOptions.notify });
-	  },
-
-	  /** Replace whole state with new value.
-	   * @param {Immutable.Map} newState new state
-	   * @param {Immutable.Map} [newMetaState] new meta state
-	   * @param {Object} [options] options object, supported options are:
-	   * <ul>
-	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
-	   * </ul> */
-	  replaceState: function (newState, newMetaState, options) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'newState', function (x) { return x instanceof Imm.Map ? 'newMetaState' : null; }, '?options'
-	    );
-
-	    var effectiveOptions = args.options || {};
-
-	    var tx = this.getBinding().atomically();
-	    tx.set(newState);
-
-	    if (args.newMetaState) tx.set(this.getMetaBinding(), args.newMetaState);
-
-	    tx.commit({ notify: effectiveOptions.notify });
-	  },
-
-	  /** Check if binding value was changed on last re-render.
-	   * @param {Binding} binding binding
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} [compare] compare function, '===' for primitives / Immutable.is for collections by default */
-	  isChanged: function (binding, subpath, compare) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?compare'
-	    );
-
-	    return args.binding.sub(args.subpath).isChanged(this._previousState, args.compare || Imm.is);
-	  },
-
-	  /** Initialize rendering.
-	   * @param {*} rootComp root application component */
-	  init: function (rootComp) {
-	    var self = this;
-	    var stop = false;
-	    var renderQueue = [];
-
-	    var transitionState = function () {
-	      var stateChanged, metaChanged;
-	      var elderFrame = renderQueue[0];
-
-	      if (renderQueue.length === 1) {
-	        stateChanged = elderFrame.stateChanged;
-	        metaChanged = elderFrame.metaChanged;
-	      } else {
-	        stateChanged = !!Util.find(renderQueue, function (q) { return q.stateChanged; });
-	        metaChanged = !!Util.find(renderQueue, function (q) { return q.metaChanged; });
-	      }
-
-	      self._stateChanged = stateChanged;
-	      self._metaChanged = metaChanged;
-
-	      if (stateChanged || !self._previousState) self._previousState = elderFrame.previousState;
-	      if (metaChanged) self._previousMetaState = elderFrame.previousMetaState;
-
-	      renderQueue = [];
-	    };
-
-	    var catchingRenderErrors = function (f) {
-	      try {
-	        if (rootComp.isMounted()) {
-	          f();
-	        }
-	      } catch (e) {
-	        if (self._options.stopOnRenderError) {
-	          stop = true;
-	        }
-
-	        console.error('Morearty: render error. ' + (stop ? 'Exiting.' : 'Continuing.'));
-	      }
-	    };
-
-	    var render = function () {
-	      transitionState();
-
-	      self._renderQueued = false;
-
-	      catchingRenderErrors(function () {
-	        if (self._fullUpdateQueued) {
-	          self._fullUpdateInProgress = true;
-	          rootComp.forceUpdate(function () {
-	            self._fullUpdateQueued = false;
-	            self._fullUpdateInProgress = false;
-	          });
-	        } else {
-	          rootComp.forceUpdate();
-	        }
-	      });
-	    };
-
-	    if (!self._options.renderOnce) {
-	      var renderRoutine = getRenderRoutine(self);
-
-	      var listenerId = self._stateBinding.addListener(function (changes) {
-	        if (stop) {
-	          self._stateBinding.removeListener(listenerId);
-	        } else {
-	          var stateChanged = changes.isValueChanged(), metaChanged = changes.isMetaChanged();
-
-	          if (stateChanged || metaChanged) {
-	            renderQueue.push({
-	              stateChanged: stateChanged,
-	              metaChanged: metaChanged,
-	              previousState: (stateChanged || null) && changes.getPreviousValue(),
-	              previousMetaState: (metaChanged || null) && changes.getPreviousMeta()
-	            });
-
-	            if (!self._renderQueued) {
-	              self._renderQueued = true;
-	              renderRoutine(render);
-	            }
-	          }
-	        }
-	      });
-	    }
-
-	    catchingRenderErrors(rootComp.forceUpdate.bind(rootComp));
-	  },
-
-	  /** Queue full update on next render. */
-	  queueFullUpdate: function () {
-	    this._fullUpdateQueued = true;
-	  },
-
-	  /** Create Morearty bootstrap component ready for rendering.
-	   * @param {*} rootComp root application component
-	   * @param {Object} [reactContext] custom React context (will be enriched with Morearty-specific data)
-	   * @return {*} Morearty bootstrap component */
-	  bootstrap: function (rootComp, reactContext) {
-	    var ctx = this;
-
-	    var effectiveReactContext = reactContext || {};
-	    effectiveReactContext.morearty = ctx;
-
-	    var root = React.withContext(effectiveReactContext, function () {
-	      return React.createFactory(rootComp)({ binding: ctx.getBinding() });
-	    });
-
-	    return React.createClass({
-	      displayName: 'Bootstrap',
-
-	      componentWillMount: function () {
-	        ctx.init(this);
-	      },
-
-	      render: function () {
-	        return root;
-	      }
-	    });
-	  }
-
-	});
-
-	module.exports = {
-
-	  /** Binding module.
-	   * @memberOf Morearty
-	   * @see Binding */
-	  Binding: Binding,
-
-	  /** History module.
-	   * @memberOf Morearty
-	   * @see History */
-	  History: History,
-
-	  /** Util module.
-	   * @memberOf Morearty
-	   * @see Util */
-	  Util: Util,
-
-	  /** Callback module.
-	   * @memberOf Morearty
-	   * @see Callback */
-	  Callback: Callback,
-
-	  /** DOM module.
-	   * @memberOf Morearty
-	   * @see DOM */
-	  DOM: DOM,
-
-	  /** Merge strategy.
-	   * <p>Describes how existing state should be merged with component's default state on mount. Predefined strategies:
-	   * <ul>
-	   *   <li>OVERWRITE - overwrite current state with default state;</li>
-	   *   <li>OVERWRITE_EMPTY - overwrite current state with default state only if current state is null or empty collection;</li>
-	   *   <li>MERGE_PRESERVE - deep merge current state into default state;</li>
-	   *   <li>MERGE_REPLACE - deep merge default state into current state.</li>
-	   * </ul> */
-	  MergeStrategy: MERGE_STRATEGY,
-
-	  /** Morearty mixin.
-	   * @memberOf Morearty
-	   * @namespace
-	   * @classdesc Mixin */
-	  Mixin: {
-	    contextTypes: { morearty: function () {} },
-
-	    /** Get Morearty context.
-	     * @returns {Context} */
-	    getMoreartyContext: function () {
-	      return this.context.morearty;
-	    },
-
-	    /** Get component state binding. Returns binding specified in component's binding attribute.
-	     * @param {String} [name] binding name (can only be used with multi-binding state)
-	     * @return {Binding|Object} component state binding */
-	    getBinding: function (name) {
-	      return getBinding(this.props, name);
-	    },
-
-	    /** Get default component state binding. Use this to get component's binding.
-	     * <p>Default binding is single binding for single-binding components or
-	     * binding with key 'default' for multi-binding components.
-	     * This method allows smooth migration from single to multi-binding components, e.g. you start with:
-	     * <pre><code>{ binding: foo }</code></pre>
-	     * or
-	     * <pre><code>{ binding: { default: foo } }</code></pre>
-	     * or even
-	     * <pre><code>{ binding: { any: foo } }</code></pre>
-	     * and add more bindings later:
-	     * <pre><code>{ binding: { default: foo, aux: auxiliary } }</code></pre>
-	     * This way code changes stay minimal.
-	     * @return {Binding} default component state binding */
-	    getDefaultBinding: function () {
-	      var binding = getBinding(this.props);
-	      if (binding instanceof Binding) {
-	        return binding;
-	      } else if (typeof binding === 'object') {
-	        var keys = Object.keys(binding);
-	        return keys.length === 1 ? binding[keys[0]] : binding['default'];
-	      }
-	    },
-
-	    /** Get component previous state value.
-	     * @param {String} [name] binding name (can only be used with multi-binding state)
-	     * @return {Binding} previous component state value */
-	    getPreviousState: function (name) {
-	      var ctx = this.getMoreartyContext();
-	      return getBinding(this.props, name).withBackingValue(ctx._previousState).get();
-	    },
-
-	    componentWillMount: function () {
-	      if (typeof this.getDefaultState === 'function') {
-	        var ctx = this.getMoreartyContext();
-	        var defaultState = this.getDefaultState();
-	        if (defaultState) {
-	          var binding = getBinding(this.props);
-	          var mergeStrategy =
-	            typeof this.getMergeStrategy === 'function' ? this.getMergeStrategy() : MERGE_STRATEGY.MERGE_PRESERVE;
-
-	          var immutableInstance = defaultState instanceof Imm.Iterable;
-
-	          if (binding instanceof Binding) {
-	            var effectiveDefaultState = immutableInstance ? defaultState : defaultState['default'];
-	            merge.call(ctx, mergeStrategy, effectiveDefaultState, binding);
-	          } else {
-	            var keys = Object.keys(binding);
-	            var defaultKey = keys.length === 1 ? keys[0] : 'default';
-	            var effectiveMergeStrategy = typeof mergeStrategy === 'string' ? mergeStrategy : mergeStrategy[defaultKey];
-
-	            if (immutableInstance) {
-	              merge.call(ctx, effectiveMergeStrategy, defaultState, binding[defaultKey]);
-	            } else {
-	              keys.forEach(function (key) {
-	                if (defaultState[key]) {
-	                  merge.call(ctx, effectiveMergeStrategy, defaultState[key], binding[key]);
-	                }
-	              });
-	            }
-	          }
-	        }
-	      }
-	    },
-
-	    shouldComponentUpdate: function (nextProps, nextState) {
-	      var self = this;
-	      var ctx = self.getMoreartyContext();
-	      var shouldComponentUpdate = function () {
-	        if (ctx._fullUpdateInProgress) {
-	          return true;
-	        } else {
-	          var currentBinding = getBinding(nextProps);
-	          return !currentBinding || stateChanged(ctx, currentBinding, getBinding(self.props));
-	        }
-	      };
-
-	      var shouldComponentUpdateOverride = self.shouldComponentUpdateOverride;
-	      return shouldComponentUpdateOverride ?
-	        shouldComponentUpdateOverride(shouldComponentUpdate, nextProps, nextState) :
-	        shouldComponentUpdate();
-	    },
-
-	    /** Add binding listener. Listener will be automatically removed on unmount
-	     * if this.shouldRemoveListeners() returns true.
-	     * @param {Binding} [binding] binding to attach listener to, default binding if omitted
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Function} cb function receiving changes descriptor
-	     * @return {String} listener id */
-	    addBindingListener: function (binding, subpath, cb) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; },
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
-	        'cb'
-	      );
-
-	      var defaultBinding = this.getDefaultBinding();
-
-	      if (defaultBinding) {
-	        var effectiveBinding = args.binding || defaultBinding;
-	        var listenerId = effectiveBinding.addListener(args.subpath, args.cb);
-	        defaultBinding.meta().atomically()
-	          .update('listeners', function (listeners) {
-	            return listeners ? listeners.push(listenerId) : Imm.List.of(listenerId);
-	          })
-	          .commit({notify: false});
-
-	        return listenerId;
-	      } else {
-	        console.warn('Morearty: cannot attach binding listener to a component without default binding');
-	      }
-	    },
-
-	    componentWillUnmount: function () {
-	      if (typeof this.shouldRemoveListeners === 'function' && this.shouldRemoveListeners()) {
-	        var binding = this.getDefaultBinding();
-	        if (binding) {
-	          var listenersBinding = binding.meta('listeners');
-	          var listeners = listenersBinding.get();
-	          if (listeners) {
-	            listeners.forEach(binding.removeListener.bind(binding));
-	            listenersBinding.atomically().delete().commit({notify: false});
-	          }
-	        }
-	      }
-	    }
-	  },
-
-	  /** Create Morearty context.
-	   * @param {Immutable.Map|Object} initialState initial state
-	   * @param {Immutable.Map|Object} initialMetaState initial meta-state
-	   * @param {Object} [options] Morearty configuration. Supported parameters:
-	   * <ul>
-	   *   <li>requestAnimationFrameEnabled - enable rendering in requestAnimationFrame,
-	   *                                      true by default, set to false to fallback to setTimeout;</li>
-	   *   <li>renderOnce - ensure render is executed only once (useful for server-side rendering to save resources),
-	   *                    any further state updates are ignored, false by default;</li>
-	   *   <li>stopOnRenderError - stop on errors during render, false by default.</li>
-	   * </ul>
-	   * @return {Context}
-	   * @memberOf Morearty */
-	  createContext: function (initialState, initialMetaState, options) {
-	    var ensureImmutable = function (state) {
-	      return state instanceof Imm.Iterable ? state : Imm.fromJS(state);
-	    };
-
-	    var state = ensureImmutable(initialState);
-	    var metaState = ensureImmutable(initialMetaState);
-
-	    var metaBinding = Binding.init(metaState);
-	    var binding = Binding.init(state, metaBinding);
-
-	    var effectiveOptions = options || {};
-	    return new Context(binding, metaBinding, {
-	      requestAnimationFrameEnabled: effectiveOptions.requestAnimationFrameEnabled !== false,
-	      renderOnce: effectiveOptions.renderOnce || false,
-	      stopOnRenderError: effectiveOptions.stopOnRenderError || false
-	    });
-	  }
-
-	};
-
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactWithAddons
-	 */
-
-	/**
-	 * This module exists purely in the open source project, and is meant as a way
-	 * to create a separate standalone build of React. This build has "addons", or
-	 * functionality we've built and think might be useful but doesn't have a good
-	 * place to live inside React core.
-	 */
-
-	"use strict";
-
-	var LinkedStateMixin = __webpack_require__(14);
-	var React = __webpack_require__(15);
-	var ReactComponentWithPureRenderMixin =
-	  __webpack_require__(16);
-	var ReactCSSTransitionGroup = __webpack_require__(17);
-	var ReactTransitionGroup = __webpack_require__(18);
-	var ReactUpdates = __webpack_require__(19);
-
-	var cx = __webpack_require__(20);
-	var cloneWithProps = __webpack_require__(21);
-	var update = __webpack_require__(22);
-
-	React.addons = {
-	  CSSTransitionGroup: ReactCSSTransitionGroup,
-	  LinkedStateMixin: LinkedStateMixin,
-	  PureRenderMixin: ReactComponentWithPureRenderMixin,
-	  TransitionGroup: ReactTransitionGroup,
-
-	  batchedUpdates: ReactUpdates.batchedUpdates,
-	  classSet: cx,
-	  cloneWithProps: cloneWithProps,
-	  update: update
-	};
-
-	if ("production" !== process.env.NODE_ENV) {
-	  React.addons.Perf = __webpack_require__(23);
-	  React.addons.TestUtils = __webpack_require__(24);
-	}
-
-	module.exports = React;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(15);
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * @name Util
-	 * @namespace
-	 * @classdesc Miscellaneous util functions.
-	 */
-
-	/* ---------------- */
-	/* Private helpers. */
-	/* ---------------- */
-
-	// resolveArgs
-
-	var isRequired, findTurningPoint, prepare;
-
-	isRequired = function (spec) {
-	  return typeof spec === 'string' && spec.charAt(0) !== '?';
-	};
-
-	findTurningPoint = function (arr, pred) {
-	  var first = pred(arr[0]);
-	  for (var i = 1; i < arr.length; i++) {
-	    if (pred(arr[i]) !== first) return i;
-	  }
-	  return null;
-	};
-
-	prepare = function (arr, splitAt) {
-	  return arr.slice(splitAt).reverse().concat(arr.slice(0, splitAt));
-	};
-
-	module.exports = {
-
-	  /** Identity function. Returns its first argument.
-	   * @param {*} x argument to return
-	   * @return {*} its first argument
-	   * @memberOf Util */
-	  identity: function (x) {
-	    return x;
-	  },
-
-	  /** 'Not' function returning logical not of its argument.
-	   * @param {*} x argument
-	   * @returns {*} !x
-	   * @memberOf Util */
-	  not: function (x) {
-	    return !x;
-	  },
-
-	  /** Create constant function (always returning x).
-	   * @param {*} x constant function return value
-	   * @return {Function} function always returning x
-	   * @memberOf Util */
-	  constantly: function (x) {
-	    return function () { return x; };
-	  },
-
-	  /** Execute function asynchronously.
-	   * @param {Function} f function */
-	  async: function (f) {
-	    setTimeout(f, 0);
-	  },
-
-	  /** Execute function f, then function cont. If f returns a promise, cont is executed when the promise resolves.
-	   * @param {Function} f function to execute first
-	   * @param {Function} cont function to execute after f
-	   * @memberOf Util */
-	  afterComplete: function (f, cont) {
-	    var result = f();
-	    if (result && typeof result.always === 'function') {
-	      result.always(cont);
-	    } else {
-	      cont();
-	    }
-	  },
-
-	  /** Check if argument is undefined or null.
-	   * @param {*} x argument to check
-	   * @returns {Boolean}
-	   * @memberOf Util */
-	  undefinedOrNull: function (x) {
-	    return x === undefined || x === null;
-	  },
-
-	  /** Get values of object properties.
-	   * @param {Object} obj object
-	   * @return {Array} object's properties values
-	   * @memberOf Util */
-	  getPropertyValues: function (obj) {
-	    return Object.keys(obj).map(function (key) { return obj[key]; });
-	  },
-
-	  /** Find array element satisfying the predicate.
-	   * @param {Array} arr array
-	   * @param {Function} pred predicate accepting current value, index, original array
-	   * @return {*} found value or null
-	   * @memberOf Util */
-	  find: function (arr, pred) {
-	    for (var i = 0; i < arr.length; i++) {
-	      var value = arr[i];
-	      if (pred(value, i, arr)) {
-	        return value;
-	      }
-	    }
-	    return null;
-	  },
-
-	  /** Resolve arguments. Acceptable spec formats:
-	   * <ul>
-	   *   <li>'foo' - required argument 'foo';</li>
-	   *   <li>'?foo' - optional argument 'foo';</li>
-	   *   <li>function (arg) { return arg instanceof MyClass ? 'foo' : null; } - checked optional argument.</li>
-	   * </ul>
-	   * Specs can only switch optional flag once in the list. This invariant isn't checked by the method,
-	   * its violation will produce indeterminate results.
-	   * <p>Optional arguments are matched in order, left to right. Provide check function if you need to allow to skip
-	   * one optional argument and use sebsequent optional arguments instead.
-	   * <p>Returned arguments descriptor contains argument names mapped to resolved values.
-	   * @param {Array} args arguments 'array'
-	   * @param {*} var_args arguments specs as a var-args list or array, see method description
-	   * @returns {Object} arguments descriptor object
-	   * @memberOf Util */
-	  resolveArgs: function (args, var_args) {
-	    var result = {};
-	    if (arguments.length > 1) {
-	      var specs = Array.isArray(var_args) ? var_args : Array.prototype.slice.call(arguments, 1);
-	      var preparedSpecs, preparedArgs;
-	      var turningPoint;
-
-	      if (isRequired(specs[0]) || !(turningPoint = findTurningPoint(specs, isRequired))) {
-	        preparedSpecs = specs;
-	        preparedArgs = args;
-	      } else {
-	        var effectiveArgs = Array.isArray(args) ? args : Array.prototype.slice.call(args);
-	        preparedSpecs = prepare(specs, turningPoint);
-	        preparedArgs = prepare(effectiveArgs, effectiveArgs.length - (specs.length - turningPoint));
-	      }
-
-	      for (var specIndex = 0, argIndex = 0;
-	           specIndex < preparedSpecs.length && argIndex < preparedArgs.length; specIndex++) {
-	        var spec = preparedSpecs[specIndex], arg = preparedArgs[argIndex];
-	        if (isRequired(spec)) {
-	          result[spec] = arg;
-	          argIndex++;
-	        } else {
-	          var name = typeof spec === 'function' ? spec(arg) : (spec.charAt(0) !== '?' ? spec : spec.substring(1));
-	          if (name || arg === undefined) {
-	            result[name] = arg;
-	            argIndex++;
-	          }
-	        }
-	      }
-	    }
-
-	    return result;
-	  },
-
-	  /** Check if argument can be valid binding subpath.
-	   * @param {*} x
-	   * @returns {Boolean}
-	   * @memberOf Util */
-	  canRepresentSubpath: function (x) {
-	    var type = typeof x;
-	    return type === 'string' || type === 'number' || Array.isArray(x);
-	  },
-
-	  /** ES6 Object.assign.
-	   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign */
-	  assign: function (target, firstSource) {
-	    if (target === undefined || target === null) {
-	      throw new TypeError('Cannot convert first argument to object');
-	    }
-
-	    var to = Object(target);
-
-	    var hasPendingException = false;
-	    var pendingException;
-
-	    for (var i = 1; i < arguments.length; i++) {
-	      var nextSource = arguments[i];
-	      if (nextSource === undefined || nextSource === null)
-	        continue;
-
-	      var keysArray = Object.keys(Object(nextSource));
-	      for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
-	        var nextKey = keysArray[nextIndex];
-	        try {
-	          var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
-	          if (desc !== undefined && desc.enumerable)
-	            to[nextKey] = nextSource[nextKey];
-	        } catch (e) {
-	          if (!hasPendingException) {
-	            hasPendingException = true;
-	            pendingException = e;
-	          }
-	        }
-	      }
-
-	      if (hasPendingException)
-	        throw pendingException;
-	    }
-	    return to;
-	  }
-
-	};
-
-
-/***/ },
 /* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Imm = __webpack_require__(5);
-	var Util = __webpack_require__(9);
-	var ChangesDescriptor = __webpack_require__(25);
-
-	/* ---------------- */
-	/* Private helpers. */
-	/* ---------------- */
-
-	var UNSET_VALUE = {};
-
-	var getBackingValue, setBackingValue;
-
-	getBackingValue = function (binding) {
-	  return binding._sharedInternals.backingValue;
-	};
-
-	setBackingValue = function (binding, newBackingValue) {
-	  binding._sharedInternals.backingValue = newBackingValue;
-	};
-
-	var EMPTY_PATH, PATH_SEPARATOR, META_NODE, getPathElements, joinPaths, getMetaPath, getValueAtPath;
-
-	EMPTY_PATH = [];
-	PATH_SEPARATOR = '.';
-	META_NODE = '__meta__';
-
-	getPathElements = function (path) {
-	  return path ? path.split(PATH_SEPARATOR) : [];
-	};
-
-	joinPaths = function (path1, path2) {
-	  return path1.length === 0 ? path2 :
-	    (path2.length === 0 ? path1 : path1.concat(path2));
-	};
-
-	getMetaPath = function (subpath, key) {
-	  return joinPaths(subpath, [META_NODE, key]);
-	};
-
-	getValueAtPath = function (backingValue, path) {
-	  return backingValue && path.length > 0 ? backingValue.getIn(path) : backingValue;
-	};
-
-	var asArrayPath, asStringPath;
-
-	asArrayPath = function (path) {
-	  return typeof path === 'string' ?
-	    getPathElements(path) :
-	    (Util.undefinedOrNull(path) ? [] : path);
-	};
-
-	asStringPath = function (path) {
-	  switch (typeof path) {
-	    case 'string':
-	      return path;
-	    case 'number':
-	      return path.toString();
-	    default:
-	      return Util.undefinedOrNull(path) ? '' : path.join(PATH_SEPARATOR);
-	  }
-	};
-
-	var setOrUpdate, updateValue, deleteValue, merge, clear;
-
-	setOrUpdate = function (rootValue, effectivePath, f) {
-	  return rootValue.updateIn(effectivePath, UNSET_VALUE, function (value) {
-	    return value === UNSET_VALUE ? f() : f(value);
-	  });
-	};
-
-	updateValue = function (self, subpath, f) {
-	  var effectivePath = joinPaths(self._path, subpath);
-	  var newBackingValue = setOrUpdate(getBackingValue(self), effectivePath, f);
-	  setBackingValue(self, newBackingValue);
-	  return effectivePath;
-	};
-
-	deleteValue = function (self, subpath) {
-	  var effectivePath = joinPaths(self._path, subpath);
-	  var backingValue = getBackingValue(self);
-
-	  var len = effectivePath.length;
-	  switch (len) {
-	    case 0:
-	      throw new Error('Cannot delete root value');
-	    default:
-	      var pathTo = effectivePath.slice(0, len - 1);
-	      if (backingValue.has(pathTo[0]) || len === 1) {
-	        var newBackingValue = backingValue.updateIn(pathTo, function (coll) {
-	          var key = effectivePath[len - 1];
-	          if (coll instanceof Imm.List) {
-	            return coll.splice(key, 1);
-	          } else {
-	            return coll && coll.delete(key);
-	          }
-	        });
-
-	        setBackingValue(self, newBackingValue);
-	      }
-
-	      return pathTo;
-	  }
-	};
-
-	merge = function (preserve, newValue, value) {
-	  if (Util.undefinedOrNull(value)) {
-	    return newValue;
-	  } else {
-	    if (value instanceof Imm.Iterable && newValue instanceof Imm.Iterable) {
-	      return preserve ? newValue.mergeDeep(value) : value.mergeDeep(newValue);
-	    } else {
-	      return preserve ? value : newValue;
-	    }
-	  }
-	};
-
-	clear = function (value) {
-	  return value instanceof Imm.Iterable ? value.clear() : null;
-	};
-
-	var notifySamePathListeners, notifyGlobalListeners, startsWith, isPathAffected, notifyNonGlobalListeners, notifyAllListeners;
-
-	notifySamePathListeners =
-	  function (self, samePathListeners, listenerPath, path, previousBackingValue, previousMeta) {
-	    if (previousBackingValue || previousMeta) {
-	      Util.getPropertyValues(samePathListeners).forEach(function (listenerDescriptor) {
-	        if (!listenerDescriptor.disabled) {
-	          var listenerPathAsArray = asArrayPath(listenerPath);
-	          var currentBackingValue = getBackingValue(self);
-
-	          var valueChanged = !!previousBackingValue &&
-	            currentBackingValue.getIn(listenerPathAsArray) !== previousBackingValue.getIn(listenerPathAsArray);
-	          var metaChanged = !!previousMeta;
-
-	          if (valueChanged || metaChanged) {
-	            listenerDescriptor.cb(
-	              new ChangesDescriptor(
-	                path, listenerPathAsArray, valueChanged, previousBackingValue, previousMeta
-	              )
-	            );
-	          }
-	        }
-	      });
-	    }
-	  };
-
-	notifyGlobalListeners = function (self, path, previousBackingValue, previousMeta) {
-	  var listeners = self._sharedInternals.listeners;
-	  var globalListeners = listeners[''];
-	  if (globalListeners) {
-	    notifySamePathListeners(
-	      self, globalListeners, EMPTY_PATH, path, previousBackingValue, previousMeta);
-	  }
-	};
-
-	startsWith = function (s1, s2) {
-	  return s1.indexOf(s2) === 0;
-	};
-
-	isPathAffected = function (listenerPath, changedPath) {
-	  return startsWith(changedPath, listenerPath) || startsWith(listenerPath, changedPath);
-	};
-
-	notifyNonGlobalListeners = function (self, path, previousBackingValue, previousMeta) {
-	  var listeners = self._sharedInternals.listeners;
-	  Object.keys(listeners).filter(Util.identity).forEach(function (listenerPath) {
-	    if (isPathAffected(listenerPath, asStringPath(path))) {
-	      notifySamePathListeners(
-	        self, listeners[listenerPath], listenerPath, path, previousBackingValue, previousMeta);
-	    }
-	  });
-	};
-
-	notifyAllListeners = function (self, path, previousBackingValue, previousMeta) {
-	  notifyGlobalListeners(self, path, previousBackingValue, previousMeta);
-	  notifyNonGlobalListeners(self, path, previousBackingValue, previousMeta);
-	};
-
-	var linkMeta, unlinkMeta;
-
-	linkMeta = function (self, metaBinding) {
-	  self._sharedInternals.metaBindingListenerId = metaBinding.addListener(function (changes) {
-	    var metaNodePath = changes.getPath();
-	    var changedPath = metaNodePath.slice(0, metaNodePath.length - 1);
-	    var previousMeta = changes.isValueChanged() ? changes.getPreviousValue() : getBackingValue(metaBinding);
-
-	    notifyAllListeners(self, changedPath, null, previousMeta);
-	  });
-	};
-
-	unlinkMeta = function (self, metaBinding) {
-	  var removed = metaBinding.removeListener(self._sharedInternals.metaBindingListenerId);
-	  self._sharedInternals.metaBinding = null;
-	  self._sharedInternals.metaBindingListenerId = null;
-	  return removed;
-	};
-
-	var findSamePathListeners, setListenerDisabled;
-
-	findSamePathListeners = function (self, listenerId) {
-	  return Util.find(
-	    Util.getPropertyValues(self._sharedInternals.listeners),
-	    function (samePathListeners) { return !!samePathListeners[listenerId]; }
-	  );
-	};
-
-	setListenerDisabled = function (self, listenerId, disabled) {
-	  var samePathListeners = findSamePathListeners(self, listenerId);
-	  if (samePathListeners) {
-	    samePathListeners[listenerId].disabled = disabled;
-	  }
-	};
-
-	var update, delete_;
-
-	update = function (self, subpath, f) {
-	  var previousBackingValue = getBackingValue(self);
-	  var affectedPath = updateValue(self, asArrayPath(subpath), f);
-	  notifyAllListeners(self, affectedPath, previousBackingValue, null);
-	};
-
-	delete_ = function (self, subpath) {
-	  var previousBackingValue = getBackingValue(self);
-	  var affectedPath = deleteValue(self, asArrayPath(subpath));
-	  notifyAllListeners(self, affectedPath, previousBackingValue, null);
-	};
-
-	/** Binding constructor.
-	 * @param {String[]} [path] binding path, empty array if omitted
-	 * @param {Object} [sharedInternals] shared relative bindings internals:
-	 * <ul>
-	 *   <li>backingValue - backing value;</li>
-	 *   <li>metaBinding - meta binding;</li>
-	 *   <li>metaBindingListenerId - meta binding listener id;</li>
-	 *   <li>regCount - registration count (used for listener id generation);</li>
-	 *   <li>listeners - change listeners;</li>
-	 *   <li>cache - bindings cache.</li>
-	 * </ul>
-	 * @public
-	 * @class Binding
-	 * @classdesc Wraps immutable collection. Provides convenient read-write access to nested values.
-	 * Allows to create sub-bindings (or views) narrowed to a subpath and sharing the same backing value.
-	 * Changes to these bindings are mutually visible.
-	 * <p>Terminology:
-	 * <ul>
-	 *   <li>
-	 *     (sub)path - path to a value within nested associative data structure, example: 'path.t.0.some.value';
-	 *   </li>
-	 *   <li>
-	 *     backing value - value shared by all bindings created using [sub]{@link Binding#sub} method.
-	 *   </li>
-	 * </ul>
-	 * <p>Features:
-	 * <ul>
-	 *   <li>can create sub-bindings sharing same backing value. Sub-binding can only modify values down its subpath;</li>
-	 *   <li>allows to conveniently modify nested values: assign, update with a function, remove, and so on;</li>
-	 *   <li>can attach change listeners to a specific subpath;</li>
-	 *   <li>can perform multiple changes atomically in respect of listener notification.</li>
-	 * </ul>
-	 * @see Binding.init */
-	var Binding = function (path, sharedInternals) {
-	  /** @private */
-	  this._path = path || EMPTY_PATH;
-
-	  /** @private */
-	  this._sharedInternals = sharedInternals || {};
-
-	  if (Util.undefinedOrNull(this._sharedInternals.regCount)) {
-	    this._sharedInternals.regCount = 0;
-	  }
-
-	  if (!this._sharedInternals.listeners) {
-	    this._sharedInternals.listeners = {};
-	  }
-
-	  if (!this._sharedInternals.cache) {
-	    this._sharedInternals.cache = {};
-	  }
-	};
-
-	/* --------------- */
-	/* Static helpers. */
-	/* --------------- */
-
-	/** Create new binding with empty listeners set.
-	 * @param {Immutable.Map} backingValue backing value
-	 * @param {Binding} [metaBinding] meta binding
-	 * @return {Binding} fresh binding instance */
-	Binding.init = function (backingValue, metaBinding) {
-	  var binding = new Binding(EMPTY_PATH, {
-	    backingValue: backingValue,
-	    metaBinding: metaBinding
-	  });
-
-	  if (metaBinding) {
-	    linkMeta(binding, metaBinding);
-	  }
-
-	  return binding;
-	};
-
-	/** Convert string path to array path.
-	 * @param {String} pathAsString path as string
-	 * @return {Array} path as an array */
-	Binding.asArrayPath = function (pathAsString) {
-	  return asArrayPath(pathAsString);
-	};
-
-	/** Convert array path to string path.
-	 * @param {String[]} pathAsAnArray path as an array
-	 * @return {String} path as a string */
-	Binding.asStringPath = function (pathAsAnArray) {
-	  return asStringPath(pathAsAnArray);
-	};
-
-	/** Meta node name.
-	 * @type {String} */
-	Binding.META_NODE = META_NODE;
-
-	Binding.prototype = Object.freeze( /** @lends Binding.prototype */ {
-
-	  /** Get binding path.
-	   * @returns {Array} binding path */
-	  getPath: function () {
-	    return this._path;
-	  },
-
-	  /** Update backing value.
-	   * @param {Immutable.Map} newBackingValue new backing value
-	   * @return {Binding} new binding instance, original is unaffected */
-	  withBackingValue: function (newBackingValue) {
-	    var newSharedInternals = {};
-	    Util.assign(newSharedInternals, this._sharedInternals);
-	    newSharedInternals.backingValue = newBackingValue;
-	    return new Binding(this._path, newSharedInternals);
-	  },
-
-	  /** Check if binding value is changed in alternative backing value.
-	   * @param {Immutable.Map} alternativeBackingValue alternative backing value
-	   * @param {Function} [compare] alternative compare function, does reference equality check if omitted */
-	  isChanged: function (alternativeBackingValue, compare) {
-	    var value = this.get();
-	    if (!Util.undefinedOrNull(alternativeBackingValue)) {
-	      var alternativeValue =
-	        this._path.length > 0 ? alternativeBackingValue.getIn(this._path) : alternativeBackingValue;
-	      return !(compare ? compare(value, alternativeValue) : value === alternativeValue);
-	    } else {
-	      return !Util.undefinedOrNull(this._sharedInternals.backingValue);
-	    }
-	  },
-
-	  /** Check if this and supplied binding are relatives (i.e. share same backing value).
-	   * @param {Binding} otherBinding potential relative
-	   * @return {Boolean} */
-	  isRelative: function (otherBinding) {
-	    return this._sharedInternals === otherBinding._sharedInternals &&
-	      this._sharedInternals.backingValue === otherBinding._sharedInternals.backingValue;
-	  },
-
-	  /** Get binding's meta binding.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers;
-	   *                                 b.meta('path') is equivalent to b.meta().sub('path')
-	   * @returns {Binding} meta binding or undefined */
-	  meta: function (subpath) {
-	    if (!this._sharedInternals.metaBinding) {
-	      var metaBinding = Binding.init(Imm.Map());
-	      linkMeta(this, metaBinding);
-	      this._sharedInternals.metaBinding = metaBinding;
-	    }
-
-	    var effectiveSubpath = subpath ? joinPaths([META_NODE], asArrayPath(subpath)) : [META_NODE];
-	    var thisPath = this.getPath();
-	    var absolutePath = thisPath.length > 0 ? joinPaths(thisPath, effectiveSubpath) : effectiveSubpath;
-	    return this._sharedInternals.metaBinding.sub(absolutePath);
-	  },
-
-	  /** Unlink this binding's meta binding, removing change listener and making them totally independent.
-	   * May be used to prevent memory leaks when appropriate.
-	   * @return {Boolean} true if binding's meta binding was unlinked */
-	  unlinkMeta: function () {
-	    var metaBinding = this._sharedInternals.metaBinding;
-	    return metaBinding ? unlinkMeta(this, metaBinding) : false;
-	  },
-
-	  /** Get binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {*} value at path or null */
-	  get: function (subpath) {
-	    return getValueAtPath(getBackingValue(this), joinPaths(this._path, asArrayPath(subpath)));
-	  },
-
-	  /** Convert to JS representation.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {*} JS representation of data at subpath */
-	  toJS: function (subpath) {
-	    var value = this.sub(subpath).get();
-	    return value instanceof Imm.Iterable ? value.toJS() : value;
-	  },
-
-	  /** Bind to subpath. Both bindings share the same backing value. Changes are mutually visible.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} new binding instance, original is unaffected */
-	  sub: function (subpath) {
-	    var pathAsArray = asArrayPath(subpath);
-	    var absolutePath = joinPaths(this._path, pathAsArray);
-	    if (absolutePath.length > 0) {
-	      var absolutePathAsString = asStringPath(absolutePath);
-	      var cached = this._sharedInternals.cache[absolutePathAsString];
-
-	      if (cached) {
-	        return cached;
-	      } else {
-	        var subBinding = new Binding(absolutePath, this._sharedInternals);
-	        this._sharedInternals.cache[absolutePathAsString] = subBinding;
-	        return subBinding;
-	      }
-	    } else {
-	      return this;
-	    }
-	  },
-
-	  /** Update binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} f f function
-	   * @return {Binding} this binding */
-	  update: function (subpath, f) {
-	    var args = Util.resolveArgs(arguments, '?subpath', 'f');
-	    update(this, args.subpath, args.f);
-	    return this;
-	  },
-
-	  /** Set binding value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {*} newValue new value
-	   * @return {Binding} this binding */
-	  set: function (subpath, newValue) {
-	    var args = Util.resolveArgs(arguments, '?subpath', 'newValue');
-	    update(this, args.subpath, Util.constantly(args.newValue));
-	    return this;
-	  },
-
-	  /** Delete value.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} this binding */
-	  delete: function (subpath) {
-	    delete_(this, subpath);
-	    return this;
-	  },
-
-	  /** Deep merge values.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Boolean} [preserve] preserve existing values when merging, false by default
-	   * @param {*} newValue new value
-	   * @return {Binding} this binding */
-	  merge: function (subpath, preserve, newValue) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
-	      '?preserve',
-	      'newValue'
-	    );
-	    update(this, args.subpath, merge.bind(null, args.preserve, args.newValue));
-	    return this;
-	  },
-
-	  /** Clear nested collection. Does '.clear()' on Immutable values, nullifies otherwise.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @return {Binding} this binding */
-	  clear: function (subpath) {
-	    var subpathAsArray = asArrayPath(subpath);
-	    if (!Util.undefinedOrNull(this.get(subpathAsArray))) {
-	      update(this, subpathAsArray, clear);
-	    }
-	    return this;
-	  },
-
-	  /** Add change listener.
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} cb function receiving changes descriptor
-	   * @return {String} unique id which should be used to un-register the listener
-	   * @see ChangesDescriptor */
-	  addListener: function (subpath, cb) {
-	    var args = Util.resolveArgs(
-	      arguments, function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, 'cb'
-	    );
-
-	    var listenerId = 'reg' + this._sharedInternals.regCount++;
-	    var pathAsString = asStringPath(joinPaths(this._path, asArrayPath(args.subpath || '')));
-	    var samePathListeners = this._sharedInternals.listeners[pathAsString];
-	    var listenerDescriptor = { cb: args.cb, disabled: false };
-	    if (samePathListeners) {
-	      samePathListeners[listenerId] = listenerDescriptor;
-	    } else {
-	      var listeners = {};
-	      listeners[listenerId] = listenerDescriptor;
-	      this._sharedInternals.listeners[pathAsString] = listeners;
-	    }
-	    return listenerId;
-	  },
-
-	  /** Enable listener.
-	   * @param {String} listenerId listener id
-	   * @return {Binding} this binding */
-	  enableListener: function (listenerId) {
-	    setListenerDisabled(this, listenerId, false);
-	    return this;
-	  },
-
-	  /** Disable listener.
-	   * @param {String} listenerId listener id
-	   * @return {Binding} this binding */
-	  disableListener: function (listenerId) {
-	    setListenerDisabled(this, listenerId, true);
-	    return this;
-	  },
-
-	  /** Execute function with listener temporarily disabled. Correctly handles functions returning promises.
-	   * @param {String} listenerId listener id
-	   * @param {Function} f function to execute
-	   * @return {Binding} this binding */
-	  withDisabledListener: function (listenerId, f) {
-	    var samePathListeners = findSamePathListeners(this, listenerId);
-	    if (samePathListeners) {
-	      var descriptor = samePathListeners[listenerId];
-	      descriptor.disabled = true;
-	      Util.afterComplete(f, function () { descriptor.disabled = false; });
-	    } else {
-	      f();
-	    }
-	    return this;
-	  },
-
-	  /** Un-register the listener.
-	   * @param {String} listenerId listener id
-	   * @return {Boolean} true if listener removed successfully, false otherwise */
-	  removeListener: function (listenerId) {
-	    var samePathListeners = findSamePathListeners(this, listenerId);
-	    return samePathListeners ? delete samePathListeners[listenerId] : false;
-	  },
-
-	  /** Create transaction context.
-	   * @return {TransactionContext} transaction context */
-	  atomically: function () {
-	    return new TransactionContext(this);
-	  }
-
-	});
-
-	/** Transaction context constructor.
-	 * @param {Binding} binding binding
-	 * @param {Function[]} [updates] queued updates
-	 * @param {Function[]} [removals] queued removals
-	 * @public
-	 * @class TransactionContext
-	 * @classdesc Transaction context. */
-	var TransactionContext = function (binding, updates, removals) {
-	  /** @private */
-	  this._binding = binding;
-	  /** @private */
-	  this._updates = updates || [];
-	  /** @private */
-	  this._deletions = removals || [];
-	  /** @private */
-	  this._committed = false;
-
-	  /** @private */
-	  this._hasChanges = false;
-	  /** @private */
-	  this._hasMetaChanges = false;
-	};
-
-	TransactionContext.prototype = (function () {
-
-	  var registerUpdate, hasChanges;
-
-	  registerUpdate = function (self, binding) {
-	    if (!self._hasChanges) {
-	      self._hasChanges = binding.isRelative(self._binding);
-	    }
-
-	    if (!self._hasMetaChanges) {
-	      self._hasMetaChanges = !binding.isRelative(self._binding);
-	    }
-	  };
-
-	  hasChanges = function (self) {
-	    return self._hasChanges || self._hasMetaChanges;
-	  };
-
-	  var addUpdate, addDeletion, areSiblings, filterRedundantPaths, commitSilently;
-
-	  addUpdate = function (self, binding, update, subpath) {
-	    registerUpdate(self, binding);
-	    self._updates.push({ binding: binding, update: update, subpath: subpath });
-	  };
-
-	  addDeletion = function (self, binding, subpath) {
-	    registerUpdate(self, binding);
-	    self._deletions.push({ binding: binding, subpath: subpath });
-	  };
-
-	  areSiblings = function (path1, path2) {
-	    var path1Length = path1.length, path2Length = path2.length;
-	    return path1Length === path2Length &&
-	      (path1Length === 1 || path1[path1Length - 2] === path2[path1Length - 2]);
-	  };
-
-	  filterRedundantPaths = function (affectedPaths) {
-	    if (affectedPaths.length < 2) {
-	      return affectedPaths;
-	    } else {
-	      var sortedPaths = affectedPaths.sort();
-	      var previousPath = sortedPaths[0], previousPathAsString = asStringPath(previousPath);
-	      var result = [previousPath];
-	      for (var i = 1; i < sortedPaths.length; i++) {
-	        var currentPath = sortedPaths[i], currentPathAsString = asStringPath(currentPath);
-	        if (!startsWith(currentPathAsString, previousPathAsString)) {
-	          if (areSiblings(currentPath, previousPath)) {
-	            var commonParentPath = currentPath.slice(0, currentPath.length - 1);
-	            result.pop();
-	            result.push(commonParentPath);
-	            previousPath = commonParentPath;
-	            previousPathAsString = asStringPath(commonParentPath);
-	          } else {
-	            result.push(currentPath);
-	            previousPath = currentPath;
-	            previousPathAsString = currentPathAsString;
-	          }
-	        }
-	      }
-	      return result;
-	    }
-	  };
-
-	  commitSilently = function (self) {
-	    if (!self._committed) {
-	      var updatedPaths = self._updates.map(function (o) { return updateValue(o.binding, o.subpath, o.update); });
-	      var removedPaths = self._deletions.map(function (o) { return deleteValue(o.binding, o.subpath); });
-	      self._committed = true;
-	      return joinPaths(updatedPaths, removedPaths);
-	    } else {
-	      throw new Error('Transaction already committed');
-	    }
-	  };
-
-	  return Object.freeze( /** @lends TransactionContext.prototype */ {
-
-	    /** Update binding value.
-	     * @param {Binding} [binding] binding to apply update to
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Function} f update function
-	     * @return {TransactionContext} updated transaction */
-	    update: function (binding, subpath, f) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'f'
-	      );
-	      addUpdate(this, args.binding || this._binding, args.f, asArrayPath(args.subpath));
-	      return this;
-	    },
-
-	    /** Set binding value.
-	     * @param {Binding} [binding] binding to apply update to
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {*} newValue new value
-	     * @return {TransactionContext} updated transaction context */
-	    set: function (binding, subpath, newValue) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'newValue'
-	      );
-	      return this.update(args.binding, args.subpath, Util.constantly(args.newValue));
-	    },
-
-	    /** Remove value.
-	     * @param {Binding} [binding] binding to apply update to
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @return {TransactionContext} updated transaction context */
-	    delete: function (binding, subpath) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
-	      );
-	      addDeletion(this, args.binding || this._binding, asArrayPath(args.subpath));
-	      return this;
-	    },
-
-	    /** Deep merge values.
-	     * @param {Binding} [binding] binding to apply update to
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @param {Boolean} [preserve] preserve existing values when merging, false by default
-	     * @param {*} newValue new value
-	     * @return {TransactionContext} updated transaction context */
-	    merge: function (binding, subpath, preserve, newValue) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; },
-	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
-	        function (x) { return typeof x === 'boolean' ? 'preserve' : null; },
-	        'newValue'
-	      );
-	      return this.update(args.binding, args.subpath, merge.bind(null, args.preserve, args.newValue));
-	    },
-
-	    /** Clear collection or nullify nested value.
-	     * @param {Binding} [binding] binding to apply update to
-	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	     * @return {TransactionContext} updated transaction context */
-	    clear: function (binding, subpath) {
-	      var args = Util.resolveArgs(
-	        arguments,
-	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
-	      );
-	      addUpdate(this, args.binding || this._binding, clear, asArrayPath(args.subpath));
-	      return this;
-	    },
-
-	    /** Commit transaction (write changes and notify listeners).
-	     * @param {Object} [options] options object, supported options are:
-	     * <ul>
-	     *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
-	     * </ul>
-	     * @return {String[]} array of affected paths */
-	    commit: function (options) {
-	      if (hasChanges(this)) {
-	        var effectiveOptions = options || {};
-	        var binding = this._binding;
-
-	        var previousBackingValue = null, previousMetaValue = null;
-	        if (effectiveOptions.notify !== false) {
-	          if (this._hasChanges) previousBackingValue = getBackingValue(binding);
-	          if (this._hasMetaChanges) previousMetaValue = getBackingValue(binding.meta());
-	        }
-
-	        var affectedPaths = commitSilently(this);
-
-	        if (effectiveOptions.notify !== false) {
-	          var filteredPaths = filterRedundantPaths(affectedPaths);
-	          notifyGlobalListeners(binding, filteredPaths[0], previousBackingValue, previousMetaValue);
-	          filteredPaths.forEach(function (path) {
-	            notifyNonGlobalListeners(binding, path, previousBackingValue, previousMetaValue);
-	          });
-	        }
-
-	        return affectedPaths;
-
-	      } else {
-	        return [];
-	      }
-	    }
-
-	  });
-	})();
-
-	module.exports = Binding;
-
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Imm = __webpack_require__(5);
-	var Binding = __webpack_require__(10);
-
-	var getHistoryBinding, initHistory, clearHistory, destroyHistory, listenForChanges, revertToStep, revert;
-
-	getHistoryBinding = function (binding) {
-	  return binding.meta('history');
-	};
-
-	initHistory = function (historyBinding) {
-	  historyBinding.set(Imm.fromJS({ listenerId: null, undo: [], redo: [] }));
-	};
-
-	clearHistory = function (historyBinding) {
-	  var listenerId = historyBinding.get('listenerId');
-	  historyBinding.withDisabledListener(listenerId, function () {
-	    historyBinding.atomically()
-	      .set('undo', Imm.List.of())
-	      .set('redo', Imm.List.of())
-	      .commit();
-	  });
-	};
-
-	destroyHistory = function (binding, notify) {
-	  var historyBinding = getHistoryBinding(binding);
-	  var listenerId = historyBinding.get('listenerId');
-	  binding.removeListener(listenerId);
-	  historyBinding.atomically().set(null).commit({ notify: notify });
-	};
-
-	listenForChanges = function (binding, historyBinding) {
-	  var listenerId = binding.addListener([], function (changes) {
-	    if (changes.isValueChanged()) {
-	      historyBinding.atomically().update(function (history) {
-	        var path = changes.getPath();
-	        var previousValue = changes.getPreviousValue(), newValue = binding.get();
-	        return history
-	          .update('undo', function (undo) {
-	            var pathAsArray = Binding.asArrayPath(path);
-	            return undo && undo.unshift(Imm.Map({
-	              newValue: pathAsArray.length ? newValue.getIn(pathAsArray) : newValue,
-	              oldValue: pathAsArray.length ? previousValue && previousValue.getIn(pathAsArray) : previousValue,
-	              path: path
-	            }));
-	          })
-	          .set('redo', Imm.List.of());
-	      }).commit({ notify: false });
-	    }
-	  });
-
-	  historyBinding.atomically().set('listenerId', listenerId).commit({ notify: false });
-	};
-
-	revertToStep = function (path, value, listenerId, binding) {
-	  binding.withDisabledListener(listenerId, function () {
-	    binding.set(path, value);
-	  });
-	};
-
-	revert = function (binding, fromBinding, toBinding, listenerId, valueProperty) {
-	  var from = fromBinding.get();
-	  if (from.count() > 0) {
-	    var step = from.get(0);
-
-	    fromBinding.atomically()
-	      .delete(0)
-	      .update(toBinding, function (to) {
-	        return to.unshift(step);
-	      })
-	      .commit({ notify: false });
-
-	    revertToStep(step.get('path'), step.get(valueProperty), listenerId, binding);
-	    return true;
-	  } else {
-	    return false;
-	  }
-	};
-
-
-	/**
-	 * @name History
-	 * @namespace
-	 * @classdesc Undo/redo history handling.
-	 */
-	var History = {
-
-	  /** Init history.
-	   * @param {Binding} binding binding
-	   * @memberOf History */
-	  init: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    initHistory(historyBinding);
-	    listenForChanges(binding, historyBinding);
-	  },
-
-	  /** Clear history.
-	   * @param {Binding} binding binding
-	   * @memberOf History */
-	  clear: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    clearHistory(historyBinding);
-	  },
-
-	  /** Clear history and shutdown listener.
-	   * @param {Binding} binding history binding
-	   * @param {Object} [options] options object, supported options are:
-	   * <ul>
-	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
-	   * </ul>
-	   * @memberOf History */
-	  destroy: function (binding, options) {
-	    var effectiveOptions = options || {};
-	    destroyHistory(binding, effectiveOptions.notify);
-	  },
-
-	  /** Check if history has undo information.
-	   * @param {Binding} binding binding
-	   * @returns {Boolean}
-	   * @memberOf History */
-	  hasUndo: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    var undo = historyBinding.get('undo');
-	    return !!undo && undo.count() > 0;
-	  },
-
-	  /** Check if history has redo information.
-	   * @param {Binding} binding binding
-	   * @returns {Boolean}
-	   * @memberOf History */
-	  hasRedo: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    var redo = historyBinding.get('redo');
-	    return !!redo && redo.count() > 0;
-	  },
-
-	  /** Revert to previous state.
-	   * @param {Binding} binding binding
-	   * @returns {Boolean} true, if binding has undo information
-	   * @memberOf History */
-	  undo: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    var listenerId = historyBinding.get('listenerId');
-	    var undoBinding = historyBinding.sub('undo');
-	    var redoBinding = historyBinding.sub('redo');
-	    return revert(binding, undoBinding, redoBinding, listenerId, 'oldValue');
-	  },
-
-	  /** Revert to next state.
-	   * @param {Binding} binding binding
-	   * @returns {Boolean} true, if binding has redo information
-	   * @memberOf History */
-	  redo: function (binding) {
-	    var historyBinding = getHistoryBinding(binding);
-	    var listenerId = historyBinding.get('listenerId');
-	    var undoBinding = historyBinding.sub('undo');
-	    var redoBinding = historyBinding.sub('redo');
-	    return revert(binding, redoBinding, undoBinding, listenerId, 'newValue');
-	  }
-
-	};
-
-	module.exports = History;
-
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Util  = __webpack_require__(9);
-	var React = __webpack_require__(8);
-
-	var _ = (function() {
-	  if (React) return React.DOM;
-	  else {
-	    throw new Error('Morearty: global variable React not found');
-	  }
-	})();
-
-	var wrapComponent = function (comp, displayName) {
-	  return React.createClass({
-
-	    displayName: displayName,
-
-	    getInitialState: function () {
-	      return { value: this.props.value };
-	    },
-
-	    onChange: function (event) {
-	      var handler = this.props.onChange;
-	      if (handler) {
-	        handler(event);
-	        this.setState({ value: event.target.value });
-	      }
-	    },
-
-	    componentWillReceiveProps: function (newProps) {
-	      this.setState({ value: newProps.value });
-	    },
-
-	    render: function () {
-	      var props = Util.assign({}, this.props, {
-	        value: this.state.value,
-	        onChange: this.onChange,
-	        children: this.props.children
-	      });
-	      return comp(props);
-	    }
-
-	  });
-	};
-
-	/**
-	 * @name DOM
-	 * @namespace
-	 * @classdesc DOM module. Exposes requestAnimationFrame-friendly wrappers around input, textarea, and option.
-	 */
-	var DOM = {
-
-	  input: wrapComponent(_.input, 'input'),
-
-	  textarea: wrapComponent(_.textarea, 'textarea'),
-
-	  option: wrapComponent(_.option, 'option')
-
-	};
-
-	module.exports = DOM;
-
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * @name Callback
-	 * @namespace
-	 * @classdesc Miscellaneous callback util functions.
-	 */
-	var Util = __webpack_require__(9);
-
-	module.exports = {
-
-	  /** Create callback used to set binding value on an event.
-	   * @param {Binding} binding binding
-	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} [f] value transformer
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  set: function (binding, subpath, f) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?f'
-	    );
-
-	    return function (event) {
-	      var value = event.target.value;
-	      binding.set(args.subpath, args.f ? args.f(value) : value);
-	    };
-	  },
-
-	  /** Create callback used to delete binding value on an event.
-	   * @param {Binding} binding binding
-	   * @param {String|String[]} [subpath] subpath as a dot-separated string or an array of strings and numbers
-	   * @param {Function} [pred] predicate
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  delete: function (binding, subpath, pred) {
-	    var args = Util.resolveArgs(
-	      arguments,
-	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?pred'
-	    );
-
-	    return function (event) {
-	      var value = event.target.value;
-	      if (!args.pred || args.pred(value)) {
-	        binding.delete(args.subpath);
-	      }
-	    };
-	  },
-
-	  /** Create callback invoked when specified key combination is pressed.
-	   * @param {Function} cb callback
-	   * @param {String|Array} key key
-	   * @param {Boolean} [shiftKey] shift key flag
-	   * @param {Boolean} [ctrlKey] ctrl key flag
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onKey: function (cb, key, shiftKey, ctrlKey) {
-	    var effectiveShiftKey = shiftKey || false;
-	    var effectiveCtrlKey = ctrlKey || false;
-	    return function (event) {
-	      var keyMatched = typeof key === 'string' ?
-	        event.key === key :
-	        Util.find(key, function (k) { return k === event.key; });
-
-	      if (keyMatched && event.shiftKey === effectiveShiftKey && event.ctrlKey === effectiveCtrlKey) {
-	        cb(event);
-	      }
-	    };
-	  },
-
-	  /** Create callback invoked when enter key is pressed.
-	   * @param {Function} cb callback
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onEnter: function (cb) {
-	    return this.onKey(cb, 'Enter');
-	  },
-
-	  /** Create callback invoked when escape key is pressed.
-	   * @param {Function} cb callback
-	   * @returns {Function} callback
-	   * @memberOf Callback */
-	  onEscape: function (cb) {
-	    return this.onKey(cb, 'Escape');
-	  }
-
-	};
-
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule LinkedStateMixin
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var ReactLink = __webpack_require__(27);
-	var ReactStateSetters = __webpack_require__(28);
-
-	/**
-	 * A simple mixin around ReactLink.forState().
-	 */
-	var LinkedStateMixin = {
-	  /**
-	   * Create a ReactLink that's linked to part of this component's state. The
-	   * ReactLink will have the current value of this.state[key] and will call
-	   * setState() when a change is requested.
-	   *
-	   * @param {string} key state key to update. Note: you may want to use keyOf()
-	   * if you're using Google Closure Compiler advanced mode.
-	   * @return {ReactLink} ReactLink instance linking to the state.
-	   */
-	  linkState: function(key) {
-	    return new ReactLink(
-	      this.state[key],
-	      ReactStateSetters.createStateKeySetter(this, key)
-	    );
-	  }
-	};
-
-	module.exports = LinkedStateMixin;
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule React
-	 */
-
-	"use strict";
-
-	var DOMPropertyOperations = __webpack_require__(29);
-	var EventPluginUtils = __webpack_require__(30);
-	var ReactChildren = __webpack_require__(31);
-	var ReactComponent = __webpack_require__(32);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactContext = __webpack_require__(34);
-	var ReactCurrentOwner = __webpack_require__(35);
-	var ReactElement = __webpack_require__(36);
-	var ReactElementValidator = __webpack_require__(37);
-	var ReactDOM = __webpack_require__(38);
-	var ReactDOMComponent = __webpack_require__(39);
-	var ReactDefaultInjection = __webpack_require__(40);
-	var ReactInstanceHandles = __webpack_require__(41);
-	var ReactLegacyElement = __webpack_require__(42);
-	var ReactMount = __webpack_require__(43);
-	var ReactMultiChild = __webpack_require__(44);
-	var ReactPerf = __webpack_require__(45);
-	var ReactPropTypes = __webpack_require__(46);
-	var ReactServerRendering = __webpack_require__(47);
-	var ReactTextComponent = __webpack_require__(48);
-
-	var assign = __webpack_require__(49);
-	var deprecated = __webpack_require__(50);
-	var onlyChild = __webpack_require__(51);
-
-	ReactDefaultInjection.inject();
-
-	var createElement = ReactElement.createElement;
-	var createFactory = ReactElement.createFactory;
-
-	if ("production" !== process.env.NODE_ENV) {
-	  createElement = ReactElementValidator.createElement;
-	  createFactory = ReactElementValidator.createFactory;
-	}
-
-	// TODO: Drop legacy elements once classes no longer export these factories
-	createElement = ReactLegacyElement.wrapCreateElement(
-	  createElement
-	);
-	createFactory = ReactLegacyElement.wrapCreateFactory(
-	  createFactory
-	);
-
-	var render = ReactPerf.measure('React', 'render', ReactMount.render);
-
-	var React = {
-	  Children: {
-	    map: ReactChildren.map,
-	    forEach: ReactChildren.forEach,
-	    count: ReactChildren.count,
-	    only: onlyChild
-	  },
-	  DOM: ReactDOM,
-	  PropTypes: ReactPropTypes,
-	  initializeTouchEvents: function(shouldUseTouch) {
-	    EventPluginUtils.useTouchEvents = shouldUseTouch;
-	  },
-	  createClass: ReactCompositeComponent.createClass,
-	  createElement: createElement,
-	  createFactory: createFactory,
-	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
-	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
-	  render: render,
-	  renderToString: ReactServerRendering.renderToString,
-	  renderToStaticMarkup: ReactServerRendering.renderToStaticMarkup,
-	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
-	  isValidClass: ReactLegacyElement.isValidClass,
-	  isValidElement: ReactElement.isValidElement,
-	  withContext: ReactContext.withContext,
-
-	  // Hook for JSX spread, don't use this for anything else.
-	  __spread: assign,
-
-	  // Deprecations (remove for 0.13)
-	  renderComponent: deprecated(
-	    'React',
-	    'renderComponent',
-	    'render',
-	    this,
-	    render
-	  ),
-	  renderComponentToString: deprecated(
-	    'React',
-	    'renderComponentToString',
-	    'renderToString',
-	    this,
-	    ReactServerRendering.renderToString
-	  ),
-	  renderComponentToStaticMarkup: deprecated(
-	    'React',
-	    'renderComponentToStaticMarkup',
-	    'renderToStaticMarkup',
-	    this,
-	    ReactServerRendering.renderToStaticMarkup
-	  ),
-	  isValidComponent: deprecated(
-	    'React',
-	    'isValidComponent',
-	    'isValidElement',
-	    this,
-	    ReactElement.isValidElement
-	  )
-	};
-
-	// Inject the runtime into a devtools global hook regardless of browser.
-	// Allows for debugging when the hook is injected on the page.
-	if (
-	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' &&
-	  typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.inject === 'function') {
-	  __REACT_DEVTOOLS_GLOBAL_HOOK__.inject({
-	    Component: ReactComponent,
-	    CurrentOwner: ReactCurrentOwner,
-	    DOMComponent: ReactDOMComponent,
-	    DOMPropertyOperations: DOMPropertyOperations,
-	    InstanceHandles: ReactInstanceHandles,
-	    Mount: ReactMount,
-	    MultiChild: ReactMultiChild,
-	    TextComponent: ReactTextComponent
-	  });
-	}
-
-	if ("production" !== process.env.NODE_ENV) {
-	  var ExecutionEnvironment = __webpack_require__(52);
-	  if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
-
-	    // If we're in Chrome, look for the devtools marker and provide a download
-	    // link if not installed.
-	    if (navigator.userAgent.indexOf('Chrome') > -1) {
-	      if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined') {
-	        console.debug(
-	          'Download the React DevTools for a better development experience: ' +
-	          'http://fb.me/react-devtools'
-	        );
-	      }
-	    }
-
-	    var expectedFeatures = [
-	      // shims
-	      Array.isArray,
-	      Array.prototype.every,
-	      Array.prototype.forEach,
-	      Array.prototype.indexOf,
-	      Array.prototype.map,
-	      Date.now,
-	      Function.prototype.bind,
-	      Object.keys,
-	      String.prototype.split,
-	      String.prototype.trim,
-
-	      // shams
-	      Object.create,
-	      Object.freeze
-	    ];
-
-	    for (var i = 0; i < expectedFeatures.length; i++) {
-	      if (!expectedFeatures[i]) {
-	        console.error(
-	          'One or more ES5 shim/shams expected by React are not available: ' +
-	          'http://fb.me/react-warning-polyfills'
-	        );
-	        break;
-	      }
-	    }
-	  }
-	}
-
-	// Version exists only in the open-source version of React, not in Facebook's
-	// internal version.
-	React.version = '0.12.2';
-
-	module.exports = React;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	* @providesModule ReactComponentWithPureRenderMixin
-	*/
-
-	"use strict";
-
-	var shallowEqual = __webpack_require__(54);
-
-	/**
-	 * If your React component's render function is "pure", e.g. it will render the
-	 * same result given the same props and state, provide this Mixin for a
-	 * considerable performance boost.
-	 *
-	 * Most React components have pure render functions.
-	 *
-	 * Example:
-	 *
-	 *   var ReactComponentWithPureRenderMixin =
-	 *     require('ReactComponentWithPureRenderMixin');
-	 *   React.createClass({
-	 *     mixins: [ReactComponentWithPureRenderMixin],
-	 *
-	 *     render: function() {
-	 *       return <div className={this.props.className}>foo</div>;
-	 *     }
-	 *   });
-	 *
-	 * Note: This only checks shallow equality for props and state. If these contain
-	 * complex data structures this mixin may have false-negatives for deeper
-	 * differences. Only mixin to components which have simple props and state, or
-	 * use `forceUpdate()` when you know deep data structures have changed.
-	 */
-	var ReactComponentWithPureRenderMixin = {
-	  shouldComponentUpdate: function(nextProps, nextState) {
-	    return !shallowEqual(this.props, nextProps) ||
-	           !shallowEqual(this.state, nextState);
-	  }
-	};
-
-	module.exports = ReactComponentWithPureRenderMixin;
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks
-	 * @providesModule ReactCSSTransitionGroup
-	 */
-
-	"use strict";
-
-	var React = __webpack_require__(15);
-
-	var assign = __webpack_require__(49);
-
-	var ReactTransitionGroup = React.createFactory(
-	  __webpack_require__(18)
-	);
-	var ReactCSSTransitionGroupChild = React.createFactory(
-	  __webpack_require__(53)
-	);
-
-	var ReactCSSTransitionGroup = React.createClass({
-	  displayName: 'ReactCSSTransitionGroup',
-
-	  propTypes: {
-	    transitionName: React.PropTypes.string.isRequired,
-	    transitionEnter: React.PropTypes.bool,
-	    transitionLeave: React.PropTypes.bool
-	  },
-
-	  getDefaultProps: function() {
-	    return {
-	      transitionEnter: true,
-	      transitionLeave: true
-	    };
-	  },
-
-	  _wrapChild: function(child) {
-	    // We need to provide this childFactory so that
-	    // ReactCSSTransitionGroupChild can receive updates to name, enter, and
-	    // leave while it is leaving.
-	    return ReactCSSTransitionGroupChild(
-	      {
-	        name: this.props.transitionName,
-	        enter: this.props.transitionEnter,
-	        leave: this.props.transitionLeave
-	      },
-	      child
-	    );
-	  },
-
-	  render: function() {
-	    return (
-	      ReactTransitionGroup(
-	        assign({}, this.props, {childFactory: this._wrapChild})
-	      )
-	    );
-	  }
-	});
-
-	module.exports = ReactCSSTransitionGroup;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTransitionGroup
-	 */
-
-	"use strict";
-
-	var React = __webpack_require__(15);
-	var ReactTransitionChildMapping = __webpack_require__(60);
-
-	var assign = __webpack_require__(49);
-	var cloneWithProps = __webpack_require__(21);
-	var emptyFunction = __webpack_require__(61);
-
-	var ReactTransitionGroup = React.createClass({
-	  displayName: 'ReactTransitionGroup',
-
-	  propTypes: {
-	    component: React.PropTypes.any,
-	    childFactory: React.PropTypes.func
-	  },
-
-	  getDefaultProps: function() {
-	    return {
-	      component: 'span',
-	      childFactory: emptyFunction.thatReturnsArgument
-	    };
-	  },
-
-	  getInitialState: function() {
-	    return {
-	      children: ReactTransitionChildMapping.getChildMapping(this.props.children)
-	    };
-	  },
-
-	  componentWillReceiveProps: function(nextProps) {
-	    var nextChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      nextProps.children
-	    );
-	    var prevChildMapping = this.state.children;
-
-	    this.setState({
-	      children: ReactTransitionChildMapping.mergeChildMappings(
-	        prevChildMapping,
-	        nextChildMapping
-	      )
-	    });
-
-	    var key;
-
-	    for (key in nextChildMapping) {
-	      var hasPrev = prevChildMapping && prevChildMapping.hasOwnProperty(key);
-	      if (nextChildMapping[key] && !hasPrev &&
-	          !this.currentlyTransitioningKeys[key]) {
-	        this.keysToEnter.push(key);
-	      }
-	    }
-
-	    for (key in prevChildMapping) {
-	      var hasNext = nextChildMapping && nextChildMapping.hasOwnProperty(key);
-	      if (prevChildMapping[key] && !hasNext &&
-	          !this.currentlyTransitioningKeys[key]) {
-	        this.keysToLeave.push(key);
-	      }
-	    }
-
-	    // If we want to someday check for reordering, we could do it here.
-	  },
-
-	  componentWillMount: function() {
-	    this.currentlyTransitioningKeys = {};
-	    this.keysToEnter = [];
-	    this.keysToLeave = [];
-	  },
-
-	  componentDidUpdate: function() {
-	    var keysToEnter = this.keysToEnter;
-	    this.keysToEnter = [];
-	    keysToEnter.forEach(this.performEnter);
-
-	    var keysToLeave = this.keysToLeave;
-	    this.keysToLeave = [];
-	    keysToLeave.forEach(this.performLeave);
-	  },
-
-	  performEnter: function(key) {
-	    this.currentlyTransitioningKeys[key] = true;
-
-	    var component = this.refs[key];
-
-	    if (component.componentWillEnter) {
-	      component.componentWillEnter(
-	        this._handleDoneEntering.bind(this, key)
-	      );
-	    } else {
-	      this._handleDoneEntering(key);
-	    }
-	  },
-
-	  _handleDoneEntering: function(key) {
-	    var component = this.refs[key];
-	    if (component.componentDidEnter) {
-	      component.componentDidEnter();
-	    }
-
-	    delete this.currentlyTransitioningKeys[key];
-
-	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      this.props.children
-	    );
-
-	    if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
-	      // This was removed before it had fully entered. Remove it.
-	      this.performLeave(key);
-	    }
-	  },
-
-	  performLeave: function(key) {
-	    this.currentlyTransitioningKeys[key] = true;
-
-	    var component = this.refs[key];
-	    if (component.componentWillLeave) {
-	      component.componentWillLeave(this._handleDoneLeaving.bind(this, key));
-	    } else {
-	      // Note that this is somewhat dangerous b/c it calls setState()
-	      // again, effectively mutating the component before all the work
-	      // is done.
-	      this._handleDoneLeaving(key);
-	    }
-	  },
-
-	  _handleDoneLeaving: function(key) {
-	    var component = this.refs[key];
-
-	    if (component.componentDidLeave) {
-	      component.componentDidLeave();
-	    }
-
-	    delete this.currentlyTransitioningKeys[key];
-
-	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      this.props.children
-	    );
-
-	    if (currentChildMapping && currentChildMapping.hasOwnProperty(key)) {
-	      // This entered again before it fully left. Add it again.
-	      this.performEnter(key);
-	    } else {
-	      var newChildren = assign({}, this.state.children);
-	      delete newChildren[key];
-	      this.setState({children: newChildren});
-	    }
-	  },
-
-	  render: function() {
-	    // TODO: we could get rid of the need for the wrapper node
-	    // by cloning a single child
-	    var childrenToRender = {};
-	    for (var key in this.state.children) {
-	      var child = this.state.children[key];
-	      if (child) {
-	        // You may need to apply reactive updates to a child as it is leaving.
-	        // The normal React way to do it won't work since the child will have
-	        // already been removed. In case you need this behavior you can provide
-	        // a childFactory function to wrap every child, even the ones that are
-	        // leaving.
-	        childrenToRender[key] = cloneWithProps(
-	          this.props.childFactory(child),
-	          {ref: key}
-	        );
-	      }
-	    }
-	    return React.createElement(
-	      this.props.component,
-	      this.props,
-	      childrenToRender
-	    );
-	  }
-	});
-
-	module.exports = ReactTransitionGroup;
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactUpdates
-	 */
-
-	"use strict";
-
-	var CallbackQueue = __webpack_require__(55);
-	var PooledClass = __webpack_require__(56);
-	var ReactCurrentOwner = __webpack_require__(35);
-	var ReactPerf = __webpack_require__(45);
-	var Transaction = __webpack_require__(57);
-
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
-	var warning = __webpack_require__(59);
-
-	var dirtyComponents = [];
-	var asapCallbackQueue = CallbackQueue.getPooled();
-	var asapEnqueued = false;
-
-	var batchingStrategy = null;
-
-	function ensureInjected() {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactUpdates.ReactReconcileTransaction && batchingStrategy,
-	    'ReactUpdates: must inject a reconcile transaction class and batching ' +
-	    'strategy'
-	  ) : invariant(ReactUpdates.ReactReconcileTransaction && batchingStrategy));
-	}
-
-	var NESTED_UPDATES = {
-	  initialize: function() {
-	    this.dirtyComponentsLength = dirtyComponents.length;
-	  },
-	  close: function() {
-	    if (this.dirtyComponentsLength !== dirtyComponents.length) {
-	      // Additional updates were enqueued by componentDidUpdate handlers or
-	      // similar; before our own UPDATE_QUEUEING wrapper closes, we want to run
-	      // these new updates so that if A's componentDidUpdate calls setState on
-	      // B, B will update before the callback A's updater provided when calling
-	      // setState.
-	      dirtyComponents.splice(0, this.dirtyComponentsLength);
-	      flushBatchedUpdates();
-	    } else {
-	      dirtyComponents.length = 0;
-	    }
-	  }
-	};
-
-	var UPDATE_QUEUEING = {
-	  initialize: function() {
-	    this.callbackQueue.reset();
-	  },
-	  close: function() {
-	    this.callbackQueue.notifyAll();
-	  }
-	};
-
-	var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
-
-	function ReactUpdatesFlushTransaction() {
-	  this.reinitializeTransaction();
-	  this.dirtyComponentsLength = null;
-	  this.callbackQueue = CallbackQueue.getPooled();
-	  this.reconcileTransaction =
-	    ReactUpdates.ReactReconcileTransaction.getPooled();
-	}
-
-	assign(
-	  ReactUpdatesFlushTransaction.prototype,
-	  Transaction.Mixin, {
-	  getTransactionWrappers: function() {
-	    return TRANSACTION_WRAPPERS;
-	  },
-
-	  destructor: function() {
-	    this.dirtyComponentsLength = null;
-	    CallbackQueue.release(this.callbackQueue);
-	    this.callbackQueue = null;
-	    ReactUpdates.ReactReconcileTransaction.release(this.reconcileTransaction);
-	    this.reconcileTransaction = null;
-	  },
-
-	  perform: function(method, scope, a) {
-	    // Essentially calls `this.reconcileTransaction.perform(method, scope, a)`
-	    // with this transaction's wrappers around it.
-	    return Transaction.Mixin.perform.call(
-	      this,
-	      this.reconcileTransaction.perform,
-	      this.reconcileTransaction,
-	      method,
-	      scope,
-	      a
-	    );
-	  }
-	});
-
-	PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
-
-	function batchedUpdates(callback, a, b) {
-	  ensureInjected();
-	  batchingStrategy.batchedUpdates(callback, a, b);
-	}
-
-	/**
-	 * Array comparator for ReactComponents by owner depth
-	 *
-	 * @param {ReactComponent} c1 first component you're comparing
-	 * @param {ReactComponent} c2 second component you're comparing
-	 * @return {number} Return value usable by Array.prototype.sort().
-	 */
-	function mountDepthComparator(c1, c2) {
-	  return c1._mountDepth - c2._mountDepth;
-	}
-
-	function runBatchedUpdates(transaction) {
-	  var len = transaction.dirtyComponentsLength;
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    len === dirtyComponents.length,
-	    'Expected flush transaction\'s stored dirty-components length (%s) to ' +
-	    'match dirty-components array length (%s).',
-	    len,
-	    dirtyComponents.length
-	  ) : invariant(len === dirtyComponents.length));
-
-	  // Since reconciling a component higher in the owner hierarchy usually (not
-	  // always -- see shouldComponentUpdate()) will reconcile children, reconcile
-	  // them before their children by sorting the array.
-	  dirtyComponents.sort(mountDepthComparator);
-
-	  for (var i = 0; i < len; i++) {
-	    // If a component is unmounted before pending changes apply, ignore them
-	    // TODO: Queue unmounts in the same list to avoid this happening at all
-	    var component = dirtyComponents[i];
-	    if (component.isMounted()) {
-	      // If performUpdateIfNecessary happens to enqueue any new updates, we
-	      // shouldn't execute the callbacks until the next render happens, so
-	      // stash the callbacks first
-	      var callbacks = component._pendingCallbacks;
-	      component._pendingCallbacks = null;
-	      component.performUpdateIfNecessary(transaction.reconcileTransaction);
-
-	      if (callbacks) {
-	        for (var j = 0; j < callbacks.length; j++) {
-	          transaction.callbackQueue.enqueue(
-	            callbacks[j],
-	            component
-	          );
-	        }
-	      }
-	    }
-	  }
-	}
-
-	var flushBatchedUpdates = ReactPerf.measure(
-	  'ReactUpdates',
-	  'flushBatchedUpdates',
-	  function() {
-	    // ReactUpdatesFlushTransaction's wrappers will clear the dirtyComponents
-	    // array and perform any updates enqueued by mount-ready handlers (i.e.,
-	    // componentDidUpdate) but we need to check here too in order to catch
-	    // updates enqueued by setState callbacks and asap calls.
-	    while (dirtyComponents.length || asapEnqueued) {
-	      if (dirtyComponents.length) {
-	        var transaction = ReactUpdatesFlushTransaction.getPooled();
-	        transaction.perform(runBatchedUpdates, null, transaction);
-	        ReactUpdatesFlushTransaction.release(transaction);
-	      }
-
-	      if (asapEnqueued) {
-	        asapEnqueued = false;
-	        var queue = asapCallbackQueue;
-	        asapCallbackQueue = CallbackQueue.getPooled();
-	        queue.notifyAll();
-	        CallbackQueue.release(queue);
-	      }
-	    }
-	  }
-	);
-
-	/**
-	 * Mark a component as needing a rerender, adding an optional callback to a
-	 * list of functions which will be executed once the rerender occurs.
-	 */
-	function enqueueUpdate(component, callback) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !callback || typeof callback === "function",
-	    'enqueueUpdate(...): You called `setProps`, `replaceProps`, ' +
-	    '`setState`, `replaceState`, or `forceUpdate` with a callback that ' +
-	    'isn\'t callable.'
-	  ) : invariant(!callback || typeof callback === "function"));
-	  ensureInjected();
-
-	  // Various parts of our code (such as ReactCompositeComponent's
-	  // _renderValidatedComponent) assume that calls to render aren't nested;
-	  // verify that that's the case. (This is called by each top-level update
-	  // function, like setProps, setState, forceUpdate, etc.; creation and
-	  // destruction of top-level components is guarded in ReactMount.)
-	  ("production" !== process.env.NODE_ENV ? warning(
-	    ReactCurrentOwner.current == null,
-	    'enqueueUpdate(): Render methods should be a pure function of props ' +
-	    'and state; triggering nested component updates from render is not ' +
-	    'allowed. If necessary, trigger nested updates in ' +
-	    'componentDidUpdate.'
-	  ) : null);
-
-	  if (!batchingStrategy.isBatchingUpdates) {
-	    batchingStrategy.batchedUpdates(enqueueUpdate, component, callback);
-	    return;
-	  }
-
-	  dirtyComponents.push(component);
-
-	  if (callback) {
-	    if (component._pendingCallbacks) {
-	      component._pendingCallbacks.push(callback);
-	    } else {
-	      component._pendingCallbacks = [callback];
-	    }
-	  }
-	}
-
-	/**
-	 * Enqueue a callback to be run at the end of the current batching cycle. Throws
-	 * if no updates are currently being performed.
-	 */
-	function asap(callback, context) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    batchingStrategy.isBatchingUpdates,
-	    'ReactUpdates.asap: Can\'t enqueue an asap callback in a context where' +
-	    'updates are not being batched.'
-	  ) : invariant(batchingStrategy.isBatchingUpdates));
-	  asapCallbackQueue.enqueue(callback, context);
-	  asapEnqueued = true;
-	}
-
-	var ReactUpdatesInjection = {
-	  injectReconcileTransaction: function(ReconcileTransaction) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      ReconcileTransaction,
-	      'ReactUpdates: must provide a reconcile transaction class'
-	    ) : invariant(ReconcileTransaction));
-	    ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
-	  },
-
-	  injectBatchingStrategy: function(_batchingStrategy) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      _batchingStrategy,
-	      'ReactUpdates: must provide a batching strategy'
-	    ) : invariant(_batchingStrategy));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof _batchingStrategy.batchedUpdates === 'function',
-	      'ReactUpdates: must provide a batchedUpdates() function'
-	    ) : invariant(typeof _batchingStrategy.batchedUpdates === 'function'));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof _batchingStrategy.isBatchingUpdates === 'boolean',
-	      'ReactUpdates: must provide an isBatchingUpdates boolean attribute'
-	    ) : invariant(typeof _batchingStrategy.isBatchingUpdates === 'boolean'));
-	    batchingStrategy = _batchingStrategy;
-	  }
-	};
-
-	var ReactUpdates = {
-	  /**
-	   * React references `ReactReconcileTransaction` using this property in order
-	   * to allow dependency injection.
-	   *
-	   * @internal
-	   */
-	  ReactReconcileTransaction: null,
-
-	  batchedUpdates: batchedUpdates,
-	  enqueueUpdate: enqueueUpdate,
-	  flushBatchedUpdates: flushBatchedUpdates,
-	  injection: ReactUpdatesInjection,
-	  asap: asap
-	};
-
-	module.exports = ReactUpdates;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule cx
-	 */
-
-	/**
-	 * This function is used to mark string literals representing CSS class names
-	 * so that they can be transformed statically. This allows for modularization
-	 * and minification of CSS class names.
-	 *
-	 * In static_upstream, this function is actually implemented, but it should
-	 * eventually be replaced with something more descriptive, and the transform
-	 * that is used in the main stack should be ported for use elsewhere.
-	 *
-	 * @param string|object className to modularize, or an object of key/values.
-	 *                      In the object case, the values are conditions that
-	 *                      determine if the className keys should be included.
-	 * @param [string ...]  Variable list of classNames in the string case.
-	 * @return string       Renderable space-separated CSS className.
-	 */
-	function cx(classNames) {
-	  if (typeof classNames == 'object') {
-	    return Object.keys(classNames).filter(function(className) {
-	      return classNames[className];
-	    }).join(' ');
-	  } else {
-	    return Array.prototype.join.call(arguments, ' ');
-	  }
-	}
-
-	module.exports = cx;
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks
-	 * @providesModule cloneWithProps
-	 */
-
-	"use strict";
-
-	var ReactElement = __webpack_require__(36);
-	var ReactPropTransferer = __webpack_require__(63);
-
-	var keyOf = __webpack_require__(62);
-	var warning = __webpack_require__(59);
-
-	var CHILDREN_PROP = keyOf({children: null});
-
-	/**
-	 * Sometimes you want to change the props of a child passed to you. Usually
-	 * this is to add a CSS class.
-	 *
-	 * @param {object} child child component you'd like to clone
-	 * @param {object} props props you'd like to modify. They will be merged
-	 * as if you used `transferPropsTo()`.
-	 * @return {object} a clone of child with props merged in.
-	 */
-	function cloneWithProps(child, props) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      !child.ref,
-	      'You are calling cloneWithProps() on a child with a ref. This is ' +
-	      'dangerous because you\'re creating a new child which will not be ' +
-	      'added as a ref to its parent.'
-	    ) : null);
-	  }
-
-	  var newProps = ReactPropTransferer.mergeProps(props, child.props);
-
-	  // Use `child.props.children` if it is provided.
-	  if (!newProps.hasOwnProperty(CHILDREN_PROP) &&
-	      child.props.hasOwnProperty(CHILDREN_PROP)) {
-	    newProps.children = child.props.children;
-	  }
-
-	  // The current API doesn't retain _owner and _context, which is why this
-	  // doesn't use ReactElement.cloneAndReplaceProps.
-	  return ReactElement.createElement(child.type, newProps);
-	}
-
-	module.exports = cloneWithProps;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule update
-	 */
-
-	"use strict";
-
-	var assign = __webpack_require__(49);
-	var keyOf = __webpack_require__(62);
-	var invariant = __webpack_require__(58);
-
-	function shallowCopy(x) {
-	  if (Array.isArray(x)) {
-	    return x.concat();
-	  } else if (x && typeof x === 'object') {
-	    return assign(new x.constructor(), x);
-	  } else {
-	    return x;
-	  }
-	}
-
-	var COMMAND_PUSH = keyOf({$push: null});
-	var COMMAND_UNSHIFT = keyOf({$unshift: null});
-	var COMMAND_SPLICE = keyOf({$splice: null});
-	var COMMAND_SET = keyOf({$set: null});
-	var COMMAND_MERGE = keyOf({$merge: null});
-	var COMMAND_APPLY = keyOf({$apply: null});
-
-	var ALL_COMMANDS_LIST = [
-	  COMMAND_PUSH,
-	  COMMAND_UNSHIFT,
-	  COMMAND_SPLICE,
-	  COMMAND_SET,
-	  COMMAND_MERGE,
-	  COMMAND_APPLY
-	];
-
-	var ALL_COMMANDS_SET = {};
-
-	ALL_COMMANDS_LIST.forEach(function(command) {
-	  ALL_COMMANDS_SET[command] = true;
-	});
-
-	function invariantArrayCase(value, spec, command) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    Array.isArray(value),
-	    'update(): expected target of %s to be an array; got %s.',
-	    command,
-	    value
-	  ) : invariant(Array.isArray(value)));
-	  var specValue = spec[command];
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    Array.isArray(specValue),
-	    'update(): expected spec of %s to be an array; got %s. ' +
-	    'Did you forget to wrap your parameter in an array?',
-	    command,
-	    specValue
-	  ) : invariant(Array.isArray(specValue)));
-	}
-
-	function update(value, spec) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    typeof spec === 'object',
-	    'update(): You provided a key path to update() that did not contain one ' +
-	    'of %s. Did you forget to include {%s: ...}?',
-	    ALL_COMMANDS_LIST.join(', '),
-	    COMMAND_SET
-	  ) : invariant(typeof spec === 'object'));
-
-	  if (spec.hasOwnProperty(COMMAND_SET)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Object.keys(spec).length === 1,
-	      'Cannot have more than one key in an object with %s',
-	      COMMAND_SET
-	    ) : invariant(Object.keys(spec).length === 1));
-
-	    return spec[COMMAND_SET];
-	  }
-
-	  var nextValue = shallowCopy(value);
-
-	  if (spec.hasOwnProperty(COMMAND_MERGE)) {
-	    var mergeObj = spec[COMMAND_MERGE];
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      mergeObj && typeof mergeObj === 'object',
-	      'update(): %s expects a spec of type \'object\'; got %s',
-	      COMMAND_MERGE,
-	      mergeObj
-	    ) : invariant(mergeObj && typeof mergeObj === 'object'));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      nextValue && typeof nextValue === 'object',
-	      'update(): %s expects a target of type \'object\'; got %s',
-	      COMMAND_MERGE,
-	      nextValue
-	    ) : invariant(nextValue && typeof nextValue === 'object'));
-	    assign(nextValue, spec[COMMAND_MERGE]);
-	  }
-
-	  if (spec.hasOwnProperty(COMMAND_PUSH)) {
-	    invariantArrayCase(value, spec, COMMAND_PUSH);
-	    spec[COMMAND_PUSH].forEach(function(item) {
-	      nextValue.push(item);
-	    });
-	  }
-
-	  if (spec.hasOwnProperty(COMMAND_UNSHIFT)) {
-	    invariantArrayCase(value, spec, COMMAND_UNSHIFT);
-	    spec[COMMAND_UNSHIFT].forEach(function(item) {
-	      nextValue.unshift(item);
-	    });
-	  }
-
-	  if (spec.hasOwnProperty(COMMAND_SPLICE)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(value),
-	      'Expected %s target to be an array; got %s',
-	      COMMAND_SPLICE,
-	      value
-	    ) : invariant(Array.isArray(value)));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(spec[COMMAND_SPLICE]),
-	      'update(): expected spec of %s to be an array of arrays; got %s. ' +
-	      'Did you forget to wrap your parameters in an array?',
-	      COMMAND_SPLICE,
-	      spec[COMMAND_SPLICE]
-	    ) : invariant(Array.isArray(spec[COMMAND_SPLICE])));
-	    spec[COMMAND_SPLICE].forEach(function(args) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        Array.isArray(args),
-	        'update(): expected spec of %s to be an array of arrays; got %s. ' +
-	        'Did you forget to wrap your parameters in an array?',
-	        COMMAND_SPLICE,
-	        spec[COMMAND_SPLICE]
-	      ) : invariant(Array.isArray(args)));
-	      nextValue.splice.apply(nextValue, args);
-	    });
-	  }
-
-	  if (spec.hasOwnProperty(COMMAND_APPLY)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof spec[COMMAND_APPLY] === 'function',
-	      'update(): expected spec of %s to be a function; got %s.',
-	      COMMAND_APPLY,
-	      spec[COMMAND_APPLY]
-	    ) : invariant(typeof spec[COMMAND_APPLY] === 'function'));
-	    nextValue = spec[COMMAND_APPLY](nextValue);
-	  }
-
-	  for (var k in spec) {
-	    if (!(ALL_COMMANDS_SET.hasOwnProperty(k) && ALL_COMMANDS_SET[k])) {
-	      nextValue[k] = update(value[k], spec[k]);
-	    }
-	  }
-
-	  return nextValue;
-	}
-
-	module.exports = update;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactDefaultPerf
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var DOMProperty = __webpack_require__(64);
-	var ReactDefaultPerfAnalysis = __webpack_require__(65);
-	var ReactMount = __webpack_require__(43);
-	var ReactPerf = __webpack_require__(45);
-
-	var performanceNow = __webpack_require__(66);
-
-	function roundFloat(val) {
-	  return Math.floor(val * 100) / 100;
-	}
-
-	function addValue(obj, key, val) {
-	  obj[key] = (obj[key] || 0) + val;
-	}
-
-	var ReactDefaultPerf = {
-	  _allMeasurements: [], // last item in the list is the current one
-	  _mountStack: [0],
-	  _injected: false,
-
-	  start: function() {
-	    if (!ReactDefaultPerf._injected) {
-	      ReactPerf.injection.injectMeasure(ReactDefaultPerf.measure);
-	    }
-
-	    ReactDefaultPerf._allMeasurements.length = 0;
-	    ReactPerf.enableMeasure = true;
-	  },
-
-	  stop: function() {
-	    ReactPerf.enableMeasure = false;
-	  },
-
-	  getLastMeasurements: function() {
-	    return ReactDefaultPerf._allMeasurements;
-	  },
-
-	  printExclusive: function(measurements) {
-	    measurements = measurements || ReactDefaultPerf._allMeasurements;
-	    var summary = ReactDefaultPerfAnalysis.getExclusiveSummary(measurements);
-	    console.table(summary.map(function(item) {
-	      return {
-	        'Component class name': item.componentName,
-	        'Total inclusive time (ms)': roundFloat(item.inclusive),
-	        'Exclusive mount time (ms)': roundFloat(item.exclusive),
-	        'Exclusive render time (ms)': roundFloat(item.render),
-	        'Mount time per instance (ms)': roundFloat(item.exclusive / item.count),
-	        'Render time per instance (ms)': roundFloat(item.render / item.count),
-	        'Instances': item.count
-	      };
-	    }));
-	    // TODO: ReactDefaultPerfAnalysis.getTotalTime() does not return the correct
-	    // number.
-	  },
-
-	  printInclusive: function(measurements) {
-	    measurements = measurements || ReactDefaultPerf._allMeasurements;
-	    var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(measurements);
-	    console.table(summary.map(function(item) {
-	      return {
-	        'Owner > component': item.componentName,
-	        'Inclusive time (ms)': roundFloat(item.time),
-	        'Instances': item.count
-	      };
-	    }));
-	    console.log(
-	      'Total time:',
-	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
-	    );
-	  },
-
-	  getMeasurementsSummaryMap: function(measurements) {
-	    var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(
-	      measurements,
-	      true
-	    );
-	    return summary.map(function(item) {
-	      return {
-	        'Owner > component': item.componentName,
-	        'Wasted time (ms)': item.time,
-	        'Instances': item.count
-	      };
-	    });
-	  },
-
-	  printWasted: function(measurements) {
-	    measurements = measurements || ReactDefaultPerf._allMeasurements;
-	    console.table(ReactDefaultPerf.getMeasurementsSummaryMap(measurements));
-	    console.log(
-	      'Total time:',
-	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
-	    );
-	  },
-
-	  printDOM: function(measurements) {
-	    measurements = measurements || ReactDefaultPerf._allMeasurements;
-	    var summary = ReactDefaultPerfAnalysis.getDOMSummary(measurements);
-	    console.table(summary.map(function(item) {
-	      var result = {};
-	      result[DOMProperty.ID_ATTRIBUTE_NAME] = item.id;
-	      result['type'] = item.type;
-	      result['args'] = JSON.stringify(item.args);
-	      return result;
-	    }));
-	    console.log(
-	      'Total time:',
-	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
-	    );
-	  },
-
-	  _recordWrite: function(id, fnName, totalTime, args) {
-	    // TODO: totalTime isn't that useful since it doesn't count paints/reflows
-	    var writes =
-	      ReactDefaultPerf
-	        ._allMeasurements[ReactDefaultPerf._allMeasurements.length - 1]
-	        .writes;
-	    writes[id] = writes[id] || [];
-	    writes[id].push({
-	      type: fnName,
-	      time: totalTime,
-	      args: args
-	    });
-	  },
-
-	  measure: function(moduleName, fnName, func) {
-	    return function() {for (var args=[],$__0=0,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
-	      var totalTime;
-	      var rv;
-	      var start;
-
-	      if (fnName === '_renderNewRootComponent' ||
-	          fnName === 'flushBatchedUpdates') {
-	        // A "measurement" is a set of metrics recorded for each flush. We want
-	        // to group the metrics for a given flush together so we can look at the
-	        // components that rendered and the DOM operations that actually
-	        // happened to determine the amount of "wasted work" performed.
-	        ReactDefaultPerf._allMeasurements.push({
-	          exclusive: {},
-	          inclusive: {},
-	          render: {},
-	          counts: {},
-	          writes: {},
-	          displayNames: {},
-	          totalTime: 0
-	        });
-	        start = performanceNow();
-	        rv = func.apply(this, args);
-	        ReactDefaultPerf._allMeasurements[
-	          ReactDefaultPerf._allMeasurements.length - 1
-	        ].totalTime = performanceNow() - start;
-	        return rv;
-	      } else if (moduleName === 'ReactDOMIDOperations' ||
-	        moduleName === 'ReactComponentBrowserEnvironment') {
-	        start = performanceNow();
-	        rv = func.apply(this, args);
-	        totalTime = performanceNow() - start;
-
-	        if (fnName === 'mountImageIntoNode') {
-	          var mountID = ReactMount.getID(args[1]);
-	          ReactDefaultPerf._recordWrite(mountID, fnName, totalTime, args[0]);
-	        } else if (fnName === 'dangerouslyProcessChildrenUpdates') {
-	          // special format
-	          args[0].forEach(function(update) {
-	            var writeArgs = {};
-	            if (update.fromIndex !== null) {
-	              writeArgs.fromIndex = update.fromIndex;
-	            }
-	            if (update.toIndex !== null) {
-	              writeArgs.toIndex = update.toIndex;
-	            }
-	            if (update.textContent !== null) {
-	              writeArgs.textContent = update.textContent;
-	            }
-	            if (update.markupIndex !== null) {
-	              writeArgs.markup = args[1][update.markupIndex];
-	            }
-	            ReactDefaultPerf._recordWrite(
-	              update.parentID,
-	              update.type,
-	              totalTime,
-	              writeArgs
-	            );
-	          });
-	        } else {
-	          // basic format
-	          ReactDefaultPerf._recordWrite(
-	            args[0],
-	            fnName,
-	            totalTime,
-	            Array.prototype.slice.call(args, 1)
-	          );
-	        }
-	        return rv;
-	      } else if (moduleName === 'ReactCompositeComponent' && (
-	        fnName === 'mountComponent' ||
-	        fnName === 'updateComponent' || // TODO: receiveComponent()?
-	        fnName === '_renderValidatedComponent')) {
-
-	        var rootNodeID = fnName === 'mountComponent' ?
-	          args[0] :
-	          this._rootNodeID;
-	        var isRender = fnName === '_renderValidatedComponent';
-	        var isMount = fnName === 'mountComponent';
-
-	        var mountStack = ReactDefaultPerf._mountStack;
-	        var entry = ReactDefaultPerf._allMeasurements[
-	          ReactDefaultPerf._allMeasurements.length - 1
-	        ];
-
-	        if (isRender) {
-	          addValue(entry.counts, rootNodeID, 1);
-	        } else if (isMount) {
-	          mountStack.push(0);
-	        }
-
-	        start = performanceNow();
-	        rv = func.apply(this, args);
-	        totalTime = performanceNow() - start;
-
-	        if (isRender) {
-	          addValue(entry.render, rootNodeID, totalTime);
-	        } else if (isMount) {
-	          var subMountTime = mountStack.pop();
-	          mountStack[mountStack.length - 1] += totalTime;
-	          addValue(entry.exclusive, rootNodeID, totalTime - subMountTime);
-	          addValue(entry.inclusive, rootNodeID, totalTime);
-	        } else {
-	          addValue(entry.inclusive, rootNodeID, totalTime);
-	        }
-
-	        entry.displayNames[rootNodeID] = {
-	          current: this.constructor.displayName,
-	          owner: this._owner ? this._owner.constructor.displayName : '<root>'
-	        };
-
-	        return rv;
-	      } else {
-	        return func.apply(this, args);
-	      }
-	    };
-	  }
-	};
-
-	module.exports = ReactDefaultPerf;
-
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTestUtils
-	 */
-
-	"use strict";
-
-	var EventConstants = __webpack_require__(67);
-	var EventPluginHub = __webpack_require__(68);
-	var EventPropagators = __webpack_require__(69);
-	var React = __webpack_require__(15);
-	var ReactElement = __webpack_require__(36);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
-	var ReactMount = __webpack_require__(43);
-	var ReactTextComponent = __webpack_require__(48);
-	var ReactUpdates = __webpack_require__(19);
-	var SyntheticEvent = __webpack_require__(71);
-
-	var assign = __webpack_require__(49);
-
-	var topLevelTypes = EventConstants.topLevelTypes;
-
-	function Event(suffix) {}
-
-	/**
-	 * @class ReactTestUtils
-	 */
-
-	/**
-	 * Todo: Support the entire DOM.scry query syntax. For now, these simple
-	 * utilities will suffice for testing purposes.
-	 * @lends ReactTestUtils
-	 */
-	var ReactTestUtils = {
-	  renderIntoDocument: function(instance) {
-	    var div = document.createElement('div');
-	    // None of our tests actually require attaching the container to the
-	    // DOM, and doing so creates a mess that we rely on test isolation to
-	    // clean up, so we're going to stop honoring the name of this method
-	    // (and probably rename it eventually) if no problems arise.
-	    // document.documentElement.appendChild(div);
-	    return React.render(instance, div);
-	  },
-
-	  isElement: function(element) {
-	    return ReactElement.isValidElement(element);
-	  },
-
-	  isElementOfType: function(inst, convenienceConstructor) {
-	    return (
-	      ReactElement.isValidElement(inst) &&
-	      inst.type === convenienceConstructor.type
-	    );
-	  },
-
-	  isDOMComponent: function(inst) {
-	    return !!(inst && inst.mountComponent && inst.tagName);
-	  },
-
-	  isDOMComponentElement: function(inst) {
-	    return !!(inst &&
-	              ReactElement.isValidElement(inst) &&
-	              !!inst.tagName);
-	  },
-
-	  isCompositeComponent: function(inst) {
-	    return typeof inst.render === 'function' &&
-	           typeof inst.setState === 'function';
-	  },
-
-	  isCompositeComponentWithType: function(inst, type) {
-	    return !!(ReactTestUtils.isCompositeComponent(inst) &&
-	             (inst.constructor === type.type));
-	  },
-
-	  isCompositeComponentElement: function(inst) {
-	    if (!ReactElement.isValidElement(inst)) {
-	      return false;
-	    }
-	    // We check the prototype of the type that will get mounted, not the
-	    // instance itself. This is a future proof way of duck typing.
-	    var prototype = inst.type.prototype;
-	    return (
-	      typeof prototype.render === 'function' &&
-	      typeof prototype.setState === 'function'
-	    );
-	  },
-
-	  isCompositeComponentElementWithType: function(inst, type) {
-	    return !!(ReactTestUtils.isCompositeComponentElement(inst) &&
-	             (inst.constructor === type));
-	  },
-
-	  isTextComponent: function(inst) {
-	    return inst instanceof ReactTextComponent.type;
-	  },
-
-	  findAllInRenderedTree: function(inst, test) {
-	    if (!inst) {
-	      return [];
-	    }
-	    var ret = test(inst) ? [inst] : [];
-	    if (ReactTestUtils.isDOMComponent(inst)) {
-	      var renderedChildren = inst._renderedChildren;
-	      var key;
-	      for (key in renderedChildren) {
-	        if (!renderedChildren.hasOwnProperty(key)) {
-	          continue;
-	        }
-	        ret = ret.concat(
-	          ReactTestUtils.findAllInRenderedTree(renderedChildren[key], test)
-	        );
-	      }
-	    } else if (ReactTestUtils.isCompositeComponent(inst)) {
-	      ret = ret.concat(
-	        ReactTestUtils.findAllInRenderedTree(inst._renderedComponent, test)
-	      );
-	    }
-	    return ret;
-	  },
-
-	  /**
-	   * Finds all instance of components in the rendered tree that are DOM
-	   * components with the class name matching `className`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedDOMComponentsWithClass: function(root, className) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      var instClassName = inst.props.className;
-	      return ReactTestUtils.isDOMComponent(inst) && (
-	        instClassName &&
-	        (' ' + instClassName + ' ').indexOf(' ' + className + ' ') !== -1
-	      );
-	    });
-	  },
-
-	  /**
-	   * Like scryRenderedDOMComponentsWithClass but expects there to be one result,
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactDOMComponent} The one match.
-	   */
-	  findRenderedDOMComponentWithClass: function(root, className) {
-	    var all =
-	      ReactTestUtils.scryRenderedDOMComponentsWithClass(root, className);
-	    if (all.length !== 1) {
-	      throw new Error('Did not find exactly one match for class:' + className);
-	    }
-	    return all[0];
-	  },
-
-
-	  /**
-	   * Finds all instance of components in the rendered tree that are DOM
-	   * components with the tag name matching `tagName`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedDOMComponentsWithTag: function(root, tagName) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      return ReactTestUtils.isDOMComponent(inst) &&
-	            inst.tagName === tagName.toUpperCase();
-	    });
-	  },
-
-	  /**
-	   * Like scryRenderedDOMComponentsWithTag but expects there to be one result,
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactDOMComponent} The one match.
-	   */
-	  findRenderedDOMComponentWithTag: function(root, tagName) {
-	    var all = ReactTestUtils.scryRenderedDOMComponentsWithTag(root, tagName);
-	    if (all.length !== 1) {
-	      throw new Error('Did not find exactly one match for tag:' + tagName);
-	    }
-	    return all[0];
-	  },
-
-
-	  /**
-	   * Finds all instances of components with type equal to `componentType`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedComponentsWithType: function(root, componentType) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      return ReactTestUtils.isCompositeComponentWithType(
-	        inst,
-	        componentType
-	      );
-	    });
-	  },
-
-	  /**
-	   * Same as `scryRenderedComponentsWithType` but expects there to be one result
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactComponent} The one match.
-	   */
-	  findRenderedComponentWithType: function(root, componentType) {
-	    var all = ReactTestUtils.scryRenderedComponentsWithType(
-	      root,
-	      componentType
-	    );
-	    if (all.length !== 1) {
-	      throw new Error(
-	        'Did not find exactly one match for componentType:' + componentType
-	      );
-	    }
-	    return all[0];
-	  },
-
-	  /**
-	   * Pass a mocked component module to this method to augment it with
-	   * useful methods that allow it to be used as a dummy React component.
-	   * Instead of rendering as usual, the component will become a simple
-	   * <div> containing any provided children.
-	   *
-	   * @param {object} module the mock function object exported from a
-	   *                        module that defines the component to be mocked
-	   * @param {?string} mockTagName optional dummy root tag name to return
-	   *                              from render method (overrides
-	   *                              module.mockTagName if provided)
-	   * @return {object} the ReactTestUtils object (for chaining)
-	   */
-	  mockComponent: function(module, mockTagName) {
-	    mockTagName = mockTagName || module.mockTagName || "div";
-
-	    var ConvenienceConstructor = React.createClass({displayName: "ConvenienceConstructor",
-	      render: function() {
-	        return React.createElement(
-	          mockTagName,
-	          null,
-	          this.props.children
-	        );
-	      }
-	    });
-
-	    module.mockImplementation(ConvenienceConstructor);
-
-	    module.type = ConvenienceConstructor.type;
-	    module.isReactLegacyFactory = true;
-
-	    return this;
-	  },
-
-	  /**
-	   * Simulates a top level event being dispatched from a raw event that occured
-	   * on an `Element` node.
-	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`
-	   * @param {!Element} node The dom to simulate an event occurring on.
-	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
-	   */
-	  simulateNativeEventOnNode: function(topLevelType, node, fakeNativeEvent) {
-	    fakeNativeEvent.target = node;
-	    ReactBrowserEventEmitter.ReactEventListener.dispatchEvent(
-	      topLevelType,
-	      fakeNativeEvent
-	    );
-	  },
-
-	  /**
-	   * Simulates a top level event being dispatched from a raw event that occured
-	   * on the `ReactDOMComponent` `comp`.
-	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`.
-	   * @param comp {!ReactDOMComponent}
-	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
-	   */
-	  simulateNativeEventOnDOMComponent: function(
-	      topLevelType,
-	      comp,
-	      fakeNativeEvent) {
-	    ReactTestUtils.simulateNativeEventOnNode(
-	      topLevelType,
-	      comp.getDOMNode(),
-	      fakeNativeEvent
-	    );
-	  },
-
-	  nativeTouchData: function(x, y) {
-	    return {
-	      touches: [
-	        {pageX: x, pageY: y}
-	      ]
-	    };
-	  },
-
-	  Simulate: null,
-	  SimulateNative: {}
-	};
-
-	/**
-	 * Exports:
-	 *
-	 * - `ReactTestUtils.Simulate.click(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.Simulate.mouseMove(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.Simulate.change(Element/ReactDOMComponent)`
-	 * - ... (All keys from event plugin `eventTypes` objects)
-	 */
-	function makeSimulator(eventType) {
-	  return function(domComponentOrNode, eventData) {
-	    var node;
-	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
-	      node = domComponentOrNode.getDOMNode();
-	    } else if (domComponentOrNode.tagName) {
-	      node = domComponentOrNode;
-	    }
-
-	    var fakeNativeEvent = new Event();
-	    fakeNativeEvent.target = node;
-	    // We don't use SyntheticEvent.getPooled in order to not have to worry about
-	    // properly destroying any properties assigned from `eventData` upon release
-	    var event = new SyntheticEvent(
-	      ReactBrowserEventEmitter.eventNameDispatchConfigs[eventType],
-	      ReactMount.getID(node),
-	      fakeNativeEvent
-	    );
-	    assign(event, eventData);
-	    EventPropagators.accumulateTwoPhaseDispatches(event);
-
-	    ReactUpdates.batchedUpdates(function() {
-	      EventPluginHub.enqueueEvents(event);
-	      EventPluginHub.processEventQueue();
-	    });
-	  };
-	}
-
-	function buildSimulators() {
-	  ReactTestUtils.Simulate = {};
-
-	  var eventType;
-	  for (eventType in ReactBrowserEventEmitter.eventNameDispatchConfigs) {
-	    /**
-	     * @param {!Element || ReactDOMComponent} domComponentOrNode
-	     * @param {?object} eventData Fake event data to use in SyntheticEvent.
-	     */
-	    ReactTestUtils.Simulate[eventType] = makeSimulator(eventType);
-	  }
-	}
-
-	// Rebuild ReactTestUtils.Simulate whenever event plugins are injected
-	var oldInjectEventPluginOrder = EventPluginHub.injection.injectEventPluginOrder;
-	EventPluginHub.injection.injectEventPluginOrder = function() {
-	  oldInjectEventPluginOrder.apply(this, arguments);
-	  buildSimulators();
-	};
-	var oldInjectEventPlugins = EventPluginHub.injection.injectEventPluginsByName;
-	EventPluginHub.injection.injectEventPluginsByName = function() {
-	  oldInjectEventPlugins.apply(this, arguments);
-	  buildSimulators();
-	};
-
-	buildSimulators();
-
-	/**
-	 * Exports:
-	 *
-	 * - `ReactTestUtils.SimulateNative.click(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseMove(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseIn/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseOut(Element/ReactDOMComponent)`
-	 * - ... (All keys from `EventConstants.topLevelTypes`)
-	 *
-	 * Note: Top level event types are a subset of the entire set of handler types
-	 * (which include a broader set of "synthetic" events). For example, onDragDone
-	 * is a synthetic event. Except when testing an event plugin or React's event
-	 * handling code specifically, you probably want to use ReactTestUtils.Simulate
-	 * to dispatch synthetic events.
-	 */
-
-	function makeNativeSimulator(eventType) {
-	  return function(domComponentOrNode, nativeEventData) {
-	    var fakeNativeEvent = new Event(eventType);
-	    assign(fakeNativeEvent, nativeEventData);
-	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
-	      ReactTestUtils.simulateNativeEventOnDOMComponent(
-	        eventType,
-	        domComponentOrNode,
-	        fakeNativeEvent
-	      );
-	    } else if (!!domComponentOrNode.tagName) {
-	      // Will allow on actual dom nodes.
-	      ReactTestUtils.simulateNativeEventOnNode(
-	        eventType,
-	        domComponentOrNode,
-	        fakeNativeEvent
-	      );
-	    }
-	  };
-	}
-
-	var eventType;
-	for (eventType in topLevelTypes) {
-	  // Event type is stored as 'topClick' - we transform that to 'click'
-	  var convenienceName = eventType.indexOf('top') === 0 ?
-	    eventType.charAt(3).toLowerCase() + eventType.substr(4) : eventType;
-	  /**
-	   * @param {!Element || ReactDOMComponent} domComponentOrNode
-	   * @param {?Event} nativeEventData Fake native event to use in SyntheticEvent.
-	   */
-	  ReactTestUtils.SimulateNative[convenienceName] =
-	    makeNativeSimulator(eventType);
-	}
-
-	module.exports = ReactTestUtils;
-
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** Changes descriptor constructor.
-	 * @param {Array} path absolute changed path
-	 * @param {Array} listenerPath absolute listener path
-	 * @param {Boolean} valueChanged value changed flag
-	 * @param {Immutable.Map} previousValue previous backing value
-	 * @param {Immutable.Map} previousMeta previous meta binding backing value
-	 * @public
-	 * @class ChangesDescriptor
-	 * @classdesc Encapsulates binding changes for binding listeners. */
-	var ChangesDescriptor =
-	  function (path, listenerPath, valueChanged, previousValue, previousMeta) {
-	    /** @private */
-	    this._path = path;
-	    /** @private */
-	    this._listenerPath = listenerPath;
-	    /** @private */
-	    this._valueChanged = valueChanged;
-	    /** @private */
-	    this._previousValue = previousValue;
-	    /** @private */
-	    this._previousMeta = previousMeta;
-	  };
-
-	ChangesDescriptor.prototype = Object.freeze( /** @lends ChangesDescriptor.prototype */ {
-	  /** Get changed path relative to binding's path listener was installed on.
-	   * @return {Array} changed path */
-	  getPath: function () {
-	    var listenerPathLen = this._listenerPath.length;
-	    return listenerPathLen === this._path.length ? [] : this._path.slice(listenerPathLen);
-	  },
-
-	  /** Check if binding's value was changed.
-	   * @returns {Boolean} */
-	  isValueChanged: function () {
-	    return this._valueChanged;
-	  },
-
-	  /** Check if meta binding's value was changed.
-	   * @returns {Boolean} */
-	  isMetaChanged: function () {
-	    return !!this._previousMeta;
-	  },
-
-	  /** Get previous value at listening path.
-	   * @returns {*} previous value at listening path or null if not changed */
-	  getPreviousValue: function () {
-	    return this._previousValue && this._previousValue.getIn(this._listenerPath);
-	  },
-
-	  /** Get previous meta at listening path.
-	   * @returns {*} */
-	  getPreviousMeta: function () {
-	    return this._previousMeta && this._previousMeta.getIn(this._listenerPath);
-	  }
-	});
-
-	module.exports = ChangesDescriptor;
-
-
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-
-	process.nextTick = (function () {
-	    var canSetImmediate = typeof window !== 'undefined'
-	    && window.setImmediate;
-	    var canMutationObserver = typeof window !== 'undefined'
-	    && window.MutationObserver;
-	    var canPost = typeof window !== 'undefined'
-	    && window.postMessage && window.addEventListener
-	    ;
-
-	    if (canSetImmediate) {
-	        return function (f) { return window.setImmediate(f) };
-	    }
-
-	    var queue = [];
-
-	    if (canMutationObserver) {
-	        var hiddenDiv = document.createElement("div");
-	        var observer = new MutationObserver(function () {
-	            var queueList = queue.slice();
-	            queue.length = 0;
-	            queueList.forEach(function (fn) {
-	                fn();
-	            });
-	        });
-
-	        observer.observe(hiddenDiv, { attributes: true });
-
-	        return function nextTick(fn) {
-	            if (!queue.length) {
-	                hiddenDiv.setAttribute('yes', 'no');
-	            }
-	            queue.push(fn);
-	        };
-	    }
-
-	    if (canPost) {
-	        window.addEventListener('message', function (ev) {
-	            var source = ev.source;
-	            if ((source === window || source === null) && ev.data === 'process-tick') {
-	                ev.stopPropagation();
-	                if (queue.length > 0) {
-	                    var fn = queue.shift();
-	                    fn();
-	                }
-	            }
-	        }, true);
-
-	        return function nextTick(fn) {
-	            queue.push(fn);
-	            window.postMessage('process-tick', '*');
-	        };
-	    }
-
-	    return function nextTick(fn) {
-	        setTimeout(fn, 0);
-	    };
-	})();
-
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	// TODO(shtylman)
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-
-
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactLink
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * ReactLink encapsulates a common pattern in which a component wants to modify
-	 * a prop received from its parent. ReactLink allows the parent to pass down a
-	 * value coupled with a callback that, when invoked, expresses an intent to
-	 * modify that value. For example:
-	 *
-	 * React.createClass({
-	 *   getInitialState: function() {
-	 *     return {value: ''};
-	 *   },
-	 *   render: function() {
-	 *     var valueLink = new ReactLink(this.state.value, this._handleValueChange);
-	 *     return <input valueLink={valueLink} />;
-	 *   },
-	 *   this._handleValueChange: function(newValue) {
-	 *     this.setState({value: newValue});
-	 *   }
-	 * });
-	 *
-	 * We have provided some sugary mixins to make the creation and
-	 * consumption of ReactLink easier; see LinkedValueUtils and LinkedStateMixin.
-	 */
-
-	var React = __webpack_require__(15);
-
-	/**
-	 * @param {*} value current value of the link
-	 * @param {function} requestChange callback to request a change
-	 */
-	function ReactLink(value, requestChange) {
-	  this.value = value;
-	  this.requestChange = requestChange;
-	}
-
-	/**
-	 * Creates a PropType that enforces the ReactLink API and optionally checks the
-	 * type of the value being passed inside the link. Example:
-	 *
-	 * MyComponent.propTypes = {
-	 *   tabIndexLink: ReactLink.PropTypes.link(React.PropTypes.number)
-	 * }
-	 */
-	function createLinkTypeChecker(linkType) {
-	  var shapes = {
-	    value: typeof linkType === 'undefined' ?
-	      React.PropTypes.any.isRequired :
-	      linkType.isRequired,
-	    requestChange: React.PropTypes.func.isRequired
-	  };
-	  return React.PropTypes.shape(shapes);
-	}
-
-	ReactLink.PropTypes = {
-	  link: createLinkTypeChecker
-	};
-
-	module.exports = ReactLink;
-
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactStateSetters
-	 */
-
-	"use strict";
-
-	var ReactStateSetters = {
-	  /**
-	   * Returns a function that calls the provided function, and uses the result
-	   * of that to set the component's state.
-	   *
-	   * @param {ReactCompositeComponent} component
-	   * @param {function} funcReturningState Returned callback uses this to
-	   *                                      determine how to update state.
-	   * @return {function} callback that when invoked uses funcReturningState to
-	   *                    determined the object literal to setState.
-	   */
-	  createStateSetter: function(component, funcReturningState) {
-	    return function(a, b, c, d, e, f) {
-	      var partialState = funcReturningState.call(component, a, b, c, d, e, f);
-	      if (partialState) {
-	        component.setState(partialState);
-	      }
-	    };
-	  },
-
-	  /**
-	   * Returns a single-argument callback that can be used to update a single
-	   * key in the component's state.
-	   *
-	   * Note: this is memoized function, which makes it inexpensive to call.
-	   *
-	   * @param {ReactCompositeComponent} component
-	   * @param {string} key The key in the state that you should update.
-	   * @return {function} callback of 1 argument which calls setState() with
-	   *                    the provided keyName and callback argument.
-	   */
-	  createStateKeySetter: function(component, key) {
-	    // Memoize the setters.
-	    var cache = component.__keySetters || (component.__keySetters = {});
-	    return cache[key] || (cache[key] = createStateKeySetter(component, key));
-	  }
-	};
-
-	function createStateKeySetter(component, key) {
-	  // Partial state is allocated outside of the function closure so it can be
-	  // reused with every call, avoiding memory allocation when this function
-	  // is called.
-	  var partialState = {};
-	  return function stateKeySetter(value) {
-	    partialState[key] = value;
-	    component.setState(partialState);
-	  };
-	}
-
-	ReactStateSetters.Mixin = {
-	  /**
-	   * Returns a function that calls the provided function, and uses the result
-	   * of that to set the component's state.
-	   *
-	   * For example, these statements are equivalent:
-	   *
-	   *   this.setState({x: 1});
-	   *   this.createStateSetter(function(xValue) {
-	   *     return {x: xValue};
-	   *   })(1);
-	   *
-	   * @param {function} funcReturningState Returned callback uses this to
-	   *                                      determine how to update state.
-	   * @return {function} callback that when invoked uses funcReturningState to
-	   *                    determined the object literal to setState.
-	   */
-	  createStateSetter: function(funcReturningState) {
-	    return ReactStateSetters.createStateSetter(this, funcReturningState);
-	  },
-
-	  /**
-	   * Returns a single-argument callback that can be used to update a single
-	   * key in the component's state.
-	   *
-	   * For example, these statements are equivalent:
-	   *
-	   *   this.setState({x: 1});
-	   *   this.createStateKeySetter('x')(1);
-	   *
-	   * Note: this is memoized function, which makes it inexpensive to call.
-	   *
-	   * @param {string} key The key in the state that you should update.
-	   * @return {function} callback of 1 argument which calls setState() with
-	   *                    the provided keyName and callback argument.
-	   */
-	  createStateKeySetter: function(key) {
-	    return ReactStateSetters.createStateKeySetter(this, key);
-	  }
-	};
-
-	module.exports = ReactStateSetters;
-
-
-/***/ },
-/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9088,11 +5256,11 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(64);
+	var DOMProperty = __webpack_require__(46);
 
-	var escapeTextForBrowser = __webpack_require__(72);
-	var memoizeStringOnly = __webpack_require__(73);
-	var warning = __webpack_require__(59);
+	var escapeTextForBrowser = __webpack_require__(47);
+	var memoizeStringOnly = __webpack_require__(48);
+	var warning = __webpack_require__(49);
 
 	function shouldIgnoreValue(name, value) {
 	  return value == null ||
@@ -9268,10 +5436,10 @@
 
 	module.exports = DOMPropertyOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 30 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9287,9 +5455,9 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
+	var EventConstants = __webpack_require__(50);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Injected dependencies:
@@ -9492,10 +5660,10 @@
 
 	module.exports = EventPluginUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 31 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9511,10 +5679,10 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(56);
+	var PooledClass = __webpack_require__(54);
 
-	var traverseAllChildren = __webpack_require__(74);
-	var warning = __webpack_require__(59);
+	var traverseAllChildren = __webpack_require__(55);
+	var warning = __webpack_require__(49);
 
 	var twoArgumentPooler = PooledClass.twoArgumentPooler;
 	var threeArgumentPooler = PooledClass.threeArgumentPooler;
@@ -9645,10 +5813,10 @@
 
 	module.exports = ReactChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 32 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -9664,13 +5832,13 @@
 
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
-	var ReactOwner = __webpack_require__(75);
-	var ReactUpdates = __webpack_require__(19);
+	var ReactElement = __webpack_require__(17);
+	var ReactOwner = __webpack_require__(52);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
-	var keyMirror = __webpack_require__(76);
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
+	var keyMirror = __webpack_require__(53);
 
 	/**
 	 * Every React component is in one of these life cycles.
@@ -10091,10 +6259,10 @@
 
 	module.exports = ReactComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 33 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -10110,30 +6278,30 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(32);
-	var ReactContext = __webpack_require__(34);
-	var ReactCurrentOwner = __webpack_require__(35);
-	var ReactElement = __webpack_require__(36);
-	var ReactElementValidator = __webpack_require__(37);
-	var ReactEmptyComponent = __webpack_require__(77);
-	var ReactErrorUtils = __webpack_require__(78);
-	var ReactLegacyElement = __webpack_require__(42);
-	var ReactOwner = __webpack_require__(75);
-	var ReactPerf = __webpack_require__(45);
-	var ReactPropTransferer = __webpack_require__(63);
-	var ReactPropTypeLocations = __webpack_require__(79);
-	var ReactPropTypeLocationNames = __webpack_require__(80);
-	var ReactUpdates = __webpack_require__(19);
+	var ReactComponent = __webpack_require__(13);
+	var ReactContext = __webpack_require__(15);
+	var ReactCurrentOwner = __webpack_require__(16);
+	var ReactElement = __webpack_require__(17);
+	var ReactElementValidator = __webpack_require__(18);
+	var ReactEmptyComponent = __webpack_require__(56);
+	var ReactErrorUtils = __webpack_require__(57);
+	var ReactLegacyElement = __webpack_require__(23);
+	var ReactOwner = __webpack_require__(52);
+	var ReactPerf = __webpack_require__(26);
+	var ReactPropTransferer = __webpack_require__(58);
+	var ReactPropTypeLocations = __webpack_require__(59);
+	var ReactPropTypeLocationNames = __webpack_require__(60);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
-	var instantiateReactComponent = __webpack_require__(81);
-	var invariant = __webpack_require__(58);
-	var keyMirror = __webpack_require__(76);
+	var assign = __webpack_require__(30);
+	var instantiateReactComponent = __webpack_require__(61);
+	var invariant = __webpack_require__(51);
+	var keyMirror = __webpack_require__(53);
 	var keyOf = __webpack_require__(62);
-	var monitorCodeUse = __webpack_require__(82);
-	var mapObject = __webpack_require__(83);
-	var shouldUpdateReactComponent = __webpack_require__(84);
-	var warning = __webpack_require__(59);
+	var monitorCodeUse = __webpack_require__(63);
+	var mapObject = __webpack_require__(64);
+	var shouldUpdateReactComponent = __webpack_require__(65);
+	var warning = __webpack_require__(49);
 
 	var MIXINS_KEY = keyOf({mixins: null});
 
@@ -11534,10 +7702,10 @@
 
 	module.exports = ReactCompositeComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 34 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -11553,7 +7721,7 @@
 
 	"use strict";
 
-	var assign = __webpack_require__(49);
+	var assign = __webpack_require__(30);
 
 	/**
 	 * Keeps track of the current context.
@@ -11603,7 +7771,7 @@
 
 
 /***/ },
-/* 35 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -11641,7 +7809,7 @@
 
 
 /***/ },
-/* 36 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -11657,10 +7825,10 @@
 
 	"use strict";
 
-	var ReactContext = __webpack_require__(34);
-	var ReactCurrentOwner = __webpack_require__(35);
+	var ReactContext = __webpack_require__(15);
+	var ReactCurrentOwner = __webpack_require__(16);
 
-	var warning = __webpack_require__(59);
+	var warning = __webpack_require__(49);
 
 	var RESERVED_PROPS = {
 	  key: true,
@@ -11887,10 +8055,10 @@
 
 	module.exports = ReactElement;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 37 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -11913,12 +8081,12 @@
 
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
-	var ReactPropTypeLocations = __webpack_require__(79);
-	var ReactCurrentOwner = __webpack_require__(35);
+	var ReactElement = __webpack_require__(17);
+	var ReactPropTypeLocations = __webpack_require__(59);
+	var ReactCurrentOwner = __webpack_require__(16);
 
-	var monitorCodeUse = __webpack_require__(82);
-	var warning = __webpack_require__(59);
+	var monitorCodeUse = __webpack_require__(63);
+	var warning = __webpack_require__(49);
 
 	/**
 	 * Warn if there's no key explicitly set on dynamic arrays of children or
@@ -12172,10 +8340,10 @@
 
 	module.exports = ReactElementValidator;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 38 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -12192,11 +8360,11 @@
 
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
-	var ReactElementValidator = __webpack_require__(37);
-	var ReactLegacyElement = __webpack_require__(42);
+	var ReactElement = __webpack_require__(17);
+	var ReactElementValidator = __webpack_require__(18);
+	var ReactLegacyElement = __webpack_require__(23);
 
-	var mapObject = __webpack_require__(83);
+	var mapObject = __webpack_require__(64);
 
 	/**
 	 * Create a factory that creates HTML tag elements.
@@ -12358,10 +8526,10 @@
 
 	module.exports = ReactDOM;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 39 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -12378,22 +8546,22 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(85);
-	var DOMProperty = __webpack_require__(64);
-	var DOMPropertyOperations = __webpack_require__(29);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactComponent = __webpack_require__(32);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
-	var ReactMount = __webpack_require__(43);
-	var ReactMultiChild = __webpack_require__(44);
-	var ReactPerf = __webpack_require__(45);
+	var CSSPropertyOperations = __webpack_require__(66);
+	var DOMProperty = __webpack_require__(46);
+	var DOMPropertyOperations = __webpack_require__(10);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactComponent = __webpack_require__(13);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
+	var ReactMount = __webpack_require__(24);
+	var ReactMultiChild = __webpack_require__(25);
+	var ReactPerf = __webpack_require__(26);
 
-	var assign = __webpack_require__(49);
-	var escapeTextForBrowser = __webpack_require__(72);
-	var invariant = __webpack_require__(58);
-	var isEventSupported = __webpack_require__(87);
+	var assign = __webpack_require__(30);
+	var escapeTextForBrowser = __webpack_require__(47);
+	var invariant = __webpack_require__(51);
+	var isEventSupported = __webpack_require__(69);
 	var keyOf = __webpack_require__(62);
-	var monitorCodeUse = __webpack_require__(82);
+	var monitorCodeUse = __webpack_require__(63);
 
 	var deleteListener = ReactBrowserEventEmitter.deleteListener;
 	var listenTo = ReactBrowserEventEmitter.listenTo;
@@ -12848,10 +9016,10 @@
 
 	module.exports = ReactDOMComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 40 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -12867,37 +9035,37 @@
 
 	"use strict";
 
-	var BeforeInputEventPlugin = __webpack_require__(88);
-	var ChangeEventPlugin = __webpack_require__(89);
-	var ClientReactRootIndex = __webpack_require__(90);
-	var CompositionEventPlugin = __webpack_require__(91);
-	var DefaultEventPluginOrder = __webpack_require__(92);
-	var EnterLeaveEventPlugin = __webpack_require__(93);
-	var ExecutionEnvironment = __webpack_require__(52);
-	var HTMLDOMPropertyConfig = __webpack_require__(94);
-	var MobileSafariClickEventPlugin = __webpack_require__(95);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
+	var BeforeInputEventPlugin = __webpack_require__(70);
+	var ChangeEventPlugin = __webpack_require__(71);
+	var ClientReactRootIndex = __webpack_require__(72);
+	var CompositionEventPlugin = __webpack_require__(73);
+	var DefaultEventPluginOrder = __webpack_require__(74);
+	var EnterLeaveEventPlugin = __webpack_require__(75);
+	var ExecutionEnvironment = __webpack_require__(33);
+	var HTMLDOMPropertyConfig = __webpack_require__(76);
+	var MobileSafariClickEventPlugin = __webpack_require__(77);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
 	var ReactComponentBrowserEnvironment =
-	  __webpack_require__(96);
-	var ReactDefaultBatchingStrategy = __webpack_require__(97);
-	var ReactDOMComponent = __webpack_require__(39);
-	var ReactDOMButton = __webpack_require__(98);
-	var ReactDOMForm = __webpack_require__(99);
-	var ReactDOMImg = __webpack_require__(100);
-	var ReactDOMInput = __webpack_require__(101);
-	var ReactDOMOption = __webpack_require__(102);
-	var ReactDOMSelect = __webpack_require__(103);
-	var ReactDOMTextarea = __webpack_require__(104);
-	var ReactEventListener = __webpack_require__(105);
-	var ReactInjection = __webpack_require__(106);
-	var ReactInstanceHandles = __webpack_require__(41);
-	var ReactMount = __webpack_require__(43);
-	var SelectEventPlugin = __webpack_require__(107);
-	var ServerReactRootIndex = __webpack_require__(108);
-	var SimpleEventPlugin = __webpack_require__(109);
-	var SVGDOMPropertyConfig = __webpack_require__(110);
+	  __webpack_require__(78);
+	var ReactDefaultBatchingStrategy = __webpack_require__(79);
+	var ReactDOMComponent = __webpack_require__(20);
+	var ReactDOMButton = __webpack_require__(80);
+	var ReactDOMForm = __webpack_require__(81);
+	var ReactDOMImg = __webpack_require__(82);
+	var ReactDOMInput = __webpack_require__(83);
+	var ReactDOMOption = __webpack_require__(84);
+	var ReactDOMSelect = __webpack_require__(85);
+	var ReactDOMTextarea = __webpack_require__(86);
+	var ReactEventListener = __webpack_require__(87);
+	var ReactInjection = __webpack_require__(88);
+	var ReactInstanceHandles = __webpack_require__(22);
+	var ReactMount = __webpack_require__(24);
+	var SelectEventPlugin = __webpack_require__(89);
+	var ServerReactRootIndex = __webpack_require__(90);
+	var SimpleEventPlugin = __webpack_require__(91);
+	var SVGDOMPropertyConfig = __webpack_require__(92);
 
-	var createFullPageComponent = __webpack_require__(111);
+	var createFullPageComponent = __webpack_require__(93);
 
 	function inject() {
 	  ReactInjection.EventEmitter.injectReactEventListener(
@@ -12970,7 +9138,7 @@
 	  if ("production" !== process.env.NODE_ENV) {
 	    var url = (ExecutionEnvironment.canUseDOM && window.location.href) || '';
 	    if ((/[?&]react_perf\b/).test(url)) {
-	      var ReactDefaultPerf = __webpack_require__(23);
+	      var ReactDefaultPerf = __webpack_require__(43);
 	      ReactDefaultPerf.start();
 	    }
 	  }
@@ -12980,10 +9148,10 @@
 	  inject: inject
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 41 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -13000,9 +9168,9 @@
 
 	"use strict";
 
-	var ReactRootIndex = __webpack_require__(112);
+	var ReactRootIndex = __webpack_require__(94);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	var SEPARATOR = '.';
 	var SEPARATOR_LENGTH = SEPARATOR.length;
@@ -13318,10 +9486,10 @@
 
 	module.exports = ReactInstanceHandles;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 42 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -13337,11 +9505,11 @@
 
 	"use strict";
 
-	var ReactCurrentOwner = __webpack_require__(35);
+	var ReactCurrentOwner = __webpack_require__(16);
 
-	var invariant = __webpack_require__(58);
-	var monitorCodeUse = __webpack_require__(82);
-	var warning = __webpack_require__(59);
+	var invariant = __webpack_require__(51);
+	var monitorCodeUse = __webpack_require__(63);
+	var warning = __webpack_require__(49);
 
 	var legacyFactoryLogs = {};
 	function warnForLegacyFactoryCall() {
@@ -13568,10 +9736,10 @@
 
 	module.exports = ReactLegacyElementFactory;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 43 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -13587,21 +9755,21 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(64);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
-	var ReactCurrentOwner = __webpack_require__(35);
-	var ReactElement = __webpack_require__(36);
-	var ReactLegacyElement = __webpack_require__(42);
-	var ReactInstanceHandles = __webpack_require__(41);
-	var ReactPerf = __webpack_require__(45);
+	var DOMProperty = __webpack_require__(46);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
+	var ReactCurrentOwner = __webpack_require__(16);
+	var ReactElement = __webpack_require__(17);
+	var ReactLegacyElement = __webpack_require__(23);
+	var ReactInstanceHandles = __webpack_require__(22);
+	var ReactPerf = __webpack_require__(26);
 
-	var containsNode = __webpack_require__(113);
-	var deprecated = __webpack_require__(50);
-	var getReactRootElementInContainer = __webpack_require__(114);
-	var instantiateReactComponent = __webpack_require__(81);
-	var invariant = __webpack_require__(58);
-	var shouldUpdateReactComponent = __webpack_require__(84);
-	var warning = __webpack_require__(59);
+	var containsNode = __webpack_require__(95);
+	var deprecated = __webpack_require__(31);
+	var getReactRootElementInContainer = __webpack_require__(96);
+	var instantiateReactComponent = __webpack_require__(61);
+	var invariant = __webpack_require__(51);
+	var shouldUpdateReactComponent = __webpack_require__(65);
+	var warning = __webpack_require__(49);
 
 	var createElement = ReactLegacyElement.wrapCreateElement(
 	  ReactElement.createElement
@@ -14269,10 +10437,10 @@
 
 	module.exports = ReactMount;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 44 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -14289,12 +10457,12 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(32);
-	var ReactMultiChildUpdateTypes = __webpack_require__(115);
+	var ReactComponent = __webpack_require__(13);
+	var ReactMultiChildUpdateTypes = __webpack_require__(97);
 
-	var flattenChildren = __webpack_require__(116);
-	var instantiateReactComponent = __webpack_require__(81);
-	var shouldUpdateReactComponent = __webpack_require__(84);
+	var flattenChildren = __webpack_require__(98);
+	var instantiateReactComponent = __webpack_require__(61);
+	var shouldUpdateReactComponent = __webpack_require__(65);
 
 	/**
 	 * Updating children of a component may trigger recursive updates. The depth is
@@ -14704,7 +10872,7 @@
 
 
 /***/ },
-/* 45 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -14788,10 +10956,10 @@
 
 	module.exports = ReactPerf;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 46 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -14807,11 +10975,11 @@
 
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
-	var ReactPropTypeLocationNames = __webpack_require__(80);
+	var ReactElement = __webpack_require__(17);
+	var ReactPropTypeLocationNames = __webpack_require__(60);
 
-	var deprecated = __webpack_require__(50);
-	var emptyFunction = __webpack_require__(61);
+	var deprecated = __webpack_require__(31);
+	var emptyFunction = __webpack_require__(99);
 
 	/**
 	 * Collection of methods that allow declaration and validation of props that are
@@ -15149,7 +11317,7 @@
 
 
 /***/ },
-/* 47 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15165,14 +11333,14 @@
 	 */
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
-	var ReactInstanceHandles = __webpack_require__(41);
-	var ReactMarkupChecksum = __webpack_require__(117);
+	var ReactElement = __webpack_require__(17);
+	var ReactInstanceHandles = __webpack_require__(22);
+	var ReactMarkupChecksum = __webpack_require__(100);
 	var ReactServerRenderingTransaction =
-	  __webpack_require__(118);
+	  __webpack_require__(101);
 
-	var instantiateReactComponent = __webpack_require__(81);
-	var invariant = __webpack_require__(58);
+	var instantiateReactComponent = __webpack_require__(61);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * @param {ReactElement} element
@@ -15229,10 +11397,10 @@
 	  renderToStaticMarkup: renderToStaticMarkup
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 48 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15249,12 +11417,12 @@
 
 	"use strict";
 
-	var DOMPropertyOperations = __webpack_require__(29);
-	var ReactComponent = __webpack_require__(32);
-	var ReactElement = __webpack_require__(36);
+	var DOMPropertyOperations = __webpack_require__(10);
+	var ReactComponent = __webpack_require__(13);
+	var ReactElement = __webpack_require__(17);
 
-	var assign = __webpack_require__(49);
-	var escapeTextForBrowser = __webpack_require__(72);
+	var assign = __webpack_require__(30);
+	var escapeTextForBrowser = __webpack_require__(47);
 
 	/**
 	 * Text nodes violate a couple assumptions that React makes about components:
@@ -15342,7 +11510,7 @@
 
 
 /***/ },
-/* 49 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15393,7 +11561,7 @@
 
 
 /***/ },
-/* 50 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15407,8 +11575,8 @@
 	 * @providesModule deprecated
 	 */
 
-	var assign = __webpack_require__(49);
-	var warning = __webpack_require__(59);
+	var assign = __webpack_require__(30);
+	var warning = __webpack_require__(49);
 
 	/**
 	 * This will log a single deprecation notice per function and forward the call
@@ -15444,10 +11612,10 @@
 
 	module.exports = deprecated;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 51 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15462,9 +11630,9 @@
 	 */
 	"use strict";
 
-	var ReactElement = __webpack_require__(36);
+	var ReactElement = __webpack_require__(17);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Returns the first child in a collection of children and verifies that there
@@ -15487,10 +11655,10 @@
 
 	module.exports = onlyChild;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 52 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15539,7 +11707,1305 @@
 
 
 /***/ },
-/* 53 */
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * @name Morearty
+	 * @namespace
+	 * @classdesc Morearty main module. Exposes [createContext]{@link Morearty.createContext} function.
+	 */
+	var Imm      = __webpack_require__(9);
+	var React    = __webpack_require__(3);
+	var Util     = __webpack_require__(105);
+	var Binding  = __webpack_require__(106);
+	var History  = __webpack_require__(107);
+	var Callback = __webpack_require__(118);
+	var DOM      = __webpack_require__(108);
+
+	var MERGE_STRATEGY = Object.freeze({
+	  OVERWRITE: 'overwrite',
+	  OVERWRITE_EMPTY: 'overwrite-empty',
+	  MERGE_PRESERVE: 'merge-preserve',
+	  MERGE_REPLACE: 'merge-replace'
+	});
+
+	var getBinding, bindingChanged, stateChanged;
+
+	getBinding = function (props, key) {
+	  var binding = props.binding;
+	  return key ? binding[key] : binding;
+	};
+
+	bindingChanged = function (context, currentBinding, previousBinding) {
+	  return currentBinding !== previousBinding ||
+	      (context._stateChanged && currentBinding.isChanged(context._previousState)) ||
+	      (context._metaChanged && context._metaBinding.sub(currentBinding.getPath()).isChanged(context._previousMetaState));
+	};
+
+	stateChanged = function (context, currentBinding, previousBinding) {
+	  if (currentBinding instanceof Binding) {
+	    return bindingChanged(context, currentBinding, previousBinding);
+	  } else {
+	    if (context._stateChanged || context._metaChanged) {
+	      var keys = Object.keys(currentBinding);
+	      return !!Util.find(keys, function (key) {
+	        var binding = currentBinding[key];
+	        return binding && bindingChanged(context, binding, previousBinding[key]);
+	      });
+	    } else {
+	      return false;
+	    }
+	  }
+	};
+
+	var merge = function (mergeStrategy, defaultState, stateBinding) {
+	  var tx = stateBinding.atomically();
+
+	  if (typeof mergeStrategy === 'function') {
+	    tx = tx.update(function (currentState) {
+	      return mergeStrategy(currentState, defaultState);
+	    });
+	  } else {
+	    switch (mergeStrategy) {
+	      case MERGE_STRATEGY.OVERWRITE:
+	        tx = tx.set(defaultState);
+	        break;
+	      case MERGE_STRATEGY.OVERWRITE_EMPTY:
+	        tx = tx.update(function (currentState) {
+	          var empty = Util.undefinedOrNull(currentState) ||
+	            (currentState instanceof Imm.Iterable && currentState.count() === 0);
+	          return empty ? defaultState : currentState;
+	        });
+	        break;
+	      case MERGE_STRATEGY.MERGE_PRESERVE:
+	        tx = tx.merge(true, defaultState);
+	        break;
+	      case MERGE_STRATEGY.MERGE_REPLACE:
+	        tx = tx.merge(false, defaultState);
+	        break;
+	      default:
+	        throw new Error('Invalid merge strategy: ' + mergeStrategy);
+	    }
+	  }
+
+	  tx.commit({ notify: false });
+	};
+
+	var getRenderRoutine = function (self) {
+	  var requestAnimationFrame = (typeof window !== 'undefined') && window.requestAnimationFrame;
+	  var fallback = function (f) { setTimeout(f, 1000 / 60); };
+
+	  if (self._options.requestAnimationFrameEnabled) {
+	    if (requestAnimationFrame) return requestAnimationFrame;
+	    else {
+	      console.warn('Morearty: requestAnimationFrame is not available, will render in setTimeout');
+	      return fallback;
+	    }
+	  } else {
+	    return fallback;
+	  }
+	};
+
+	/** Morearty context constructor.
+	 * @param {Binding} binding state binding
+	 * @param {Binding} metaBinding meta state binding
+	 * @param {Object} options options
+	 * @public
+	 * @class Context
+	 * @classdesc Represents Morearty context.
+	 * <p>Exposed modules:
+	 * <ul>
+	 *   <li>[Util]{@link Util};</li>
+	 *   <li>[Binding]{@link Binding};</li>
+	 *   <li>[History]{@link History};</li>
+	 *   <li>[Callback]{@link Callback};</li>
+	 *   <li>[DOM]{@link DOM}.</li>
+	 * </ul> */
+	var Context = function (binding, metaBinding, options) {
+	  /** @private */
+	  this._initialMetaState = metaBinding.get();
+	  /** @private */
+	  this._previousMetaState = null;
+	  /** @private */
+	  this._metaBinding = metaBinding;
+	  /** @private */
+	  this._metaChanged = false;
+
+	  /** @private */
+	  this._initialState = binding.get();
+	  /** @protected
+	   * @ignore */
+	  this._previousState = null;
+	  /** @private */
+	  this._stateBinding = binding;
+	  /** @private */
+	  this._stateChanged = false;
+
+	  /** @private */
+	  this._options = options;
+
+	  /** @private */
+	  this._renderQueued = false;
+	  /** @private */
+	  this._fullUpdateQueued = false;
+	  /** @protected
+	   * @ignore */
+	  this._fullUpdateInProgress = false;
+	};
+
+	Context.prototype = Object.freeze( /** @lends Context.prototype */ {
+	  /** Get state binding.
+	   * @return {Binding} state binding
+	   * @see Binding */
+	  getBinding: function () {
+	    return this._stateBinding;
+	  },
+
+	  /** Get meta binding.
+	   * @return {Binding} meta binding
+	   * @see Binding */
+	  getMetaBinding: function () {
+	    return this._metaBinding;
+	  },
+
+	  /** Get current state.
+	   * @return {Immutable.Map} current state */
+	  getCurrentState: function () {
+	    return this.getBinding().get();
+	  },
+
+	  /** Get previous state (before last render).
+	   * @return {Immutable.Map} previous state */
+	  getPreviousState: function () {
+	    return this._previousState;
+	  },
+
+	  /** Get current meta state.
+	   * @returns {Immutable.Map} current meta state */
+	  getCurrentMeta: function () {
+	    var metaBinding = this.getMetaBinding();
+	    return metaBinding ? metaBinding.get() : undefined;
+	  },
+
+	  /** Get previous meta state (before last render).
+	   * @return {Immutable.Map} previous meta state */
+	  getPreviousMeta: function () {
+	    return this._previousMetaState;
+	  },
+
+	  /** Create a copy of this context sharing same bindings and options.
+	   * @returns {Context} */
+	  copy: function () {
+	    return new Context(this._stateBinding, this._metaBinding, this._options);
+	  },
+
+	  /** Revert to initial state.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification;</li>
+	   *   <li>resetMeta - should meta state be reverted, true by default, set to false to disable.</li>
+	   * </ul> */
+	  resetState: function (subpath, options) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?options'
+	    );
+
+	    var pathAsArray = args.subpath ? Binding.asArrayPath(args.subpath) : [];
+
+	    var tx = this.getBinding().atomically();
+	    tx.set(pathAsArray, this._initialState.getIn(pathAsArray));
+
+	    var effectiveOptions = args.options || {};
+	    if (effectiveOptions.resetMeta !== false) {
+	      tx.set(this.getMetaBinding(), pathAsArray, this._initialMetaState.getIn(pathAsArray));
+	    }
+
+	    tx.commit({ notify: effectiveOptions.notify });
+	  },
+
+	  /** Replace whole state with new value.
+	   * @param {Immutable.Map} newState new state
+	   * @param {Immutable.Map} [newMetaState] new meta state
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	   * </ul> */
+	  replaceState: function (newState, newMetaState, options) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'newState', function (x) { return x instanceof Imm.Map ? 'newMetaState' : null; }, '?options'
+	    );
+
+	    var effectiveOptions = args.options || {};
+
+	    var tx = this.getBinding().atomically();
+	    tx.set(newState);
+
+	    if (args.newMetaState) tx.set(this.getMetaBinding(), args.newMetaState);
+
+	    tx.commit({ notify: effectiveOptions.notify });
+	  },
+
+	  /** Check if binding value was changed on last re-render.
+	   * @param {Binding} binding binding
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} [compare] compare function, '===' for primitives / Immutable.is for collections by default */
+	  isChanged: function (binding, subpath, compare) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?compare'
+	    );
+
+	    return args.binding.sub(args.subpath).isChanged(this._previousState, args.compare || Imm.is);
+	  },
+
+	  /** Initialize rendering.
+	   * @param {*} rootComp root application component */
+	  init: function (rootComp) {
+	    var self = this;
+	    var stop = false;
+	    var renderQueue = [];
+
+	    var transitionState = function () {
+	      var stateChanged, metaChanged;
+	      var elderFrame = renderQueue[0];
+
+	      if (renderQueue.length === 1) {
+	        stateChanged = elderFrame.stateChanged;
+	        metaChanged = elderFrame.metaChanged;
+	      } else {
+	        stateChanged = !!Util.find(renderQueue, function (q) { return q.stateChanged; });
+	        metaChanged = !!Util.find(renderQueue, function (q) { return q.metaChanged; });
+	      }
+
+	      self._stateChanged = stateChanged;
+	      self._metaChanged = metaChanged;
+
+	      if (stateChanged || !self._previousState) self._previousState = elderFrame.previousState;
+	      if (metaChanged) self._previousMetaState = elderFrame.previousMetaState;
+
+	      renderQueue = [];
+	    };
+
+	    var catchingRenderErrors = function (f) {
+	      try {
+	        if (rootComp.isMounted()) {
+	          f();
+	        }
+	      } catch (e) {
+	        if (self._options.stopOnRenderError) {
+	          stop = true;
+	        }
+
+	        console.error('Morearty: render error. ' + (stop ? 'Exiting.' : 'Continuing.'));
+	      }
+	    };
+
+	    var render = function () {
+	      transitionState();
+
+	      self._renderQueued = false;
+
+	      catchingRenderErrors(function () {
+	        if (self._fullUpdateQueued) {
+	          self._fullUpdateInProgress = true;
+	          rootComp.forceUpdate(function () {
+	            self._fullUpdateQueued = false;
+	            self._fullUpdateInProgress = false;
+	          });
+	        } else {
+	          rootComp.forceUpdate();
+	        }
+	      });
+	    };
+
+	    if (!self._options.renderOnce) {
+	      var renderRoutine = getRenderRoutine(self);
+
+	      var listenerId = self._stateBinding.addListener(function (changes) {
+	        if (stop) {
+	          self._stateBinding.removeListener(listenerId);
+	        } else {
+	          var stateChanged = changes.isValueChanged(), metaChanged = changes.isMetaChanged();
+
+	          if (stateChanged || metaChanged) {
+	            renderQueue.push({
+	              stateChanged: stateChanged,
+	              metaChanged: metaChanged,
+	              previousState: (stateChanged || null) && changes.getPreviousValue(),
+	              previousMetaState: (metaChanged || null) && changes.getPreviousMeta()
+	            });
+
+	            if (!self._renderQueued) {
+	              self._renderQueued = true;
+	              renderRoutine(render);
+	            }
+	          }
+	        }
+	      });
+	    }
+
+	    catchingRenderErrors(rootComp.forceUpdate.bind(rootComp));
+	  },
+
+	  /** Queue full update on next render. */
+	  queueFullUpdate: function () {
+	    this._fullUpdateQueued = true;
+	  },
+
+	  /** Create Morearty bootstrap component ready for rendering.
+	   * @param {*} rootComp root application component
+	   * @param {Object} [reactContext] custom React context (will be enriched with Morearty-specific data)
+	   * @return {*} Morearty bootstrap component */
+	  bootstrap: function (rootComp, reactContext) {
+	    var ctx = this;
+
+	    var effectiveReactContext = reactContext || {};
+	    effectiveReactContext.morearty = ctx;
+
+	    var root = React.withContext(effectiveReactContext, function () {
+	      return React.createFactory(rootComp)({ binding: ctx.getBinding() });
+	    });
+
+	    return React.createClass({
+	      displayName: 'Bootstrap',
+
+	      componentWillMount: function () {
+	        ctx.init(this);
+	      },
+
+	      render: function () {
+	        return root;
+	      }
+	    });
+	  }
+
+	});
+
+	module.exports = {
+
+	  /** Binding module.
+	   * @memberOf Morearty
+	   * @see Binding */
+	  Binding: Binding,
+
+	  /** History module.
+	   * @memberOf Morearty
+	   * @see History */
+	  History: History,
+
+	  /** Util module.
+	   * @memberOf Morearty
+	   * @see Util */
+	  Util: Util,
+
+	  /** Callback module.
+	   * @memberOf Morearty
+	   * @see Callback */
+	  Callback: Callback,
+
+	  /** DOM module.
+	   * @memberOf Morearty
+	   * @see DOM */
+	  DOM: DOM,
+
+	  /** Merge strategy.
+	   * <p>Describes how existing state should be merged with component's default state on mount. Predefined strategies:
+	   * <ul>
+	   *   <li>OVERWRITE - overwrite current state with default state;</li>
+	   *   <li>OVERWRITE_EMPTY - overwrite current state with default state only if current state is null or empty collection;</li>
+	   *   <li>MERGE_PRESERVE - deep merge current state into default state;</li>
+	   *   <li>MERGE_REPLACE - deep merge default state into current state.</li>
+	   * </ul> */
+	  MergeStrategy: MERGE_STRATEGY,
+
+	  /** Morearty mixin.
+	   * @memberOf Morearty
+	   * @namespace
+	   * @classdesc Mixin */
+	  Mixin: {
+	    contextTypes: { morearty: function () {} },
+
+	    /** Get Morearty context.
+	     * @returns {Context} */
+	    getMoreartyContext: function () {
+	      return this.context.morearty;
+	    },
+
+	    /** Get component state binding. Returns binding specified in component's binding attribute.
+	     * @param {String} [name] binding name (can only be used with multi-binding state)
+	     * @return {Binding|Object} component state binding */
+	    getBinding: function (name) {
+	      return getBinding(this.props, name);
+	    },
+
+	    /** Get default component state binding. Use this to get component's binding.
+	     * <p>Default binding is single binding for single-binding components or
+	     * binding with key 'default' for multi-binding components.
+	     * This method allows smooth migration from single to multi-binding components, e.g. you start with:
+	     * <pre><code>{ binding: foo }</code></pre>
+	     * or
+	     * <pre><code>{ binding: { default: foo } }</code></pre>
+	     * or even
+	     * <pre><code>{ binding: { any: foo } }</code></pre>
+	     * and add more bindings later:
+	     * <pre><code>{ binding: { default: foo, aux: auxiliary } }</code></pre>
+	     * This way code changes stay minimal.
+	     * @return {Binding} default component state binding */
+	    getDefaultBinding: function () {
+	      var binding = getBinding(this.props);
+	      if (binding instanceof Binding) {
+	        return binding;
+	      } else if (typeof binding === 'object') {
+	        var keys = Object.keys(binding);
+	        return keys.length === 1 ? binding[keys[0]] : binding['default'];
+	      }
+	    },
+
+	    /** Get component previous state value.
+	     * @param {String} [name] binding name (can only be used with multi-binding state)
+	     * @return {Binding} previous component state value */
+	    getPreviousState: function (name) {
+	      var ctx = this.getMoreartyContext();
+	      return getBinding(this.props, name).withBackingValue(ctx._previousState).get();
+	    },
+
+	    componentWillMount: function () {
+	      if (typeof this.getDefaultState === 'function') {
+	        var ctx = this.getMoreartyContext();
+	        var defaultState = this.getDefaultState();
+	        if (defaultState) {
+	          var binding = getBinding(this.props);
+	          var mergeStrategy =
+	            typeof this.getMergeStrategy === 'function' ? this.getMergeStrategy() : MERGE_STRATEGY.MERGE_PRESERVE;
+
+	          var immutableInstance = defaultState instanceof Imm.Iterable;
+
+	          if (binding instanceof Binding) {
+	            var effectiveDefaultState = immutableInstance ? defaultState : defaultState['default'];
+	            merge.call(ctx, mergeStrategy, effectiveDefaultState, binding);
+	          } else {
+	            var keys = Object.keys(binding);
+	            var defaultKey = keys.length === 1 ? keys[0] : 'default';
+	            var effectiveMergeStrategy = typeof mergeStrategy === 'string' ? mergeStrategy : mergeStrategy[defaultKey];
+
+	            if (immutableInstance) {
+	              merge.call(ctx, effectiveMergeStrategy, defaultState, binding[defaultKey]);
+	            } else {
+	              keys.forEach(function (key) {
+	                if (defaultState[key]) {
+	                  merge.call(ctx, effectiveMergeStrategy, defaultState[key], binding[key]);
+	                }
+	              });
+	            }
+	          }
+	        }
+	      }
+	    },
+
+	    shouldComponentUpdate: function (nextProps, nextState) {
+	      var self = this;
+	      var ctx = self.getMoreartyContext();
+	      var shouldComponentUpdate = function () {
+	        if (ctx._fullUpdateInProgress) {
+	          return true;
+	        } else {
+	          var currentBinding = getBinding(nextProps);
+	          return !currentBinding || stateChanged(ctx, currentBinding, getBinding(self.props));
+	        }
+	      };
+
+	      var shouldComponentUpdateOverride = self.shouldComponentUpdateOverride;
+	      return shouldComponentUpdateOverride ?
+	        shouldComponentUpdateOverride(shouldComponentUpdate, nextProps, nextState) :
+	        shouldComponentUpdate();
+	    },
+
+	    /** Add binding listener. Listener will be automatically removed on unmount
+	     * if this.shouldRemoveListeners() returns true.
+	     * @param {Binding} [binding] binding to attach listener to, default binding if omitted
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {Function} cb function receiving changes descriptor
+	     * @return {String} listener id */
+	    addBindingListener: function (binding, subpath, cb) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; },
+	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
+	        'cb'
+	      );
+
+	      var defaultBinding = this.getDefaultBinding();
+
+	      if (defaultBinding) {
+	        var effectiveBinding = args.binding || defaultBinding;
+	        var listenerId = effectiveBinding.addListener(args.subpath, args.cb);
+	        defaultBinding.meta().atomically()
+	          .update('listeners', function (listeners) {
+	            return listeners ? listeners.push(listenerId) : Imm.List.of(listenerId);
+	          })
+	          .commit({notify: false});
+
+	        return listenerId;
+	      } else {
+	        console.warn('Morearty: cannot attach binding listener to a component without default binding');
+	      }
+	    },
+
+	    componentWillUnmount: function () {
+	      if (typeof this.shouldRemoveListeners === 'function' && this.shouldRemoveListeners()) {
+	        var binding = this.getDefaultBinding();
+	        if (binding) {
+	          var listenersBinding = binding.meta('listeners');
+	          var listeners = listenersBinding.get();
+	          if (listeners) {
+	            listeners.forEach(binding.removeListener.bind(binding));
+	            listenersBinding.atomically().delete().commit({notify: false});
+	          }
+	        }
+	      }
+	    }
+	  },
+
+	  /** Create Morearty context.
+	   * @param {Immutable.Map|Object} initialState initial state
+	   * @param {Immutable.Map|Object} initialMetaState initial meta-state
+	   * @param {Object} [options] Morearty configuration. Supported parameters:
+	   * <ul>
+	   *   <li>requestAnimationFrameEnabled - enable rendering in requestAnimationFrame,
+	   *                                      true by default, set to false to fallback to setTimeout;</li>
+	   *   <li>renderOnce - ensure render is executed only once (useful for server-side rendering to save resources),
+	   *                    any further state updates are ignored, false by default;</li>
+	   *   <li>stopOnRenderError - stop on errors during render, false by default.</li>
+	   * </ul>
+	   * @return {Context}
+	   * @memberOf Morearty */
+	  createContext: function (initialState, initialMetaState, options) {
+	    var ensureImmutable = function (state) {
+	      return state instanceof Imm.Iterable ? state : Imm.fromJS(state);
+	    };
+
+	    var state = ensureImmutable(initialState);
+	    var metaState = ensureImmutable(initialMetaState);
+
+	    var metaBinding = Binding.init(metaState);
+	    var binding = Binding.init(state, metaBinding);
+
+	    var effectiveOptions = options || {};
+	    return new Context(binding, metaBinding, {
+	      requestAnimationFrameEnabled: effectiveOptions.requestAnimationFrameEnabled !== false,
+	      renderOnce: effectiveOptions.renderOnce || false,
+	      stopOnRenderError: effectiveOptions.stopOnRenderError || false
+	    });
+	  }
+
+	};
+
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule LinkedStateMixin
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var ReactLink = __webpack_require__(102);
+	var ReactStateSetters = __webpack_require__(103);
+
+	/**
+	 * A simple mixin around ReactLink.forState().
+	 */
+	var LinkedStateMixin = {
+	  /**
+	   * Create a ReactLink that's linked to part of this component's state. The
+	   * ReactLink will have the current value of this.state[key] and will call
+	   * setState() when a change is requested.
+	   *
+	   * @param {string} key state key to update. Note: you may want to use keyOf()
+	   * if you're using Google Closure Compiler advanced mode.
+	   * @return {ReactLink} ReactLink instance linking to the state.
+	   */
+	  linkState: function(key) {
+	    return new ReactLink(
+	      this.state[key],
+	      ReactStateSetters.createStateKeySetter(this, key)
+	    );
+	  }
+	};
+
+	module.exports = LinkedStateMixin;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	* @providesModule ReactComponentWithPureRenderMixin
+	*/
+
+	"use strict";
+
+	var shallowEqual = __webpack_require__(104);
+
+	/**
+	 * If your React component's render function is "pure", e.g. it will render the
+	 * same result given the same props and state, provide this Mixin for a
+	 * considerable performance boost.
+	 *
+	 * Most React components have pure render functions.
+	 *
+	 * Example:
+	 *
+	 *   var ReactComponentWithPureRenderMixin =
+	 *     require('ReactComponentWithPureRenderMixin');
+	 *   React.createClass({
+	 *     mixins: [ReactComponentWithPureRenderMixin],
+	 *
+	 *     render: function() {
+	 *       return <div className={this.props.className}>foo</div>;
+	 *     }
+	 *   });
+	 *
+	 * Note: This only checks shallow equality for props and state. If these contain
+	 * complex data structures this mixin may have false-negatives for deeper
+	 * differences. Only mixin to components which have simple props and state, or
+	 * use `forceUpdate()` when you know deep data structures have changed.
+	 */
+	var ReactComponentWithPureRenderMixin = {
+	  shouldComponentUpdate: function(nextProps, nextState) {
+	    return !shallowEqual(this.props, nextProps) ||
+	           !shallowEqual(this.state, nextState);
+	  }
+	};
+
+	module.exports = ReactComponentWithPureRenderMixin;
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @typechecks
+	 * @providesModule ReactCSSTransitionGroup
+	 */
+
+	"use strict";
+
+	var React = __webpack_require__(5);
+
+	var assign = __webpack_require__(30);
+
+	var ReactTransitionGroup = React.createFactory(
+	  __webpack_require__(38)
+	);
+	var ReactCSSTransitionGroupChild = React.createFactory(
+	  __webpack_require__(109)
+	);
+
+	var ReactCSSTransitionGroup = React.createClass({
+	  displayName: 'ReactCSSTransitionGroup',
+
+	  propTypes: {
+	    transitionName: React.PropTypes.string.isRequired,
+	    transitionEnter: React.PropTypes.bool,
+	    transitionLeave: React.PropTypes.bool
+	  },
+
+	  getDefaultProps: function() {
+	    return {
+	      transitionEnter: true,
+	      transitionLeave: true
+	    };
+	  },
+
+	  _wrapChild: function(child) {
+	    // We need to provide this childFactory so that
+	    // ReactCSSTransitionGroupChild can receive updates to name, enter, and
+	    // leave while it is leaving.
+	    return ReactCSSTransitionGroupChild(
+	      {
+	        name: this.props.transitionName,
+	        enter: this.props.transitionEnter,
+	        leave: this.props.transitionLeave
+	      },
+	      child
+	    );
+	  },
+
+	  render: function() {
+	    return (
+	      ReactTransitionGroup(
+	        assign({}, this.props, {childFactory: this._wrapChild})
+	      )
+	    );
+	  }
+	});
+
+	module.exports = ReactCSSTransitionGroup;
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactTransitionGroup
+	 */
+
+	"use strict";
+
+	var React = __webpack_require__(5);
+	var ReactTransitionChildMapping = __webpack_require__(110);
+
+	var assign = __webpack_require__(30);
+	var cloneWithProps = __webpack_require__(41);
+	var emptyFunction = __webpack_require__(99);
+
+	var ReactTransitionGroup = React.createClass({
+	  displayName: 'ReactTransitionGroup',
+
+	  propTypes: {
+	    component: React.PropTypes.any,
+	    childFactory: React.PropTypes.func
+	  },
+
+	  getDefaultProps: function() {
+	    return {
+	      component: 'span',
+	      childFactory: emptyFunction.thatReturnsArgument
+	    };
+	  },
+
+	  getInitialState: function() {
+	    return {
+	      children: ReactTransitionChildMapping.getChildMapping(this.props.children)
+	    };
+	  },
+
+	  componentWillReceiveProps: function(nextProps) {
+	    var nextChildMapping = ReactTransitionChildMapping.getChildMapping(
+	      nextProps.children
+	    );
+	    var prevChildMapping = this.state.children;
+
+	    this.setState({
+	      children: ReactTransitionChildMapping.mergeChildMappings(
+	        prevChildMapping,
+	        nextChildMapping
+	      )
+	    });
+
+	    var key;
+
+	    for (key in nextChildMapping) {
+	      var hasPrev = prevChildMapping && prevChildMapping.hasOwnProperty(key);
+	      if (nextChildMapping[key] && !hasPrev &&
+	          !this.currentlyTransitioningKeys[key]) {
+	        this.keysToEnter.push(key);
+	      }
+	    }
+
+	    for (key in prevChildMapping) {
+	      var hasNext = nextChildMapping && nextChildMapping.hasOwnProperty(key);
+	      if (prevChildMapping[key] && !hasNext &&
+	          !this.currentlyTransitioningKeys[key]) {
+	        this.keysToLeave.push(key);
+	      }
+	    }
+
+	    // If we want to someday check for reordering, we could do it here.
+	  },
+
+	  componentWillMount: function() {
+	    this.currentlyTransitioningKeys = {};
+	    this.keysToEnter = [];
+	    this.keysToLeave = [];
+	  },
+
+	  componentDidUpdate: function() {
+	    var keysToEnter = this.keysToEnter;
+	    this.keysToEnter = [];
+	    keysToEnter.forEach(this.performEnter);
+
+	    var keysToLeave = this.keysToLeave;
+	    this.keysToLeave = [];
+	    keysToLeave.forEach(this.performLeave);
+	  },
+
+	  performEnter: function(key) {
+	    this.currentlyTransitioningKeys[key] = true;
+
+	    var component = this.refs[key];
+
+	    if (component.componentWillEnter) {
+	      component.componentWillEnter(
+	        this._handleDoneEntering.bind(this, key)
+	      );
+	    } else {
+	      this._handleDoneEntering(key);
+	    }
+	  },
+
+	  _handleDoneEntering: function(key) {
+	    var component = this.refs[key];
+	    if (component.componentDidEnter) {
+	      component.componentDidEnter();
+	    }
+
+	    delete this.currentlyTransitioningKeys[key];
+
+	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
+	      this.props.children
+	    );
+
+	    if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
+	      // This was removed before it had fully entered. Remove it.
+	      this.performLeave(key);
+	    }
+	  },
+
+	  performLeave: function(key) {
+	    this.currentlyTransitioningKeys[key] = true;
+
+	    var component = this.refs[key];
+	    if (component.componentWillLeave) {
+	      component.componentWillLeave(this._handleDoneLeaving.bind(this, key));
+	    } else {
+	      // Note that this is somewhat dangerous b/c it calls setState()
+	      // again, effectively mutating the component before all the work
+	      // is done.
+	      this._handleDoneLeaving(key);
+	    }
+	  },
+
+	  _handleDoneLeaving: function(key) {
+	    var component = this.refs[key];
+
+	    if (component.componentDidLeave) {
+	      component.componentDidLeave();
+	    }
+
+	    delete this.currentlyTransitioningKeys[key];
+
+	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
+	      this.props.children
+	    );
+
+	    if (currentChildMapping && currentChildMapping.hasOwnProperty(key)) {
+	      // This entered again before it fully left. Add it again.
+	      this.performEnter(key);
+	    } else {
+	      var newChildren = assign({}, this.state.children);
+	      delete newChildren[key];
+	      this.setState({children: newChildren});
+	    }
+	  },
+
+	  render: function() {
+	    // TODO: we could get rid of the need for the wrapper node
+	    // by cloning a single child
+	    var childrenToRender = {};
+	    for (var key in this.state.children) {
+	      var child = this.state.children[key];
+	      if (child) {
+	        // You may need to apply reactive updates to a child as it is leaving.
+	        // The normal React way to do it won't work since the child will have
+	        // already been removed. In case you need this behavior you can provide
+	        // a childFactory function to wrap every child, even the ones that are
+	        // leaving.
+	        childrenToRender[key] = cloneWithProps(
+	          this.props.childFactory(child),
+	          {ref: key}
+	        );
+	      }
+	    }
+	    return React.createElement(
+	      this.props.component,
+	      this.props,
+	      childrenToRender
+	    );
+	  }
+	});
+
+	module.exports = ReactTransitionGroup;
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactUpdates
+	 */
+
+	"use strict";
+
+	var CallbackQueue = __webpack_require__(111);
+	var PooledClass = __webpack_require__(54);
+	var ReactCurrentOwner = __webpack_require__(16);
+	var ReactPerf = __webpack_require__(26);
+	var Transaction = __webpack_require__(112);
+
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
+	var warning = __webpack_require__(49);
+
+	var dirtyComponents = [];
+	var asapCallbackQueue = CallbackQueue.getPooled();
+	var asapEnqueued = false;
+
+	var batchingStrategy = null;
+
+	function ensureInjected() {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactUpdates.ReactReconcileTransaction && batchingStrategy,
+	    'ReactUpdates: must inject a reconcile transaction class and batching ' +
+	    'strategy'
+	  ) : invariant(ReactUpdates.ReactReconcileTransaction && batchingStrategy));
+	}
+
+	var NESTED_UPDATES = {
+	  initialize: function() {
+	    this.dirtyComponentsLength = dirtyComponents.length;
+	  },
+	  close: function() {
+	    if (this.dirtyComponentsLength !== dirtyComponents.length) {
+	      // Additional updates were enqueued by componentDidUpdate handlers or
+	      // similar; before our own UPDATE_QUEUEING wrapper closes, we want to run
+	      // these new updates so that if A's componentDidUpdate calls setState on
+	      // B, B will update before the callback A's updater provided when calling
+	      // setState.
+	      dirtyComponents.splice(0, this.dirtyComponentsLength);
+	      flushBatchedUpdates();
+	    } else {
+	      dirtyComponents.length = 0;
+	    }
+	  }
+	};
+
+	var UPDATE_QUEUEING = {
+	  initialize: function() {
+	    this.callbackQueue.reset();
+	  },
+	  close: function() {
+	    this.callbackQueue.notifyAll();
+	  }
+	};
+
+	var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
+
+	function ReactUpdatesFlushTransaction() {
+	  this.reinitializeTransaction();
+	  this.dirtyComponentsLength = null;
+	  this.callbackQueue = CallbackQueue.getPooled();
+	  this.reconcileTransaction =
+	    ReactUpdates.ReactReconcileTransaction.getPooled();
+	}
+
+	assign(
+	  ReactUpdatesFlushTransaction.prototype,
+	  Transaction.Mixin, {
+	  getTransactionWrappers: function() {
+	    return TRANSACTION_WRAPPERS;
+	  },
+
+	  destructor: function() {
+	    this.dirtyComponentsLength = null;
+	    CallbackQueue.release(this.callbackQueue);
+	    this.callbackQueue = null;
+	    ReactUpdates.ReactReconcileTransaction.release(this.reconcileTransaction);
+	    this.reconcileTransaction = null;
+	  },
+
+	  perform: function(method, scope, a) {
+	    // Essentially calls `this.reconcileTransaction.perform(method, scope, a)`
+	    // with this transaction's wrappers around it.
+	    return Transaction.Mixin.perform.call(
+	      this,
+	      this.reconcileTransaction.perform,
+	      this.reconcileTransaction,
+	      method,
+	      scope,
+	      a
+	    );
+	  }
+	});
+
+	PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
+
+	function batchedUpdates(callback, a, b) {
+	  ensureInjected();
+	  batchingStrategy.batchedUpdates(callback, a, b);
+	}
+
+	/**
+	 * Array comparator for ReactComponents by owner depth
+	 *
+	 * @param {ReactComponent} c1 first component you're comparing
+	 * @param {ReactComponent} c2 second component you're comparing
+	 * @return {number} Return value usable by Array.prototype.sort().
+	 */
+	function mountDepthComparator(c1, c2) {
+	  return c1._mountDepth - c2._mountDepth;
+	}
+
+	function runBatchedUpdates(transaction) {
+	  var len = transaction.dirtyComponentsLength;
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    len === dirtyComponents.length,
+	    'Expected flush transaction\'s stored dirty-components length (%s) to ' +
+	    'match dirty-components array length (%s).',
+	    len,
+	    dirtyComponents.length
+	  ) : invariant(len === dirtyComponents.length));
+
+	  // Since reconciling a component higher in the owner hierarchy usually (not
+	  // always -- see shouldComponentUpdate()) will reconcile children, reconcile
+	  // them before their children by sorting the array.
+	  dirtyComponents.sort(mountDepthComparator);
+
+	  for (var i = 0; i < len; i++) {
+	    // If a component is unmounted before pending changes apply, ignore them
+	    // TODO: Queue unmounts in the same list to avoid this happening at all
+	    var component = dirtyComponents[i];
+	    if (component.isMounted()) {
+	      // If performUpdateIfNecessary happens to enqueue any new updates, we
+	      // shouldn't execute the callbacks until the next render happens, so
+	      // stash the callbacks first
+	      var callbacks = component._pendingCallbacks;
+	      component._pendingCallbacks = null;
+	      component.performUpdateIfNecessary(transaction.reconcileTransaction);
+
+	      if (callbacks) {
+	        for (var j = 0; j < callbacks.length; j++) {
+	          transaction.callbackQueue.enqueue(
+	            callbacks[j],
+	            component
+	          );
+	        }
+	      }
+	    }
+	  }
+	}
+
+	var flushBatchedUpdates = ReactPerf.measure(
+	  'ReactUpdates',
+	  'flushBatchedUpdates',
+	  function() {
+	    // ReactUpdatesFlushTransaction's wrappers will clear the dirtyComponents
+	    // array and perform any updates enqueued by mount-ready handlers (i.e.,
+	    // componentDidUpdate) but we need to check here too in order to catch
+	    // updates enqueued by setState callbacks and asap calls.
+	    while (dirtyComponents.length || asapEnqueued) {
+	      if (dirtyComponents.length) {
+	        var transaction = ReactUpdatesFlushTransaction.getPooled();
+	        transaction.perform(runBatchedUpdates, null, transaction);
+	        ReactUpdatesFlushTransaction.release(transaction);
+	      }
+
+	      if (asapEnqueued) {
+	        asapEnqueued = false;
+	        var queue = asapCallbackQueue;
+	        asapCallbackQueue = CallbackQueue.getPooled();
+	        queue.notifyAll();
+	        CallbackQueue.release(queue);
+	      }
+	    }
+	  }
+	);
+
+	/**
+	 * Mark a component as needing a rerender, adding an optional callback to a
+	 * list of functions which will be executed once the rerender occurs.
+	 */
+	function enqueueUpdate(component, callback) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    !callback || typeof callback === "function",
+	    'enqueueUpdate(...): You called `setProps`, `replaceProps`, ' +
+	    '`setState`, `replaceState`, or `forceUpdate` with a callback that ' +
+	    'isn\'t callable.'
+	  ) : invariant(!callback || typeof callback === "function"));
+	  ensureInjected();
+
+	  // Various parts of our code (such as ReactCompositeComponent's
+	  // _renderValidatedComponent) assume that calls to render aren't nested;
+	  // verify that that's the case. (This is called by each top-level update
+	  // function, like setProps, setState, forceUpdate, etc.; creation and
+	  // destruction of top-level components is guarded in ReactMount.)
+	  ("production" !== process.env.NODE_ENV ? warning(
+	    ReactCurrentOwner.current == null,
+	    'enqueueUpdate(): Render methods should be a pure function of props ' +
+	    'and state; triggering nested component updates from render is not ' +
+	    'allowed. If necessary, trigger nested updates in ' +
+	    'componentDidUpdate.'
+	  ) : null);
+
+	  if (!batchingStrategy.isBatchingUpdates) {
+	    batchingStrategy.batchedUpdates(enqueueUpdate, component, callback);
+	    return;
+	  }
+
+	  dirtyComponents.push(component);
+
+	  if (callback) {
+	    if (component._pendingCallbacks) {
+	      component._pendingCallbacks.push(callback);
+	    } else {
+	      component._pendingCallbacks = [callback];
+	    }
+	  }
+	}
+
+	/**
+	 * Enqueue a callback to be run at the end of the current batching cycle. Throws
+	 * if no updates are currently being performed.
+	 */
+	function asap(callback, context) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    batchingStrategy.isBatchingUpdates,
+	    'ReactUpdates.asap: Can\'t enqueue an asap callback in a context where' +
+	    'updates are not being batched.'
+	  ) : invariant(batchingStrategy.isBatchingUpdates));
+	  asapCallbackQueue.enqueue(callback, context);
+	  asapEnqueued = true;
+	}
+
+	var ReactUpdatesInjection = {
+	  injectReconcileTransaction: function(ReconcileTransaction) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      ReconcileTransaction,
+	      'ReactUpdates: must provide a reconcile transaction class'
+	    ) : invariant(ReconcileTransaction));
+	    ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
+	  },
+
+	  injectBatchingStrategy: function(_batchingStrategy) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      _batchingStrategy,
+	      'ReactUpdates: must provide a batching strategy'
+	    ) : invariant(_batchingStrategy));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      typeof _batchingStrategy.batchedUpdates === 'function',
+	      'ReactUpdates: must provide a batchedUpdates() function'
+	    ) : invariant(typeof _batchingStrategy.batchedUpdates === 'function'));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      typeof _batchingStrategy.isBatchingUpdates === 'boolean',
+	      'ReactUpdates: must provide an isBatchingUpdates boolean attribute'
+	    ) : invariant(typeof _batchingStrategy.isBatchingUpdates === 'boolean'));
+	    batchingStrategy = _batchingStrategy;
+	  }
+	};
+
+	var ReactUpdates = {
+	  /**
+	   * React references `ReactReconcileTransaction` using this property in order
+	   * to allow dependency injection.
+	   *
+	   * @internal
+	   */
+	  ReactReconcileTransaction: null,
+
+	  batchedUpdates: batchedUpdates,
+	  enqueueUpdate: enqueueUpdate,
+	  flushBatchedUpdates: flushBatchedUpdates,
+	  injection: ReactUpdatesInjection,
+	  asap: asap
+	};
+
+	module.exports = ReactUpdates;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule cx
+	 */
+
+	/**
+	 * This function is used to mark string literals representing CSS class names
+	 * so that they can be transformed statically. This allows for modularization
+	 * and minification of CSS class names.
+	 *
+	 * In static_upstream, this function is actually implemented, but it should
+	 * eventually be replaced with something more descriptive, and the transform
+	 * that is used in the main stack should be ported for use elsewhere.
+	 *
+	 * @param string|object className to modularize, or an object of key/values.
+	 *                      In the object case, the values are conditions that
+	 *                      determine if the className keys should be included.
+	 * @param [string ...]  Variable list of classNames in the string case.
+	 * @return string       Renderable space-separated CSS className.
+	 */
+	function cx(classNames) {
+	  if (typeof classNames == 'object') {
+	    return Object.keys(classNames).filter(function(className) {
+	      return classNames[className];
+	    }).join(' ');
+	  } else {
+	    return Array.prototype.join.call(arguments, ' ');
+	  }
+	}
+
+	module.exports = cx;
+
+
+/***/ },
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15551,181 +13017,57 @@
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
 	 * @typechecks
-	 * @providesModule ReactCSSTransitionGroupChild
+	 * @providesModule cloneWithProps
 	 */
 
 	"use strict";
 
-	var React = __webpack_require__(15);
+	var ReactElement = __webpack_require__(17);
+	var ReactPropTransferer = __webpack_require__(58);
 
-	var CSSCore = __webpack_require__(119);
-	var ReactTransitionEvents = __webpack_require__(120);
+	var keyOf = __webpack_require__(62);
+	var warning = __webpack_require__(49);
 
-	var onlyChild = __webpack_require__(51);
+	var CHILDREN_PROP = keyOf({children: null});
 
-	// We don't remove the element from the DOM until we receive an animationend or
-	// transitionend event. If the user screws up and forgets to add an animation
-	// their node will be stuck in the DOM forever, so we detect if an animation
-	// does not start and if it doesn't, we just call the end listener immediately.
-	var TICK = 17;
-	var NO_EVENT_TIMEOUT = 5000;
+	/**
+	 * Sometimes you want to change the props of a child passed to you. Usually
+	 * this is to add a CSS class.
+	 *
+	 * @param {object} child child component you'd like to clone
+	 * @param {object} props props you'd like to modify. They will be merged
+	 * as if you used `transferPropsTo()`.
+	 * @return {object} a clone of child with props merged in.
+	 */
+	function cloneWithProps(child, props) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      !child.ref,
+	      'You are calling cloneWithProps() on a child with a ref. This is ' +
+	      'dangerous because you\'re creating a new child which will not be ' +
+	      'added as a ref to its parent.'
+	    ) : null);
+	  }
 
-	var noEventListener = null;
+	  var newProps = ReactPropTransferer.mergeProps(props, child.props);
 
+	  // Use `child.props.children` if it is provided.
+	  if (!newProps.hasOwnProperty(CHILDREN_PROP) &&
+	      child.props.hasOwnProperty(CHILDREN_PROP)) {
+	    newProps.children = child.props.children;
+	  }
 
-	if ("production" !== process.env.NODE_ENV) {
-	  noEventListener = function() {
-	    console.warn(
-	      'transition(): tried to perform an animation without ' +
-	      'an animationend or transitionend event after timeout (' +
-	      NO_EVENT_TIMEOUT + 'ms). You should either disable this ' +
-	      'transition in JS or add a CSS animation/transition.'
-	    );
-	  };
+	  // The current API doesn't retain _owner and _context, which is why this
+	  // doesn't use ReactElement.cloneAndReplaceProps.
+	  return ReactElement.createElement(child.type, newProps);
 	}
 
-	var ReactCSSTransitionGroupChild = React.createClass({
-	  displayName: 'ReactCSSTransitionGroupChild',
-
-	  transition: function(animationType, finishCallback) {
-	    var node = this.getDOMNode();
-	    var className = this.props.name + '-' + animationType;
-	    var activeClassName = className + '-active';
-	    var noEventTimeout = null;
-
-	    var endListener = function(e) {
-	      if (e && e.target !== node) {
-	        return;
-	      }
-	      if ("production" !== process.env.NODE_ENV) {
-	        clearTimeout(noEventTimeout);
-	      }
-
-	      CSSCore.removeClass(node, className);
-	      CSSCore.removeClass(node, activeClassName);
-
-	      ReactTransitionEvents.removeEndEventListener(node, endListener);
-
-	      // Usually this optional callback is used for informing an owner of
-	      // a leave animation and telling it to remove the child.
-	      finishCallback && finishCallback();
-	    };
-
-	    ReactTransitionEvents.addEndEventListener(node, endListener);
-
-	    CSSCore.addClass(node, className);
-
-	    // Need to do this to actually trigger a transition.
-	    this.queueClass(activeClassName);
-
-	    if ("production" !== process.env.NODE_ENV) {
-	      noEventTimeout = setTimeout(noEventListener, NO_EVENT_TIMEOUT);
-	    }
-	  },
-
-	  queueClass: function(className) {
-	    this.classNameQueue.push(className);
-
-	    if (!this.timeout) {
-	      this.timeout = setTimeout(this.flushClassNameQueue, TICK);
-	    }
-	  },
-
-	  flushClassNameQueue: function() {
-	    if (this.isMounted()) {
-	      this.classNameQueue.forEach(
-	        CSSCore.addClass.bind(CSSCore, this.getDOMNode())
-	      );
-	    }
-	    this.classNameQueue.length = 0;
-	    this.timeout = null;
-	  },
-
-	  componentWillMount: function() {
-	    this.classNameQueue = [];
-	  },
-
-	  componentWillUnmount: function() {
-	    if (this.timeout) {
-	      clearTimeout(this.timeout);
-	    }
-	  },
-
-	  componentWillEnter: function(done) {
-	    if (this.props.enter) {
-	      this.transition('enter', done);
-	    } else {
-	      done();
-	    }
-	  },
-
-	  componentWillLeave: function(done) {
-	    if (this.props.leave) {
-	      this.transition('leave', done);
-	    } else {
-	      done();
-	    }
-	  },
-
-	  render: function() {
-	    return onlyChild(this.props.children);
-	  }
-	});
-
-	module.exports = ReactCSSTransitionGroupChild;
+	module.exports = cloneWithProps;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule shallowEqual
-	 */
-
-	"use strict";
-
-	/**
-	 * Performs equality by iterating through keys on an object and returning
-	 * false when any key has values which are not strictly equal between
-	 * objA and objB. Returns true when the values of all keys are strictly equal.
-	 *
-	 * @return {boolean}
-	 */
-	function shallowEqual(objA, objB) {
-	  if (objA === objB) {
-	    return true;
-	  }
-	  var key;
-	  // Test for A's keys different from B.
-	  for (key in objA) {
-	    if (objA.hasOwnProperty(key) &&
-	        (!objB.hasOwnProperty(key) || objA[key] !== objB[key])) {
-	      return false;
-	    }
-	  }
-	  // Test for B's keys missing from A.
-	  for (key in objB) {
-	    if (objB.hasOwnProperty(key) && !objA.hasOwnProperty(key)) {
-	      return false;
-	    }
-	  }
-	  return true;
-	}
-
-	module.exports = shallowEqual;
-
-
-/***/ },
-/* 55 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -15736,221 +13078,170 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule CallbackQueue
+	 * @providesModule update
 	 */
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(56);
+	var assign = __webpack_require__(30);
+	var keyOf = __webpack_require__(62);
+	var invariant = __webpack_require__(51);
 
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * A specialized pseudo-event module to help keep track of components waiting to
-	 * be notified when their DOM representations are available for use.
-	 *
-	 * This implements `PooledClass`, so you should never need to instantiate this.
-	 * Instead, use `CallbackQueue.getPooled()`.
-	 *
-	 * @class ReactMountReady
-	 * @implements PooledClass
-	 * @internal
-	 */
-	function CallbackQueue() {
-	  this._callbacks = null;
-	  this._contexts = null;
+	function shallowCopy(x) {
+	  if (Array.isArray(x)) {
+	    return x.concat();
+	  } else if (x && typeof x === 'object') {
+	    return assign(new x.constructor(), x);
+	  } else {
+	    return x;
+	  }
 	}
 
-	assign(CallbackQueue.prototype, {
+	var COMMAND_PUSH = keyOf({$push: null});
+	var COMMAND_UNSHIFT = keyOf({$unshift: null});
+	var COMMAND_SPLICE = keyOf({$splice: null});
+	var COMMAND_SET = keyOf({$set: null});
+	var COMMAND_MERGE = keyOf({$merge: null});
+	var COMMAND_APPLY = keyOf({$apply: null});
 
-	  /**
-	   * Enqueues a callback to be invoked when `notifyAll` is invoked.
-	   *
-	   * @param {function} callback Invoked when `notifyAll` is invoked.
-	   * @param {?object} context Context to call `callback` with.
-	   * @internal
-	   */
-	  enqueue: function(callback, context) {
-	    this._callbacks = this._callbacks || [];
-	    this._contexts = this._contexts || [];
-	    this._callbacks.push(callback);
-	    this._contexts.push(context);
-	  },
+	var ALL_COMMANDS_LIST = [
+	  COMMAND_PUSH,
+	  COMMAND_UNSHIFT,
+	  COMMAND_SPLICE,
+	  COMMAND_SET,
+	  COMMAND_MERGE,
+	  COMMAND_APPLY
+	];
 
-	  /**
-	   * Invokes all enqueued callbacks and clears the queue. This is invoked after
-	   * the DOM representation of a component has been created or updated.
-	   *
-	   * @internal
-	   */
-	  notifyAll: function() {
-	    var callbacks = this._callbacks;
-	    var contexts = this._contexts;
-	    if (callbacks) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        callbacks.length === contexts.length,
-	        "Mismatched list of contexts in callback queue"
-	      ) : invariant(callbacks.length === contexts.length));
-	      this._callbacks = null;
-	      this._contexts = null;
-	      for (var i = 0, l = callbacks.length; i < l; i++) {
-	        callbacks[i].call(contexts[i]);
-	      }
-	      callbacks.length = 0;
-	      contexts.length = 0;
-	    }
-	  },
+	var ALL_COMMANDS_SET = {};
 
-	  /**
-	   * Resets the internal queue.
-	   *
-	   * @internal
-	   */
-	  reset: function() {
-	    this._callbacks = null;
-	    this._contexts = null;
-	  },
-
-	  /**
-	   * `PooledClass` looks for this.
-	   */
-	  destructor: function() {
-	    this.reset();
-	  }
-
+	ALL_COMMANDS_LIST.forEach(function(command) {
+	  ALL_COMMANDS_SET[command] = true;
 	});
 
-	PooledClass.addPoolingTo(CallbackQueue);
-
-	module.exports = CallbackQueue;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule PooledClass
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * Static poolers. Several custom versions for each potential number of
-	 * arguments. A completely generic pooler is easy to implement, but would
-	 * require accessing the `arguments` object. In each of these, `this` refers to
-	 * the Class itself, not an instance. If any others are needed, simply add them
-	 * here, or in their own files.
-	 */
-	var oneArgumentPooler = function(copyFieldsFrom) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, copyFieldsFrom);
-	    return instance;
-	  } else {
-	    return new Klass(copyFieldsFrom);
-	  }
-	};
-
-	var twoArgumentPooler = function(a1, a2) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2);
-	  }
-	};
-
-	var threeArgumentPooler = function(a1, a2, a3) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2, a3);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2, a3);
-	  }
-	};
-
-	var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
-	  var Klass = this;
-	  if (Klass.instancePool.length) {
-	    var instance = Klass.instancePool.pop();
-	    Klass.call(instance, a1, a2, a3, a4, a5);
-	    return instance;
-	  } else {
-	    return new Klass(a1, a2, a3, a4, a5);
-	  }
-	};
-
-	var standardReleaser = function(instance) {
-	  var Klass = this;
+	function invariantArrayCase(value, spec, command) {
 	  ("production" !== process.env.NODE_ENV ? invariant(
-	    instance instanceof Klass,
-	    'Trying to release an instance into a pool of a different type.'
-	  ) : invariant(instance instanceof Klass));
-	  if (instance.destructor) {
-	    instance.destructor();
+	    Array.isArray(value),
+	    'update(): expected target of %s to be an array; got %s.',
+	    command,
+	    value
+	  ) : invariant(Array.isArray(value)));
+	  var specValue = spec[command];
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    Array.isArray(specValue),
+	    'update(): expected spec of %s to be an array; got %s. ' +
+	    'Did you forget to wrap your parameter in an array?',
+	    command,
+	    specValue
+	  ) : invariant(Array.isArray(specValue)));
+	}
+
+	function update(value, spec) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    typeof spec === 'object',
+	    'update(): You provided a key path to update() that did not contain one ' +
+	    'of %s. Did you forget to include {%s: ...}?',
+	    ALL_COMMANDS_LIST.join(', '),
+	    COMMAND_SET
+	  ) : invariant(typeof spec === 'object'));
+
+	  if (spec.hasOwnProperty(COMMAND_SET)) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      Object.keys(spec).length === 1,
+	      'Cannot have more than one key in an object with %s',
+	      COMMAND_SET
+	    ) : invariant(Object.keys(spec).length === 1));
+
+	    return spec[COMMAND_SET];
 	  }
-	  if (Klass.instancePool.length < Klass.poolSize) {
-	    Klass.instancePool.push(instance);
+
+	  var nextValue = shallowCopy(value);
+
+	  if (spec.hasOwnProperty(COMMAND_MERGE)) {
+	    var mergeObj = spec[COMMAND_MERGE];
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      mergeObj && typeof mergeObj === 'object',
+	      'update(): %s expects a spec of type \'object\'; got %s',
+	      COMMAND_MERGE,
+	      mergeObj
+	    ) : invariant(mergeObj && typeof mergeObj === 'object'));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      nextValue && typeof nextValue === 'object',
+	      'update(): %s expects a target of type \'object\'; got %s',
+	      COMMAND_MERGE,
+	      nextValue
+	    ) : invariant(nextValue && typeof nextValue === 'object'));
+	    assign(nextValue, spec[COMMAND_MERGE]);
 	  }
-	};
 
-	var DEFAULT_POOL_SIZE = 10;
-	var DEFAULT_POOLER = oneArgumentPooler;
-
-	/**
-	 * Augments `CopyConstructor` to be a poolable class, augmenting only the class
-	 * itself (statically) not adding any prototypical fields. Any CopyConstructor
-	 * you give this may have a `poolSize` property, and will look for a
-	 * prototypical `destructor` on instances (optional).
-	 *
-	 * @param {Function} CopyConstructor Constructor that can be used to reset.
-	 * @param {Function} pooler Customizable pooler.
-	 */
-	var addPoolingTo = function(CopyConstructor, pooler) {
-	  var NewKlass = CopyConstructor;
-	  NewKlass.instancePool = [];
-	  NewKlass.getPooled = pooler || DEFAULT_POOLER;
-	  if (!NewKlass.poolSize) {
-	    NewKlass.poolSize = DEFAULT_POOL_SIZE;
+	  if (spec.hasOwnProperty(COMMAND_PUSH)) {
+	    invariantArrayCase(value, spec, COMMAND_PUSH);
+	    spec[COMMAND_PUSH].forEach(function(item) {
+	      nextValue.push(item);
+	    });
 	  }
-	  NewKlass.release = standardReleaser;
-	  return NewKlass;
-	};
 
-	var PooledClass = {
-	  addPoolingTo: addPoolingTo,
-	  oneArgumentPooler: oneArgumentPooler,
-	  twoArgumentPooler: twoArgumentPooler,
-	  threeArgumentPooler: threeArgumentPooler,
-	  fiveArgumentPooler: fiveArgumentPooler
-	};
+	  if (spec.hasOwnProperty(COMMAND_UNSHIFT)) {
+	    invariantArrayCase(value, spec, COMMAND_UNSHIFT);
+	    spec[COMMAND_UNSHIFT].forEach(function(item) {
+	      nextValue.unshift(item);
+	    });
+	  }
 
-	module.exports = PooledClass;
+	  if (spec.hasOwnProperty(COMMAND_SPLICE)) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      Array.isArray(value),
+	      'Expected %s target to be an array; got %s',
+	      COMMAND_SPLICE,
+	      value
+	    ) : invariant(Array.isArray(value)));
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      Array.isArray(spec[COMMAND_SPLICE]),
+	      'update(): expected spec of %s to be an array of arrays; got %s. ' +
+	      'Did you forget to wrap your parameters in an array?',
+	      COMMAND_SPLICE,
+	      spec[COMMAND_SPLICE]
+	    ) : invariant(Array.isArray(spec[COMMAND_SPLICE])));
+	    spec[COMMAND_SPLICE].forEach(function(args) {
+	      ("production" !== process.env.NODE_ENV ? invariant(
+	        Array.isArray(args),
+	        'update(): expected spec of %s to be an array of arrays; got %s. ' +
+	        'Did you forget to wrap your parameters in an array?',
+	        COMMAND_SPLICE,
+	        spec[COMMAND_SPLICE]
+	      ) : invariant(Array.isArray(args)));
+	      nextValue.splice.apply(nextValue, args);
+	    });
+	  }
+
+	  if (spec.hasOwnProperty(COMMAND_APPLY)) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      typeof spec[COMMAND_APPLY] === 'function',
+	      'update(): expected spec of %s to be a function; got %s.',
+	      COMMAND_APPLY,
+	      spec[COMMAND_APPLY]
+	    ) : invariant(typeof spec[COMMAND_APPLY] === 'function'));
+	    nextValue = spec[COMMAND_APPLY](nextValue);
+	  }
+
+	  for (var k in spec) {
+	    if (!(ALL_COMMANDS_SET.hasOwnProperty(k) && ALL_COMMANDS_SET[k])) {
+	      nextValue[k] = update(value[k], spec[k]);
+	    }
+	  }
+
+	  return nextValue;
+	}
+
+	module.exports = update;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 57 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
+	/**
 	 * Copyright 2013-2014, Facebook, Inc.
 	 * All rights reserved.
 	 *
@@ -15958,701 +13249,768 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule Transaction
+	 * @providesModule ReactDefaultPerf
+	 * @typechecks static-only
 	 */
 
 	"use strict";
 
-	var invariant = __webpack_require__(58);
+	var DOMProperty = __webpack_require__(46);
+	var ReactDefaultPerfAnalysis = __webpack_require__(113);
+	var ReactMount = __webpack_require__(24);
+	var ReactPerf = __webpack_require__(26);
+
+	var performanceNow = __webpack_require__(114);
+
+	function roundFloat(val) {
+	  return Math.floor(val * 100) / 100;
+	}
+
+	function addValue(obj, key, val) {
+	  obj[key] = (obj[key] || 0) + val;
+	}
+
+	var ReactDefaultPerf = {
+	  _allMeasurements: [], // last item in the list is the current one
+	  _mountStack: [0],
+	  _injected: false,
+
+	  start: function() {
+	    if (!ReactDefaultPerf._injected) {
+	      ReactPerf.injection.injectMeasure(ReactDefaultPerf.measure);
+	    }
+
+	    ReactDefaultPerf._allMeasurements.length = 0;
+	    ReactPerf.enableMeasure = true;
+	  },
+
+	  stop: function() {
+	    ReactPerf.enableMeasure = false;
+	  },
+
+	  getLastMeasurements: function() {
+	    return ReactDefaultPerf._allMeasurements;
+	  },
+
+	  printExclusive: function(measurements) {
+	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	    var summary = ReactDefaultPerfAnalysis.getExclusiveSummary(measurements);
+	    console.table(summary.map(function(item) {
+	      return {
+	        'Component class name': item.componentName,
+	        'Total inclusive time (ms)': roundFloat(item.inclusive),
+	        'Exclusive mount time (ms)': roundFloat(item.exclusive),
+	        'Exclusive render time (ms)': roundFloat(item.render),
+	        'Mount time per instance (ms)': roundFloat(item.exclusive / item.count),
+	        'Render time per instance (ms)': roundFloat(item.render / item.count),
+	        'Instances': item.count
+	      };
+	    }));
+	    // TODO: ReactDefaultPerfAnalysis.getTotalTime() does not return the correct
+	    // number.
+	  },
+
+	  printInclusive: function(measurements) {
+	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	    var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(measurements);
+	    console.table(summary.map(function(item) {
+	      return {
+	        'Owner > component': item.componentName,
+	        'Inclusive time (ms)': roundFloat(item.time),
+	        'Instances': item.count
+	      };
+	    }));
+	    console.log(
+	      'Total time:',
+	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
+	    );
+	  },
+
+	  getMeasurementsSummaryMap: function(measurements) {
+	    var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(
+	      measurements,
+	      true
+	    );
+	    return summary.map(function(item) {
+	      return {
+	        'Owner > component': item.componentName,
+	        'Wasted time (ms)': item.time,
+	        'Instances': item.count
+	      };
+	    });
+	  },
+
+	  printWasted: function(measurements) {
+	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	    console.table(ReactDefaultPerf.getMeasurementsSummaryMap(measurements));
+	    console.log(
+	      'Total time:',
+	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
+	    );
+	  },
+
+	  printDOM: function(measurements) {
+	    measurements = measurements || ReactDefaultPerf._allMeasurements;
+	    var summary = ReactDefaultPerfAnalysis.getDOMSummary(measurements);
+	    console.table(summary.map(function(item) {
+	      var result = {};
+	      result[DOMProperty.ID_ATTRIBUTE_NAME] = item.id;
+	      result['type'] = item.type;
+	      result['args'] = JSON.stringify(item.args);
+	      return result;
+	    }));
+	    console.log(
+	      'Total time:',
+	      ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
+	    );
+	  },
+
+	  _recordWrite: function(id, fnName, totalTime, args) {
+	    // TODO: totalTime isn't that useful since it doesn't count paints/reflows
+	    var writes =
+	      ReactDefaultPerf
+	        ._allMeasurements[ReactDefaultPerf._allMeasurements.length - 1]
+	        .writes;
+	    writes[id] = writes[id] || [];
+	    writes[id].push({
+	      type: fnName,
+	      time: totalTime,
+	      args: args
+	    });
+	  },
+
+	  measure: function(moduleName, fnName, func) {
+	    return function() {for (var args=[],$__0=0,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
+	      var totalTime;
+	      var rv;
+	      var start;
+
+	      if (fnName === '_renderNewRootComponent' ||
+	          fnName === 'flushBatchedUpdates') {
+	        // A "measurement" is a set of metrics recorded for each flush. We want
+	        // to group the metrics for a given flush together so we can look at the
+	        // components that rendered and the DOM operations that actually
+	        // happened to determine the amount of "wasted work" performed.
+	        ReactDefaultPerf._allMeasurements.push({
+	          exclusive: {},
+	          inclusive: {},
+	          render: {},
+	          counts: {},
+	          writes: {},
+	          displayNames: {},
+	          totalTime: 0
+	        });
+	        start = performanceNow();
+	        rv = func.apply(this, args);
+	        ReactDefaultPerf._allMeasurements[
+	          ReactDefaultPerf._allMeasurements.length - 1
+	        ].totalTime = performanceNow() - start;
+	        return rv;
+	      } else if (moduleName === 'ReactDOMIDOperations' ||
+	        moduleName === 'ReactComponentBrowserEnvironment') {
+	        start = performanceNow();
+	        rv = func.apply(this, args);
+	        totalTime = performanceNow() - start;
+
+	        if (fnName === 'mountImageIntoNode') {
+	          var mountID = ReactMount.getID(args[1]);
+	          ReactDefaultPerf._recordWrite(mountID, fnName, totalTime, args[0]);
+	        } else if (fnName === 'dangerouslyProcessChildrenUpdates') {
+	          // special format
+	          args[0].forEach(function(update) {
+	            var writeArgs = {};
+	            if (update.fromIndex !== null) {
+	              writeArgs.fromIndex = update.fromIndex;
+	            }
+	            if (update.toIndex !== null) {
+	              writeArgs.toIndex = update.toIndex;
+	            }
+	            if (update.textContent !== null) {
+	              writeArgs.textContent = update.textContent;
+	            }
+	            if (update.markupIndex !== null) {
+	              writeArgs.markup = args[1][update.markupIndex];
+	            }
+	            ReactDefaultPerf._recordWrite(
+	              update.parentID,
+	              update.type,
+	              totalTime,
+	              writeArgs
+	            );
+	          });
+	        } else {
+	          // basic format
+	          ReactDefaultPerf._recordWrite(
+	            args[0],
+	            fnName,
+	            totalTime,
+	            Array.prototype.slice.call(args, 1)
+	          );
+	        }
+	        return rv;
+	      } else if (moduleName === 'ReactCompositeComponent' && (
+	        fnName === 'mountComponent' ||
+	        fnName === 'updateComponent' || // TODO: receiveComponent()?
+	        fnName === '_renderValidatedComponent')) {
+
+	        var rootNodeID = fnName === 'mountComponent' ?
+	          args[0] :
+	          this._rootNodeID;
+	        var isRender = fnName === '_renderValidatedComponent';
+	        var isMount = fnName === 'mountComponent';
+
+	        var mountStack = ReactDefaultPerf._mountStack;
+	        var entry = ReactDefaultPerf._allMeasurements[
+	          ReactDefaultPerf._allMeasurements.length - 1
+	        ];
+
+	        if (isRender) {
+	          addValue(entry.counts, rootNodeID, 1);
+	        } else if (isMount) {
+	          mountStack.push(0);
+	        }
+
+	        start = performanceNow();
+	        rv = func.apply(this, args);
+	        totalTime = performanceNow() - start;
+
+	        if (isRender) {
+	          addValue(entry.render, rootNodeID, totalTime);
+	        } else if (isMount) {
+	          var subMountTime = mountStack.pop();
+	          mountStack[mountStack.length - 1] += totalTime;
+	          addValue(entry.exclusive, rootNodeID, totalTime - subMountTime);
+	          addValue(entry.inclusive, rootNodeID, totalTime);
+	        } else {
+	          addValue(entry.inclusive, rootNodeID, totalTime);
+	        }
+
+	        entry.displayNames[rootNodeID] = {
+	          current: this.constructor.displayName,
+	          owner: this._owner ? this._owner.constructor.displayName : '<root>'
+	        };
+
+	        return rv;
+	      } else {
+	        return func.apply(this, args);
+	      }
+	    };
+	  }
+	};
+
+	module.exports = ReactDefaultPerf;
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * `Transaction` creates a black box that is able to wrap any method such that
-	 * certain invariants are maintained before and after the method is invoked
-	 * (Even if an exception is thrown while invoking the wrapped method). Whoever
-	 * instantiates a transaction can provide enforcers of the invariants at
-	 * creation time. The `Transaction` class itself will supply one additional
-	 * automatic invariant for you - the invariant that any transaction instance
-	 * should not be run while it is already being run. You would typically create a
-	 * single instance of a `Transaction` for reuse multiple times, that potentially
-	 * is used to wrap several different methods. Wrappers are extremely simple -
-	 * they only require implementing two methods.
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
 	 *
-	 * <pre>
-	 *                       wrappers (injected at creation time)
-	 *                                      +        +
-	 *                                      |        |
-	 *                    +-----------------|--------|--------------+
-	 *                    |                 v        |              |
-	 *                    |      +---------------+   |              |
-	 *                    |   +--|    wrapper1   |---|----+         |
-	 *                    |   |  +---------------+   v    |         |
-	 *                    |   |          +-------------+  |         |
-	 *                    |   |     +----|   wrapper2  |--------+   |
-	 *                    |   |     |    +-------------+  |     |   |
-	 *                    |   |     |                     |     |   |
-	 *                    |   v     v                     v     v   | wrapper
-	 *                    | +---+ +---+   +---------+   +---+ +---+ | invariants
-	 * perform(anyMethod) | |   | |   |   |         |   |   | |   | | maintained
-	 * +----------------->|-|---|-|---|-->|anyMethod|---|---|-|---|-|-------->
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | |   | |   |   |         |   |   | |   | |
-	 *                    | +---+ +---+   +---------+   +---+ +---+ |
-	 *                    |  initialize                    close    |
-	 *                    +-----------------------------------------+
-	 * </pre>
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * Use cases:
-	 * - Preserving the input selection ranges before/after reconciliation.
-	 *   Restoring selection even in the event of an unexpected error.
-	 * - Deactivating events while rearranging the DOM, preventing blurs/focuses,
-	 *   while guaranteeing that afterwards, the event system is reactivated.
-	 * - Flushing a queue of collected DOM mutations to the main UI thread after a
-	 *   reconciliation takes place in a worker thread.
-	 * - Invoking any collected `componentDidUpdate` callbacks after rendering new
-	 *   content.
-	 * - (Future use case): Wrapping particular flushes of the `ReactWorker` queue
-	 *   to preserve the `scrollTop` (an automatic scroll aware DOM).
-	 * - (Future use case): Layout calculations before and after DOM upates.
-	 *
-	 * Transactional plugin API:
-	 * - A module that has an `initialize` method that returns any precomputation.
-	 * - and a `close` method that accepts the precomputation. `close` is invoked
-	 *   when the wrapped process is completed, or has failed.
-	 *
-	 * @param {Array<TransactionalWrapper>} transactionWrapper Wrapper modules
-	 * that implement `initialize` and `close`.
-	 * @return {Transaction} Single transaction for reuse in thread.
-	 *
-	 * @class Transaction
+	 * @providesModule ReactTestUtils
 	 */
-	var Mixin = {
-	  /**
-	   * Sets up this instance so that it is prepared for collecting metrics. Does
-	   * so such that this setup method may be used on an instance that is already
-	   * initialized, in a way that does not consume additional memory upon reuse.
-	   * That can be useful if you decide to make your subclass of this mixin a
-	   * "PooledClass".
-	   */
-	  reinitializeTransaction: function() {
-	    this.transactionWrappers = this.getTransactionWrappers();
-	    if (!this.wrapperInitData) {
-	      this.wrapperInitData = [];
-	    } else {
-	      this.wrapperInitData.length = 0;
+
+	"use strict";
+
+	var EventConstants = __webpack_require__(50);
+	var EventPluginHub = __webpack_require__(115);
+	var EventPropagators = __webpack_require__(116);
+	var React = __webpack_require__(5);
+	var ReactElement = __webpack_require__(17);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
+	var ReactMount = __webpack_require__(24);
+	var ReactTextComponent = __webpack_require__(29);
+	var ReactUpdates = __webpack_require__(39);
+	var SyntheticEvent = __webpack_require__(117);
+
+	var assign = __webpack_require__(30);
+
+	var topLevelTypes = EventConstants.topLevelTypes;
+
+	function Event(suffix) {}
+
+	/**
+	 * @class ReactTestUtils
+	 */
+
+	/**
+	 * Todo: Support the entire DOM.scry query syntax. For now, these simple
+	 * utilities will suffice for testing purposes.
+	 * @lends ReactTestUtils
+	 */
+	var ReactTestUtils = {
+	  renderIntoDocument: function(instance) {
+	    var div = document.createElement('div');
+	    // None of our tests actually require attaching the container to the
+	    // DOM, and doing so creates a mess that we rely on test isolation to
+	    // clean up, so we're going to stop honoring the name of this method
+	    // (and probably rename it eventually) if no problems arise.
+	    // document.documentElement.appendChild(div);
+	    return React.render(instance, div);
+	  },
+
+	  isElement: function(element) {
+	    return ReactElement.isValidElement(element);
+	  },
+
+	  isElementOfType: function(inst, convenienceConstructor) {
+	    return (
+	      ReactElement.isValidElement(inst) &&
+	      inst.type === convenienceConstructor.type
+	    );
+	  },
+
+	  isDOMComponent: function(inst) {
+	    return !!(inst && inst.mountComponent && inst.tagName);
+	  },
+
+	  isDOMComponentElement: function(inst) {
+	    return !!(inst &&
+	              ReactElement.isValidElement(inst) &&
+	              !!inst.tagName);
+	  },
+
+	  isCompositeComponent: function(inst) {
+	    return typeof inst.render === 'function' &&
+	           typeof inst.setState === 'function';
+	  },
+
+	  isCompositeComponentWithType: function(inst, type) {
+	    return !!(ReactTestUtils.isCompositeComponent(inst) &&
+	             (inst.constructor === type.type));
+	  },
+
+	  isCompositeComponentElement: function(inst) {
+	    if (!ReactElement.isValidElement(inst)) {
+	      return false;
 	    }
-	    this._isInTransaction = false;
+	    // We check the prototype of the type that will get mounted, not the
+	    // instance itself. This is a future proof way of duck typing.
+	    var prototype = inst.type.prototype;
+	    return (
+	      typeof prototype.render === 'function' &&
+	      typeof prototype.setState === 'function'
+	    );
 	  },
 
-	  _isInTransaction: false,
-
-	  /**
-	   * @abstract
-	   * @return {Array<TransactionWrapper>} Array of transaction wrappers.
-	   */
-	  getTransactionWrappers: null,
-
-	  isInTransaction: function() {
-	    return !!this._isInTransaction;
+	  isCompositeComponentElementWithType: function(inst, type) {
+	    return !!(ReactTestUtils.isCompositeComponentElement(inst) &&
+	             (inst.constructor === type));
 	  },
 
-	  /**
-	   * Executes the function within a safety window. Use this for the top level
-	   * methods that result in large amounts of computation/mutations that would
-	   * need to be safety checked.
-	   *
-	   * @param {function} method Member of scope to call.
-	   * @param {Object} scope Scope to invoke from.
-	   * @param {Object?=} args... Arguments to pass to the method (optional).
-	   *                           Helps prevent need to bind in many cases.
-	   * @return Return value from `method`.
-	   */
-	  perform: function(method, scope, a, b, c, d, e, f) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !this.isInTransaction(),
-	      'Transaction.perform(...): Cannot initialize a transaction when there ' +
-	      'is already an outstanding transaction.'
-	    ) : invariant(!this.isInTransaction()));
-	    var errorThrown;
-	    var ret;
-	    try {
-	      this._isInTransaction = true;
-	      // Catching errors makes debugging more difficult, so we start with
-	      // errorThrown set to true before setting it to false after calling
-	      // close -- if it's still set to true in the finally block, it means
-	      // one of these calls threw.
-	      errorThrown = true;
-	      this.initializeAll(0);
-	      ret = method.call(scope, a, b, c, d, e, f);
-	      errorThrown = false;
-	    } finally {
-	      try {
-	        if (errorThrown) {
-	          // If `method` throws, prefer to show that stack trace over any thrown
-	          // by invoking `closeAll`.
-	          try {
-	            this.closeAll(0);
-	          } catch (err) {
-	          }
-	        } else {
-	          // Since `method` didn't throw, we don't want to silence the exception
-	          // here.
-	          this.closeAll(0);
+	  isTextComponent: function(inst) {
+	    return inst instanceof ReactTextComponent.type;
+	  },
+
+	  findAllInRenderedTree: function(inst, test) {
+	    if (!inst) {
+	      return [];
+	    }
+	    var ret = test(inst) ? [inst] : [];
+	    if (ReactTestUtils.isDOMComponent(inst)) {
+	      var renderedChildren = inst._renderedChildren;
+	      var key;
+	      for (key in renderedChildren) {
+	        if (!renderedChildren.hasOwnProperty(key)) {
+	          continue;
 	        }
-	      } finally {
-	        this._isInTransaction = false;
+	        ret = ret.concat(
+	          ReactTestUtils.findAllInRenderedTree(renderedChildren[key], test)
+	        );
 	      }
+	    } else if (ReactTestUtils.isCompositeComponent(inst)) {
+	      ret = ret.concat(
+	        ReactTestUtils.findAllInRenderedTree(inst._renderedComponent, test)
+	      );
 	    }
 	    return ret;
 	  },
 
-	  initializeAll: function(startIndex) {
-	    var transactionWrappers = this.transactionWrappers;
-	    for (var i = startIndex; i < transactionWrappers.length; i++) {
-	      var wrapper = transactionWrappers[i];
-	      try {
-	        // Catching errors makes debugging more difficult, so we start with the
-	        // OBSERVED_ERROR state before overwriting it with the real return value
-	        // of initialize -- if it's still set to OBSERVED_ERROR in the finally
-	        // block, it means wrapper.initialize threw.
-	        this.wrapperInitData[i] = Transaction.OBSERVED_ERROR;
-	        this.wrapperInitData[i] = wrapper.initialize ?
-	          wrapper.initialize.call(this) :
-	          null;
-	      } finally {
-	        if (this.wrapperInitData[i] === Transaction.OBSERVED_ERROR) {
-	          // The initializer for wrapper i threw an error; initialize the
-	          // remaining wrappers but silence any exceptions from them to ensure
-	          // that the first error is the one to bubble up.
-	          try {
-	            this.initializeAll(i + 1);
-	          } catch (err) {
-	          }
-	        }
-	      }
-	    }
-	  },
-
 	  /**
-	   * Invokes each of `this.transactionWrappers.close[i]` functions, passing into
-	   * them the respective return values of `this.transactionWrappers.init[i]`
-	   * (`close`rs that correspond to initializers that failed will not be
-	   * invoked).
+	   * Finds all instance of components in the rendered tree that are DOM
+	   * components with the class name matching `className`.
+	   * @return an array of all the matches.
 	   */
-	  closeAll: function(startIndex) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      this.isInTransaction(),
-	      'Transaction.closeAll(): Cannot close transaction when none are open.'
-	    ) : invariant(this.isInTransaction()));
-	    var transactionWrappers = this.transactionWrappers;
-	    for (var i = startIndex; i < transactionWrappers.length; i++) {
-	      var wrapper = transactionWrappers[i];
-	      var initData = this.wrapperInitData[i];
-	      var errorThrown;
-	      try {
-	        // Catching errors makes debugging more difficult, so we start with
-	        // errorThrown set to true before setting it to false after calling
-	        // close -- if it's still set to true in the finally block, it means
-	        // wrapper.close threw.
-	        errorThrown = true;
-	        if (initData !== Transaction.OBSERVED_ERROR) {
-	          wrapper.close && wrapper.close.call(this, initData);
-	        }
-	        errorThrown = false;
-	      } finally {
-	        if (errorThrown) {
-	          // The closer for wrapper i threw an error; close the remaining
-	          // wrappers but silence any exceptions from them to ensure that the
-	          // first error is the one to bubble up.
-	          try {
-	            this.closeAll(i + 1);
-	          } catch (e) {
-	          }
-	        }
-	      }
-	    }
-	    this.wrapperInitData.length = 0;
-	  }
-	};
-
-	var Transaction = {
-
-	  Mixin: Mixin,
-
-	  /**
-	   * Token to look for to determine if an error occured.
-	   */
-	  OBSERVED_ERROR: {}
-
-	};
-
-	module.exports = Transaction;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule invariant
-	 */
-
-	"use strict";
-
-	/**
-	 * Use invariant() to assert state which your program assumes to be true.
-	 *
-	 * Provide sprintf-style format (only %s is supported) and arguments
-	 * to provide information about what broke and what you were
-	 * expecting.
-	 *
-	 * The invariant message will be stripped in production, but the invariant
-	 * will remain to ensure logic does not differ in production.
-	 */
-
-	var invariant = function(condition, format, a, b, c, d, e, f) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    if (format === undefined) {
-	      throw new Error('invariant requires an error message argument');
-	    }
-	  }
-
-	  if (!condition) {
-	    var error;
-	    if (format === undefined) {
-	      error = new Error(
-	        'Minified exception occurred; use the non-minified dev environment ' +
-	        'for the full error message and additional helpful warnings.'
+	  scryRenderedDOMComponentsWithClass: function(root, className) {
+	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
+	      var instClassName = inst.props.className;
+	      return ReactTestUtils.isDOMComponent(inst) && (
+	        instClassName &&
+	        (' ' + instClassName + ' ').indexOf(' ' + className + ' ') !== -1
 	      );
-	    } else {
-	      var args = [a, b, c, d, e, f];
-	      var argIndex = 0;
-	      error = new Error(
-	        'Invariant Violation: ' +
-	        format.replace(/%s/g, function() { return args[argIndex++]; })
-	      );
-	    }
-
-	    error.framesToPop = 1; // we don't care about invariant's own frame
-	    throw error;
-	  }
-	};
-
-	module.exports = invariant;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule warning
-	 */
-
-	"use strict";
-
-	var emptyFunction = __webpack_require__(61);
-
-	/**
-	 * Similar to invariant but only logs a warning if the condition is not met.
-	 * This can be used to log issues in development environments in critical
-	 * paths. Removing the logging code for production environments will keep the
-	 * same logic and follow the same code paths.
-	 */
-
-	var warning = emptyFunction;
-
-	if ("production" !== process.env.NODE_ENV) {
-	  warning = function(condition, format ) {for (var args=[],$__0=2,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
-	    if (format === undefined) {
-	      throw new Error(
-	        '`warning(condition, format, ...args)` requires a warning ' +
-	        'message argument'
-	      );
-	    }
-
-	    if (!condition) {
-	      var argIndex = 0;
-	      console.warn('Warning: ' + format.replace(/%s/g, function()  {return args[argIndex++];}));
-	    }
-	  };
-	}
-
-	module.exports = warning;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks static-only
-	 * @providesModule ReactTransitionChildMapping
-	 */
-
-	"use strict";
-
-	var ReactChildren = __webpack_require__(31);
-
-	var ReactTransitionChildMapping = {
-	  /**
-	   * Given `this.props.children`, return an object mapping key to child. Just
-	   * simple syntactic sugar around ReactChildren.map().
-	   *
-	   * @param {*} children `this.props.children`
-	   * @return {object} Mapping of key to child
-	   */
-	  getChildMapping: function(children) {
-	    return ReactChildren.map(children, function(child) {
-	      return child;
 	    });
 	  },
 
 	  /**
-	   * When you're adding or removing children some may be added or removed in the
-	   * same render pass. We want to show *both* since we want to simultaneously
-	   * animate elements in and out. This function takes a previous set of keys
-	   * and a new set of keys and merges them with its best guess of the correct
-	   * ordering. In the future we may expose some of the utilities in
-	   * ReactMultiChild to make this easy, but for now React itself does not
-	   * directly have this concept of the union of prevChildren and nextChildren
-	   * so we implement it here.
-	   *
-	   * @param {object} prev prev children as returned from
-	   * `ReactTransitionChildMapping.getChildMapping()`.
-	   * @param {object} next next children as returned from
-	   * `ReactTransitionChildMapping.getChildMapping()`.
-	   * @return {object} a key set that contains all keys in `prev` and all keys
-	   * in `next` in a reasonable order.
+	   * Like scryRenderedDOMComponentsWithClass but expects there to be one result,
+	   * and returns that one result, or throws exception if there is any other
+	   * number of matches besides one.
+	   * @return {!ReactDOMComponent} The one match.
 	   */
-	  mergeChildMappings: function(prev, next) {
-	    prev = prev || {};
-	    next = next || {};
-
-	    function getValueForKey(key) {
-	      if (next.hasOwnProperty(key)) {
-	        return next[key];
-	      } else {
-	        return prev[key];
-	      }
+	  findRenderedDOMComponentWithClass: function(root, className) {
+	    var all =
+	      ReactTestUtils.scryRenderedDOMComponentsWithClass(root, className);
+	    if (all.length !== 1) {
+	      throw new Error('Did not find exactly one match for class:' + className);
 	    }
+	    return all[0];
+	  },
 
-	    // For each key of `next`, the list of keys to insert before that key in
-	    // the combined list
-	    var nextKeysPending = {};
-
-	    var pendingKeys = [];
-	    for (var prevKey in prev) {
-	      if (next.hasOwnProperty(prevKey)) {
-	        if (pendingKeys.length) {
-	          nextKeysPending[prevKey] = pendingKeys;
-	          pendingKeys = [];
-	        }
-	      } else {
-	        pendingKeys.push(prevKey);
-	      }
-	    }
-
-	    var i;
-	    var childMapping = {};
-	    for (var nextKey in next) {
-	      if (nextKeysPending.hasOwnProperty(nextKey)) {
-	        for (i = 0; i < nextKeysPending[nextKey].length; i++) {
-	          var pendingNextKey = nextKeysPending[nextKey][i];
-	          childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-	            pendingNextKey
-	          );
-	        }
-	      }
-	      childMapping[nextKey] = getValueForKey(nextKey);
-	    }
-
-	    // Finally, add the keys which didn't appear before any key in `next`
-	    for (i = 0; i < pendingKeys.length; i++) {
-	      childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
-	    }
-
-	    return childMapping;
-	  }
-	};
-
-	module.exports = ReactTransitionChildMapping;
-
-
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule emptyFunction
-	 */
-
-	function makeEmptyFunction(arg) {
-	  return function() {
-	    return arg;
-	  };
-	}
-
-	/**
-	 * This function accepts and discards inputs; it has no side effects. This is
-	 * primarily useful idiomatically for overridable function endpoints which
-	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
-	 */
-	function emptyFunction() {}
-
-	emptyFunction.thatReturns = makeEmptyFunction;
-	emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
-	emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
-	emptyFunction.thatReturnsNull = makeEmptyFunction(null);
-	emptyFunction.thatReturnsThis = function() { return this; };
-	emptyFunction.thatReturnsArgument = function(arg) { return arg; };
-
-	module.exports = emptyFunction;
-
-
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule keyOf
-	 */
-
-	/**
-	 * Allows extraction of a minified key. Let's the build system minify keys
-	 * without loosing the ability to dynamically use key strings as values
-	 * themselves. Pass in an object with a single key/val pair and it will return
-	 * you the string key of that single record. Suppose you want to grab the
-	 * value for a key 'className' inside of an object. Key/val minification may
-	 * have aliased that key to be 'xa12'. keyOf({className: null}) will return
-	 * 'xa12' in that case. Resolve keys you want to use once at startup time, then
-	 * reuse those resolutions.
-	 */
-	var keyOf = function(oneKeyObj) {
-	  var key;
-	  for (key in oneKeyObj) {
-	    if (!oneKeyObj.hasOwnProperty(key)) {
-	      continue;
-	    }
-	    return key;
-	  }
-	  return null;
-	};
-
-
-	module.exports = keyOf;
-
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactPropTransferer
-	 */
-
-	"use strict";
-
-	var assign = __webpack_require__(49);
-	var emptyFunction = __webpack_require__(61);
-	var invariant = __webpack_require__(58);
-	var joinClasses = __webpack_require__(121);
-	var warning = __webpack_require__(59);
-
-	var didWarn = false;
-
-	/**
-	 * Creates a transfer strategy that will merge prop values using the supplied
-	 * `mergeStrategy`. If a prop was previously unset, this just sets it.
-	 *
-	 * @param {function} mergeStrategy
-	 * @return {function}
-	 */
-	function createTransferStrategy(mergeStrategy) {
-	  return function(props, key, value) {
-	    if (!props.hasOwnProperty(key)) {
-	      props[key] = value;
-	    } else {
-	      props[key] = mergeStrategy(props[key], value);
-	    }
-	  };
-	}
-
-	var transferStrategyMerge = createTransferStrategy(function(a, b) {
-	  // `merge` overrides the first object's (`props[key]` above) keys using the
-	  // second object's (`value`) keys. An object's style's existing `propA` would
-	  // get overridden. Flip the order here.
-	  return assign({}, b, a);
-	});
-
-	/**
-	 * Transfer strategies dictate how props are transferred by `transferPropsTo`.
-	 * NOTE: if you add any more exceptions to this list you should be sure to
-	 * update `cloneWithProps()` accordingly.
-	 */
-	var TransferStrategies = {
-	  /**
-	   * Never transfer `children`.
-	   */
-	  children: emptyFunction,
-	  /**
-	   * Transfer the `className` prop by merging them.
-	   */
-	  className: createTransferStrategy(joinClasses),
-	  /**
-	   * Transfer the `style` prop (which is an object) by merging them.
-	   */
-	  style: transferStrategyMerge
-	};
-
-	/**
-	 * Mutates the first argument by transferring the properties from the second
-	 * argument.
-	 *
-	 * @param {object} props
-	 * @param {object} newProps
-	 * @return {object}
-	 */
-	function transferInto(props, newProps) {
-	  for (var thisKey in newProps) {
-	    if (!newProps.hasOwnProperty(thisKey)) {
-	      continue;
-	    }
-
-	    var transferStrategy = TransferStrategies[thisKey];
-
-	    if (transferStrategy && TransferStrategies.hasOwnProperty(thisKey)) {
-	      transferStrategy(props, thisKey, newProps[thisKey]);
-	    } else if (!props.hasOwnProperty(thisKey)) {
-	      props[thisKey] = newProps[thisKey];
-	    }
-	  }
-	  return props;
-	}
-
-	/**
-	 * ReactPropTransferer are capable of transferring props to another component
-	 * using a `transferPropsTo` method.
-	 *
-	 * @class ReactPropTransferer
-	 */
-	var ReactPropTransferer = {
-
-	  TransferStrategies: TransferStrategies,
 
 	  /**
-	   * Merge two props objects using TransferStrategies.
-	   *
-	   * @param {object} oldProps original props (they take precedence)
-	   * @param {object} newProps new props to merge in
-	   * @return {object} a new object containing both sets of props merged.
+	   * Finds all instance of components in the rendered tree that are DOM
+	   * components with the tag name matching `tagName`.
+	   * @return an array of all the matches.
 	   */
-	  mergeProps: function(oldProps, newProps) {
-	    return transferInto(assign({}, oldProps), newProps);
+	  scryRenderedDOMComponentsWithTag: function(root, tagName) {
+	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
+	      return ReactTestUtils.isDOMComponent(inst) &&
+	            inst.tagName === tagName.toUpperCase();
+	    });
 	  },
 
 	  /**
-	   * @lends {ReactPropTransferer.prototype}
+	   * Like scryRenderedDOMComponentsWithTag but expects there to be one result,
+	   * and returns that one result, or throws exception if there is any other
+	   * number of matches besides one.
+	   * @return {!ReactDOMComponent} The one match.
 	   */
-	  Mixin: {
-
-	    /**
-	     * Transfer props from this component to a target component.
-	     *
-	     * Props that do not have an explicit transfer strategy will be transferred
-	     * only if the target component does not already have the prop set.
-	     *
-	     * This is usually used to pass down props to a returned root component.
-	     *
-	     * @param {ReactElement} element Component receiving the properties.
-	     * @return {ReactElement} The supplied `component`.
-	     * @final
-	     * @protected
-	     */
-	    transferPropsTo: function(element) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        element._owner === this,
-	        '%s: You can\'t call transferPropsTo() on a component that you ' +
-	        'don\'t own, %s. This usually means you are calling ' +
-	        'transferPropsTo() on a component passed in as props or children.',
-	        this.constructor.displayName,
-	        typeof element.type === 'string' ?
-	        element.type :
-	        element.type.displayName
-	      ) : invariant(element._owner === this));
-
-	      if ("production" !== process.env.NODE_ENV) {
-	        if (!didWarn) {
-	          didWarn = true;
-	          ("production" !== process.env.NODE_ENV ? warning(
-	            false,
-	            'transferPropsTo is deprecated. ' +
-	            'See http://fb.me/react-transferpropsto for more information.'
-	          ) : null);
-	        }
-	      }
-
-	      // Because elements are immutable we have to merge into the existing
-	      // props object rather than clone it.
-	      transferInto(element.props, this.props);
-
-	      return element;
+	  findRenderedDOMComponentWithTag: function(root, tagName) {
+	    var all = ReactTestUtils.scryRenderedDOMComponentsWithTag(root, tagName);
+	    if (all.length !== 1) {
+	      throw new Error('Did not find exactly one match for tag:' + tagName);
 	    }
+	    return all[0];
+	  },
 
-	  }
+
+	  /**
+	   * Finds all instances of components with type equal to `componentType`.
+	   * @return an array of all the matches.
+	   */
+	  scryRenderedComponentsWithType: function(root, componentType) {
+	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
+	      return ReactTestUtils.isCompositeComponentWithType(
+	        inst,
+	        componentType
+	      );
+	    });
+	  },
+
+	  /**
+	   * Same as `scryRenderedComponentsWithType` but expects there to be one result
+	   * and returns that one result, or throws exception if there is any other
+	   * number of matches besides one.
+	   * @return {!ReactComponent} The one match.
+	   */
+	  findRenderedComponentWithType: function(root, componentType) {
+	    var all = ReactTestUtils.scryRenderedComponentsWithType(
+	      root,
+	      componentType
+	    );
+	    if (all.length !== 1) {
+	      throw new Error(
+	        'Did not find exactly one match for componentType:' + componentType
+	      );
+	    }
+	    return all[0];
+	  },
+
+	  /**
+	   * Pass a mocked component module to this method to augment it with
+	   * useful methods that allow it to be used as a dummy React component.
+	   * Instead of rendering as usual, the component will become a simple
+	   * <div> containing any provided children.
+	   *
+	   * @param {object} module the mock function object exported from a
+	   *                        module that defines the component to be mocked
+	   * @param {?string} mockTagName optional dummy root tag name to return
+	   *                              from render method (overrides
+	   *                              module.mockTagName if provided)
+	   * @return {object} the ReactTestUtils object (for chaining)
+	   */
+	  mockComponent: function(module, mockTagName) {
+	    mockTagName = mockTagName || module.mockTagName || "div";
+
+	    var ConvenienceConstructor = React.createClass({displayName: "ConvenienceConstructor",
+	      render: function() {
+	        return React.createElement(
+	          mockTagName,
+	          null,
+	          this.props.children
+	        );
+	      }
+	    });
+
+	    module.mockImplementation(ConvenienceConstructor);
+
+	    module.type = ConvenienceConstructor.type;
+	    module.isReactLegacyFactory = true;
+
+	    return this;
+	  },
+
+	  /**
+	   * Simulates a top level event being dispatched from a raw event that occured
+	   * on an `Element` node.
+	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`
+	   * @param {!Element} node The dom to simulate an event occurring on.
+	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
+	   */
+	  simulateNativeEventOnNode: function(topLevelType, node, fakeNativeEvent) {
+	    fakeNativeEvent.target = node;
+	    ReactBrowserEventEmitter.ReactEventListener.dispatchEvent(
+	      topLevelType,
+	      fakeNativeEvent
+	    );
+	  },
+
+	  /**
+	   * Simulates a top level event being dispatched from a raw event that occured
+	   * on the `ReactDOMComponent` `comp`.
+	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`.
+	   * @param comp {!ReactDOMComponent}
+	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
+	   */
+	  simulateNativeEventOnDOMComponent: function(
+	      topLevelType,
+	      comp,
+	      fakeNativeEvent) {
+	    ReactTestUtils.simulateNativeEventOnNode(
+	      topLevelType,
+	      comp.getDOMNode(),
+	      fakeNativeEvent
+	    );
+	  },
+
+	  nativeTouchData: function(x, y) {
+	    return {
+	      touches: [
+	        {pageX: x, pageY: y}
+	      ]
+	    };
+	  },
+
+	  Simulate: null,
+	  SimulateNative: {}
 	};
 
-	module.exports = ReactPropTransferer;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/**
+	 * Exports:
+	 *
+	 * - `ReactTestUtils.Simulate.click(Element/ReactDOMComponent)`
+	 * - `ReactTestUtils.Simulate.mouseMove(Element/ReactDOMComponent)`
+	 * - `ReactTestUtils.Simulate.change(Element/ReactDOMComponent)`
+	 * - ... (All keys from event plugin `eventTypes` objects)
+	 */
+	function makeSimulator(eventType) {
+	  return function(domComponentOrNode, eventData) {
+	    var node;
+	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
+	      node = domComponentOrNode.getDOMNode();
+	    } else if (domComponentOrNode.tagName) {
+	      node = domComponentOrNode;
+	    }
+
+	    var fakeNativeEvent = new Event();
+	    fakeNativeEvent.target = node;
+	    // We don't use SyntheticEvent.getPooled in order to not have to worry about
+	    // properly destroying any properties assigned from `eventData` upon release
+	    var event = new SyntheticEvent(
+	      ReactBrowserEventEmitter.eventNameDispatchConfigs[eventType],
+	      ReactMount.getID(node),
+	      fakeNativeEvent
+	    );
+	    assign(event, eventData);
+	    EventPropagators.accumulateTwoPhaseDispatches(event);
+
+	    ReactUpdates.batchedUpdates(function() {
+	      EventPluginHub.enqueueEvents(event);
+	      EventPluginHub.processEventQueue();
+	    });
+	  };
+	}
+
+	function buildSimulators() {
+	  ReactTestUtils.Simulate = {};
+
+	  var eventType;
+	  for (eventType in ReactBrowserEventEmitter.eventNameDispatchConfigs) {
+	    /**
+	     * @param {!Element || ReactDOMComponent} domComponentOrNode
+	     * @param {?object} eventData Fake event data to use in SyntheticEvent.
+	     */
+	    ReactTestUtils.Simulate[eventType] = makeSimulator(eventType);
+	  }
+	}
+
+	// Rebuild ReactTestUtils.Simulate whenever event plugins are injected
+	var oldInjectEventPluginOrder = EventPluginHub.injection.injectEventPluginOrder;
+	EventPluginHub.injection.injectEventPluginOrder = function() {
+	  oldInjectEventPluginOrder.apply(this, arguments);
+	  buildSimulators();
+	};
+	var oldInjectEventPlugins = EventPluginHub.injection.injectEventPluginsByName;
+	EventPluginHub.injection.injectEventPluginsByName = function() {
+	  oldInjectEventPlugins.apply(this, arguments);
+	  buildSimulators();
+	};
+
+	buildSimulators();
+
+	/**
+	 * Exports:
+	 *
+	 * - `ReactTestUtils.SimulateNative.click(Element/ReactDOMComponent)`
+	 * - `ReactTestUtils.SimulateNative.mouseMove(Element/ReactDOMComponent)`
+	 * - `ReactTestUtils.SimulateNative.mouseIn/ReactDOMComponent)`
+	 * - `ReactTestUtils.SimulateNative.mouseOut(Element/ReactDOMComponent)`
+	 * - ... (All keys from `EventConstants.topLevelTypes`)
+	 *
+	 * Note: Top level event types are a subset of the entire set of handler types
+	 * (which include a broader set of "synthetic" events). For example, onDragDone
+	 * is a synthetic event. Except when testing an event plugin or React's event
+	 * handling code specifically, you probably want to use ReactTestUtils.Simulate
+	 * to dispatch synthetic events.
+	 */
+
+	function makeNativeSimulator(eventType) {
+	  return function(domComponentOrNode, nativeEventData) {
+	    var fakeNativeEvent = new Event(eventType);
+	    assign(fakeNativeEvent, nativeEventData);
+	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
+	      ReactTestUtils.simulateNativeEventOnDOMComponent(
+	        eventType,
+	        domComponentOrNode,
+	        fakeNativeEvent
+	      );
+	    } else if (!!domComponentOrNode.tagName) {
+	      // Will allow on actual dom nodes.
+	      ReactTestUtils.simulateNativeEventOnNode(
+	        eventType,
+	        domComponentOrNode,
+	        fakeNativeEvent
+	      );
+	    }
+	  };
+	}
+
+	var eventType;
+	for (eventType in topLevelTypes) {
+	  // Event type is stored as 'topClick' - we transform that to 'click'
+	  var convenienceName = eventType.indexOf('top') === 0 ?
+	    eventType.charAt(3).toLowerCase() + eventType.substr(4) : eventType;
+	  /**
+	   * @param {!Element || ReactDOMComponent} domComponentOrNode
+	   * @param {?Event} nativeEventData Fake native event to use in SyntheticEvent.
+	   */
+	  ReactTestUtils.SimulateNative[convenienceName] =
+	    makeNativeSimulator(eventType);
+	}
+
+	module.exports = ReactTestUtils;
+
 
 /***/ },
-/* 64 */
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// shim for using process in browser
+
+	var process = module.exports = {};
+
+	process.nextTick = (function () {
+	    var canSetImmediate = typeof window !== 'undefined'
+	    && window.setImmediate;
+	    var canMutationObserver = typeof window !== 'undefined'
+	    && window.MutationObserver;
+	    var canPost = typeof window !== 'undefined'
+	    && window.postMessage && window.addEventListener
+	    ;
+
+	    if (canSetImmediate) {
+	        return function (f) { return window.setImmediate(f) };
+	    }
+
+	    var queue = [];
+
+	    if (canMutationObserver) {
+	        var hiddenDiv = document.createElement("div");
+	        var observer = new MutationObserver(function () {
+	            var queueList = queue.slice();
+	            queue.length = 0;
+	            queueList.forEach(function (fn) {
+	                fn();
+	            });
+	        });
+
+	        observer.observe(hiddenDiv, { attributes: true });
+
+	        return function nextTick(fn) {
+	            if (!queue.length) {
+	                hiddenDiv.setAttribute('yes', 'no');
+	            }
+	            queue.push(fn);
+	        };
+	    }
+
+	    if (canPost) {
+	        window.addEventListener('message', function (ev) {
+	            var source = ev.source;
+	            if ((source === window || source === null) && ev.data === 'process-tick') {
+	                ev.stopPropagation();
+	                if (queue.length > 0) {
+	                    var fn = queue.shift();
+	                    fn();
+	                }
+	            }
+	        }, true);
+
+	        return function nextTick(fn) {
+	            queue.push(fn);
+	            window.postMessage('process-tick', '*');
+	        };
+	    }
+
+	    return function nextTick(fn) {
+	        setTimeout(fn, 0);
+	    };
+	})();
+
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+
+	// TODO(shtylman)
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+
+
+/***/ },
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -16671,7 +14029,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	function checkMask(value, bitmask) {
 	  return (value & bitmask) === bitmask;
@@ -16951,10 +14309,10 @@
 
 	module.exports = DOMProperty;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 65 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -16965,206 +14323,41 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule ReactDefaultPerfAnalysis
+	 * @providesModule escapeTextForBrowser
+	 * @typechecks static-only
 	 */
 
-	var assign = __webpack_require__(49);
+	"use strict";
 
-	// Don't try to save users less than 1.2ms (a number I made up)
-	var DONT_CARE_THRESHOLD = 1.2;
-	var DOM_OPERATION_TYPES = {
-	  'mountImageIntoNode': 'set innerHTML',
-	  INSERT_MARKUP: 'set innerHTML',
-	  MOVE_EXISTING: 'move',
-	  REMOVE_NODE: 'remove',
-	  TEXT_CONTENT: 'set textContent',
-	  'updatePropertyByID': 'update attribute',
-	  'deletePropertyByID': 'delete attribute',
-	  'updateStylesByID': 'update styles',
-	  'updateInnerHTMLByID': 'set innerHTML',
-	  'dangerouslyReplaceNodeWithMarkupByID': 'replace'
+	var ESCAPE_LOOKUP = {
+	  "&": "&amp;",
+	  ">": "&gt;",
+	  "<": "&lt;",
+	  "\"": "&quot;",
+	  "'": "&#x27;"
 	};
 
-	function getTotalTime(measurements) {
-	  // TODO: return number of DOM ops? could be misleading.
-	  // TODO: measure dropped frames after reconcile?
-	  // TODO: log total time of each reconcile and the top-level component
-	  // class that triggered it.
-	  var totalTime = 0;
-	  for (var i = 0; i < measurements.length; i++) {
-	    var measurement = measurements[i];
-	    totalTime += measurement.totalTime;
-	  }
-	  return totalTime;
+	var ESCAPE_REGEX = /[&><"']/g;
+
+	function escaper(match) {
+	  return ESCAPE_LOOKUP[match];
 	}
 
-	function getDOMSummary(measurements) {
-	  var items = [];
-	  for (var i = 0; i < measurements.length; i++) {
-	    var measurement = measurements[i];
-	    var id;
-
-	    for (id in measurement.writes) {
-	      measurement.writes[id].forEach(function(write) {
-	        items.push({
-	          id: id,
-	          type: DOM_OPERATION_TYPES[write.type] || write.type,
-	          args: write.args
-	        });
-	      });
-	    }
-	  }
-	  return items;
+	/**
+	 * Escapes text to prevent scripting attacks.
+	 *
+	 * @param {*} text Text value to escape.
+	 * @return {string} An escaped string.
+	 */
+	function escapeTextForBrowser(text) {
+	  return ('' + text).replace(ESCAPE_REGEX, escaper);
 	}
 
-	function getExclusiveSummary(measurements) {
-	  var candidates = {};
-	  var displayName;
-
-	  for (var i = 0; i < measurements.length; i++) {
-	    var measurement = measurements[i];
-	    var allIDs = assign(
-	      {},
-	      measurement.exclusive,
-	      measurement.inclusive
-	    );
-
-	    for (var id in allIDs) {
-	      displayName = measurement.displayNames[id].current;
-
-	      candidates[displayName] = candidates[displayName] || {
-	        componentName: displayName,
-	        inclusive: 0,
-	        exclusive: 0,
-	        render: 0,
-	        count: 0
-	      };
-	      if (measurement.render[id]) {
-	        candidates[displayName].render += measurement.render[id];
-	      }
-	      if (measurement.exclusive[id]) {
-	        candidates[displayName].exclusive += measurement.exclusive[id];
-	      }
-	      if (measurement.inclusive[id]) {
-	        candidates[displayName].inclusive += measurement.inclusive[id];
-	      }
-	      if (measurement.counts[id]) {
-	        candidates[displayName].count += measurement.counts[id];
-	      }
-	    }
-	  }
-
-	  // Now make a sorted array with the results.
-	  var arr = [];
-	  for (displayName in candidates) {
-	    if (candidates[displayName].exclusive >= DONT_CARE_THRESHOLD) {
-	      arr.push(candidates[displayName]);
-	    }
-	  }
-
-	  arr.sort(function(a, b) {
-	    return b.exclusive - a.exclusive;
-	  });
-
-	  return arr;
-	}
-
-	function getInclusiveSummary(measurements, onlyClean) {
-	  var candidates = {};
-	  var inclusiveKey;
-
-	  for (var i = 0; i < measurements.length; i++) {
-	    var measurement = measurements[i];
-	    var allIDs = assign(
-	      {},
-	      measurement.exclusive,
-	      measurement.inclusive
-	    );
-	    var cleanComponents;
-
-	    if (onlyClean) {
-	      cleanComponents = getUnchangedComponents(measurement);
-	    }
-
-	    for (var id in allIDs) {
-	      if (onlyClean && !cleanComponents[id]) {
-	        continue;
-	      }
-
-	      var displayName = measurement.displayNames[id];
-
-	      // Inclusive time is not useful for many components without knowing where
-	      // they are instantiated. So we aggregate inclusive time with both the
-	      // owner and current displayName as the key.
-	      inclusiveKey = displayName.owner + ' > ' + displayName.current;
-
-	      candidates[inclusiveKey] = candidates[inclusiveKey] || {
-	        componentName: inclusiveKey,
-	        time: 0,
-	        count: 0
-	      };
-
-	      if (measurement.inclusive[id]) {
-	        candidates[inclusiveKey].time += measurement.inclusive[id];
-	      }
-	      if (measurement.counts[id]) {
-	        candidates[inclusiveKey].count += measurement.counts[id];
-	      }
-	    }
-	  }
-
-	  // Now make a sorted array with the results.
-	  var arr = [];
-	  for (inclusiveKey in candidates) {
-	    if (candidates[inclusiveKey].time >= DONT_CARE_THRESHOLD) {
-	      arr.push(candidates[inclusiveKey]);
-	    }
-	  }
-
-	  arr.sort(function(a, b) {
-	    return b.time - a.time;
-	  });
-
-	  return arr;
-	}
-
-	function getUnchangedComponents(measurement) {
-	  // For a given reconcile, look at which components did not actually
-	  // render anything to the DOM and return a mapping of their ID to
-	  // the amount of time it took to render the entire subtree.
-	  var cleanComponents = {};
-	  var dirtyLeafIDs = Object.keys(measurement.writes);
-	  var allIDs = assign({}, measurement.exclusive, measurement.inclusive);
-
-	  for (var id in allIDs) {
-	    var isDirty = false;
-	    // For each component that rendered, see if a component that triggered
-	    // a DOM op is in its subtree.
-	    for (var i = 0; i < dirtyLeafIDs.length; i++) {
-	      if (dirtyLeafIDs[i].indexOf(id) === 0) {
-	        isDirty = true;
-	        break;
-	      }
-	    }
-	    if (!isDirty && measurement.counts[id] > 0) {
-	      cleanComponents[id] = true;
-	    }
-	  }
-	  return cleanComponents;
-	}
-
-	var ReactDefaultPerfAnalysis = {
-	  getExclusiveSummary: getExclusiveSummary,
-	  getInclusiveSummary: getInclusiveSummary,
-	  getDOMSummary: getDOMSummary,
-	  getTotalTime: getTotalTime
-	};
-
-	module.exports = ReactDefaultPerfAnalysis;
+	module.exports = escapeTextForBrowser;
 
 
 /***/ },
-/* 66 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -17175,28 +14368,82 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule performanceNow
-	 * @typechecks
+	 * @providesModule memoizeStringOnly
+	 * @typechecks static-only
 	 */
 
-	var performance = __webpack_require__(122);
+	"use strict";
 
 	/**
-	 * Detect if we can use `window.performance.now()` and gracefully fallback to
-	 * `Date.now()` if it doesn't exist. We need to support Firefox < 15 for now
-	 * because of Facebook's testing infrastructure.
+	 * Memoizes the return value of a function that accepts one string argument.
+	 *
+	 * @param {function} callback
+	 * @return {function}
 	 */
-	if (!performance || !performance.now) {
-	  performance = Date;
+	function memoizeStringOnly(callback) {
+	  var cache = {};
+	  return function(string) {
+	    if (cache.hasOwnProperty(string)) {
+	      return cache[string];
+	    } else {
+	      return cache[string] = callback.call(this, string);
+	    }
+	  };
 	}
 
-	var performanceNow = performance.now.bind(performance);
-
-	module.exports = performanceNow;
+	module.exports = memoizeStringOnly;
 
 
 /***/ },
-/* 67 */
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule warning
+	 */
+
+	"use strict";
+
+	var emptyFunction = __webpack_require__(99);
+
+	/**
+	 * Similar to invariant but only logs a warning if the condition is not met.
+	 * This can be used to log issues in development environments in critical
+	 * paths. Removing the logging code for production environments will keep the
+	 * same logic and follow the same code paths.
+	 */
+
+	var warning = emptyFunction;
+
+	if ("production" !== process.env.NODE_ENV) {
+	  warning = function(condition, format ) {for (var args=[],$__0=2,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
+	    if (format === undefined) {
+	      throw new Error(
+	        '`warning(condition, format, ...args)` requires a warning ' +
+	        'message argument'
+	      );
+	    }
+
+	    if (!condition) {
+	      var argIndex = 0;
+	      console.warn('Warning: ' + format.replace(/%s/g, function()  {return args[argIndex++];}));
+	    }
+	  };
+	}
+
+	module.exports = warning;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -17212,7 +14459,7 @@
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(76);
+	var keyMirror = __webpack_require__(53);
 
 	var PropagationPhases = keyMirror({bubbled: null, captured: null});
 
@@ -17272,7 +14519,7 @@
 
 
 /***/ },
-/* 68 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17283,275 +14530,56 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule EventPluginHub
+	 * @providesModule invariant
 	 */
 
 	"use strict";
 
-	var EventPluginRegistry = __webpack_require__(125);
-	var EventPluginUtils = __webpack_require__(30);
-
-	var accumulateInto = __webpack_require__(123);
-	var forEachAccumulated = __webpack_require__(124);
-	var invariant = __webpack_require__(58);
-
 	/**
-	 * Internal store for event listeners
-	 */
-	var listenerBank = {};
-
-	/**
-	 * Internal queue of events that have accumulated their dispatches and are
-	 * waiting to have their dispatches executed.
-	 */
-	var eventQueue = null;
-
-	/**
-	 * Dispatches an event and releases it back into the pool, unless persistent.
+	 * Use invariant() to assert state which your program assumes to be true.
 	 *
-	 * @param {?object} event Synthetic event to be dispatched.
-	 * @private
+	 * Provide sprintf-style format (only %s is supported) and arguments
+	 * to provide information about what broke and what you were
+	 * expecting.
+	 *
+	 * The invariant message will be stripped in production, but the invariant
+	 * will remain to ensure logic does not differ in production.
 	 */
-	var executeDispatchesAndRelease = function(event) {
-	  if (event) {
-	    var executeDispatch = EventPluginUtils.executeDispatch;
-	    // Plugins can provide custom behavior when dispatching events.
-	    var PluginModule = EventPluginRegistry.getPluginModuleForEvent(event);
-	    if (PluginModule && PluginModule.executeDispatch) {
-	      executeDispatch = PluginModule.executeDispatch;
-	    }
-	    EventPluginUtils.executeDispatchesInOrder(event, executeDispatch);
 
-	    if (!event.isPersistent()) {
-	      event.constructor.release(event);
+	var invariant = function(condition, format, a, b, c, d, e, f) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    if (format === undefined) {
+	      throw new Error('invariant requires an error message argument');
 	    }
+	  }
+
+	  if (!condition) {
+	    var error;
+	    if (format === undefined) {
+	      error = new Error(
+	        'Minified exception occurred; use the non-minified dev environment ' +
+	        'for the full error message and additional helpful warnings.'
+	      );
+	    } else {
+	      var args = [a, b, c, d, e, f];
+	      var argIndex = 0;
+	      error = new Error(
+	        'Invariant Violation: ' +
+	        format.replace(/%s/g, function() { return args[argIndex++]; })
+	      );
+	    }
+
+	    error.framesToPop = 1; // we don't care about invariant's own frame
+	    throw error;
 	  }
 	};
 
-	/**
-	 * - `InstanceHandle`: [required] Module that performs logical traversals of DOM
-	 *   hierarchy given ids of the logical DOM elements involved.
-	 */
-	var InstanceHandle = null;
-
-	function validateInstanceHandle() {
-	  var invalid = !InstanceHandle||
-	    !InstanceHandle.traverseTwoPhase ||
-	    !InstanceHandle.traverseEnterLeave;
-	  if (invalid) {
-	    throw new Error('InstanceHandle not injected before use!');
-	  }
-	}
-
-	/**
-	 * This is a unified interface for event plugins to be installed and configured.
-	 *
-	 * Event plugins can implement the following properties:
-	 *
-	 *   `extractEvents` {function(string, DOMEventTarget, string, object): *}
-	 *     Required. When a top-level event is fired, this method is expected to
-	 *     extract synthetic events that will in turn be queued and dispatched.
-	 *
-	 *   `eventTypes` {object}
-	 *     Optional, plugins that fire events must publish a mapping of registration
-	 *     names that are used to register listeners. Values of this mapping must
-	 *     be objects that contain `registrationName` or `phasedRegistrationNames`.
-	 *
-	 *   `executeDispatch` {function(object, function, string)}
-	 *     Optional, allows plugins to override how an event gets dispatched. By
-	 *     default, the listener is simply invoked.
-	 *
-	 * Each plugin that is injected into `EventsPluginHub` is immediately operable.
-	 *
-	 * @public
-	 */
-	var EventPluginHub = {
-
-	  /**
-	   * Methods for injecting dependencies.
-	   */
-	  injection: {
-
-	    /**
-	     * @param {object} InjectedMount
-	     * @public
-	     */
-	    injectMount: EventPluginUtils.injection.injectMount,
-
-	    /**
-	     * @param {object} InjectedInstanceHandle
-	     * @public
-	     */
-	    injectInstanceHandle: function(InjectedInstanceHandle) {
-	      InstanceHandle = InjectedInstanceHandle;
-	      if ("production" !== process.env.NODE_ENV) {
-	        validateInstanceHandle();
-	      }
-	    },
-
-	    getInstanceHandle: function() {
-	      if ("production" !== process.env.NODE_ENV) {
-	        validateInstanceHandle();
-	      }
-	      return InstanceHandle;
-	    },
-
-	    /**
-	     * @param {array} InjectedEventPluginOrder
-	     * @public
-	     */
-	    injectEventPluginOrder: EventPluginRegistry.injectEventPluginOrder,
-
-	    /**
-	     * @param {object} injectedNamesToPlugins Map from names to plugin modules.
-	     */
-	    injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName
-
-	  },
-
-	  eventNameDispatchConfigs: EventPluginRegistry.eventNameDispatchConfigs,
-
-	  registrationNameModules: EventPluginRegistry.registrationNameModules,
-
-	  /**
-	   * Stores `listener` at `listenerBank[registrationName][id]`. Is idempotent.
-	   *
-	   * @param {string} id ID of the DOM element.
-	   * @param {string} registrationName Name of listener (e.g. `onClick`).
-	   * @param {?function} listener The callback to store.
-	   */
-	  putListener: function(id, registrationName, listener) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !listener || typeof listener === 'function',
-	      'Expected %s listener to be a function, instead got type %s',
-	      registrationName, typeof listener
-	    ) : invariant(!listener || typeof listener === 'function'));
-
-	    var bankForRegistrationName =
-	      listenerBank[registrationName] || (listenerBank[registrationName] = {});
-	    bankForRegistrationName[id] = listener;
-	  },
-
-	  /**
-	   * @param {string} id ID of the DOM element.
-	   * @param {string} registrationName Name of listener (e.g. `onClick`).
-	   * @return {?function} The stored callback.
-	   */
-	  getListener: function(id, registrationName) {
-	    var bankForRegistrationName = listenerBank[registrationName];
-	    return bankForRegistrationName && bankForRegistrationName[id];
-	  },
-
-	  /**
-	   * Deletes a listener from the registration bank.
-	   *
-	   * @param {string} id ID of the DOM element.
-	   * @param {string} registrationName Name of listener (e.g. `onClick`).
-	   */
-	  deleteListener: function(id, registrationName) {
-	    var bankForRegistrationName = listenerBank[registrationName];
-	    if (bankForRegistrationName) {
-	      delete bankForRegistrationName[id];
-	    }
-	  },
-
-	  /**
-	   * Deletes all listeners for the DOM element with the supplied ID.
-	   *
-	   * @param {string} id ID of the DOM element.
-	   */
-	  deleteAllListeners: function(id) {
-	    for (var registrationName in listenerBank) {
-	      delete listenerBank[registrationName][id];
-	    }
-	  },
-
-	  /**
-	   * Allows registered plugins an opportunity to extract events from top-level
-	   * native browser events.
-	   *
-	   * @param {string} topLevelType Record from `EventConstants`.
-	   * @param {DOMEventTarget} topLevelTarget The listening component root node.
-	   * @param {string} topLevelTargetID ID of `topLevelTarget`.
-	   * @param {object} nativeEvent Native browser event.
-	   * @return {*} An accumulation of synthetic events.
-	   * @internal
-	   */
-	  extractEvents: function(
-	      topLevelType,
-	      topLevelTarget,
-	      topLevelTargetID,
-	      nativeEvent) {
-	    var events;
-	    var plugins = EventPluginRegistry.plugins;
-	    for (var i = 0, l = plugins.length; i < l; i++) {
-	      // Not every plugin in the ordering may be loaded at runtime.
-	      var possiblePlugin = plugins[i];
-	      if (possiblePlugin) {
-	        var extractedEvents = possiblePlugin.extractEvents(
-	          topLevelType,
-	          topLevelTarget,
-	          topLevelTargetID,
-	          nativeEvent
-	        );
-	        if (extractedEvents) {
-	          events = accumulateInto(events, extractedEvents);
-	        }
-	      }
-	    }
-	    return events;
-	  },
-
-	  /**
-	   * Enqueues a synthetic event that should be dispatched when
-	   * `processEventQueue` is invoked.
-	   *
-	   * @param {*} events An accumulation of synthetic events.
-	   * @internal
-	   */
-	  enqueueEvents: function(events) {
-	    if (events) {
-	      eventQueue = accumulateInto(eventQueue, events);
-	    }
-	  },
-
-	  /**
-	   * Dispatches all synthetic events on the event queue.
-	   *
-	   * @internal
-	   */
-	  processEventQueue: function() {
-	    // Set `eventQueue` to null before processing it so that we can tell if more
-	    // events get enqueued while processing.
-	    var processingEventQueue = eventQueue;
-	    eventQueue = null;
-	    forEachAccumulated(processingEventQueue, executeDispatchesAndRelease);
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !eventQueue,
-	      'processEventQueue(): Additional events were enqueued while processing ' +
-	      'an event queue. Support for this has not yet been implemented.'
-	    ) : invariant(!eventQueue));
-	  },
-
-	  /**
-	   * These are needed for tests only. Do not use!
-	   */
-	  __purge: function() {
-	    listenerBank = {};
-	  },
-
-	  __getListenerBank: function() {
-	    return listenerBank;
-	  }
-
-	};
-
-	module.exports = EventPluginHub;
+	module.exports = invariant;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 69 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -17562,141 +14590,1340 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule EventPropagators
+	 * @providesModule ReactOwner
 	 */
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPluginHub = __webpack_require__(68);
-
-	var accumulateInto = __webpack_require__(123);
-	var forEachAccumulated = __webpack_require__(124);
-
-	var PropagationPhases = EventConstants.PropagationPhases;
-	var getListener = EventPluginHub.getListener;
+	var emptyObject = __webpack_require__(119);
+	var invariant = __webpack_require__(51);
 
 	/**
-	 * Some event types have a notion of different registration names for different
-	 * "phases" of propagation. This finds listeners by a given phase.
+	 * ReactOwners are capable of storing references to owned components.
+	 *
+	 * All components are capable of //being// referenced by owner components, but
+	 * only ReactOwner components are capable of //referencing// owned components.
+	 * The named reference is known as a "ref".
+	 *
+	 * Refs are available when mounted and updated during reconciliation.
+	 *
+	 *   var MyComponent = React.createClass({
+	 *     render: function() {
+	 *       return (
+	 *         <div onClick={this.handleClick}>
+	 *           <CustomComponent ref="custom" />
+	 *         </div>
+	 *       );
+	 *     },
+	 *     handleClick: function() {
+	 *       this.refs.custom.handleClick();
+	 *     },
+	 *     componentDidMount: function() {
+	 *       this.refs.custom.initialize();
+	 *     }
+	 *   });
+	 *
+	 * Refs should rarely be used. When refs are used, they should only be done to
+	 * control data that is not handled by React's data flow.
+	 *
+	 * @class ReactOwner
 	 */
-	function listenerAtPhase(id, event, propagationPhase) {
-	  var registrationName =
-	    event.dispatchConfig.phasedRegistrationNames[propagationPhase];
-	  return getListener(id, registrationName);
-	}
+	var ReactOwner = {
 
-	/**
-	 * Tags a `SyntheticEvent` with dispatched listeners. Creating this function
-	 * here, allows us to not have to bind or create functions for each event.
-	 * Mutating the event's members allows us to not have to create a wrapping
-	 * "dispatch" object that pairs the event with the listener.
-	 */
-	function accumulateDirectionalDispatches(domID, upwards, event) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    if (!domID) {
-	      throw new Error('Dispatching id must not be null');
-	    }
-	  }
-	  var phase = upwards ? PropagationPhases.bubbled : PropagationPhases.captured;
-	  var listener = listenerAtPhase(domID, event, phase);
-	  if (listener) {
-	    event._dispatchListeners =
-	      accumulateInto(event._dispatchListeners, listener);
-	    event._dispatchIDs = accumulateInto(event._dispatchIDs, domID);
-	  }
-	}
-
-	/**
-	 * Collect dispatches (must be entirely collected before dispatching - see unit
-	 * tests). Lazily allocate the array to conserve memory.  We must loop through
-	 * each event and perform the traversal for each one. We can not perform a
-	 * single traversal for the entire collection of events because each event may
-	 * have a different target.
-	 */
-	function accumulateTwoPhaseDispatchesSingle(event) {
-	  if (event && event.dispatchConfig.phasedRegistrationNames) {
-	    EventPluginHub.injection.getInstanceHandle().traverseTwoPhase(
-	      event.dispatchMarker,
-	      accumulateDirectionalDispatches,
-	      event
+	  /**
+	   * @param {?object} object
+	   * @return {boolean} True if `object` is a valid owner.
+	   * @final
+	   */
+	  isValidOwner: function(object) {
+	    return !!(
+	      object &&
+	      typeof object.attachRef === 'function' &&
+	      typeof object.detachRef === 'function'
 	    );
-	  }
-	}
+	  },
 
+	  /**
+	   * Adds a component by ref to an owner component.
+	   *
+	   * @param {ReactComponent} component Component to reference.
+	   * @param {string} ref Name by which to refer to the component.
+	   * @param {ReactOwner} owner Component on which to record the ref.
+	   * @final
+	   * @internal
+	   */
+	  addComponentAsRefTo: function(component, ref, owner) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      ReactOwner.isValidOwner(owner),
+	      'addComponentAsRefTo(...): Only a ReactOwner can have refs. This ' +
+	      'usually means that you\'re trying to add a ref to a component that ' +
+	      'doesn\'t have an owner (that is, was not created inside of another ' +
+	      'component\'s `render` method). Try rendering this component inside of ' +
+	      'a new top-level component which will hold the ref.'
+	    ) : invariant(ReactOwner.isValidOwner(owner)));
+	    owner.attachRef(ref, component);
+	  },
 
-	/**
-	 * Accumulates without regard to direction, does not look for phased
-	 * registration names. Same as `accumulateDirectDispatchesSingle` but without
-	 * requiring that the `dispatchMarker` be the same as the dispatched ID.
-	 */
-	function accumulateDispatches(id, ignoredDirection, event) {
-	  if (event && event.dispatchConfig.registrationName) {
-	    var registrationName = event.dispatchConfig.registrationName;
-	    var listener = getListener(id, registrationName);
-	    if (listener) {
-	      event._dispatchListeners =
-	        accumulateInto(event._dispatchListeners, listener);
-	      event._dispatchIDs = accumulateInto(event._dispatchIDs, id);
+	  /**
+	   * Removes a component by ref from an owner component.
+	   *
+	   * @param {ReactComponent} component Component to dereference.
+	   * @param {string} ref Name of the ref to remove.
+	   * @param {ReactOwner} owner Component on which the ref is recorded.
+	   * @final
+	   * @internal
+	   */
+	  removeComponentAsRefFrom: function(component, ref, owner) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      ReactOwner.isValidOwner(owner),
+	      'removeComponentAsRefFrom(...): Only a ReactOwner can have refs. This ' +
+	      'usually means that you\'re trying to remove a ref to a component that ' +
+	      'doesn\'t have an owner (that is, was not created inside of another ' +
+	      'component\'s `render` method). Try rendering this component inside of ' +
+	      'a new top-level component which will hold the ref.'
+	    ) : invariant(ReactOwner.isValidOwner(owner)));
+	    // Check that `component` is still the current ref because we do not want to
+	    // detach the ref if another component stole it.
+	    if (owner.refs[ref] === component) {
+	      owner.detachRef(ref);
 	    }
+	  },
+
+	  /**
+	   * A ReactComponent must mix this in to have refs.
+	   *
+	   * @lends {ReactOwner.prototype}
+	   */
+	  Mixin: {
+
+	    construct: function() {
+	      this.refs = emptyObject;
+	    },
+
+	    /**
+	     * Lazily allocates the refs object and stores `component` as `ref`.
+	     *
+	     * @param {string} ref Reference name.
+	     * @param {component} component Component to store as `ref`.
+	     * @final
+	     * @private
+	     */
+	    attachRef: function(ref, component) {
+	      ("production" !== process.env.NODE_ENV ? invariant(
+	        component.isOwnedBy(this),
+	        'attachRef(%s, ...): Only a component\'s owner can store a ref to it.',
+	        ref
+	      ) : invariant(component.isOwnedBy(this)));
+	      var refs = this.refs === emptyObject ? (this.refs = {}) : this.refs;
+	      refs[ref] = component;
+	    },
+
+	    /**
+	     * Detaches a reference name.
+	     *
+	     * @param {string} ref Name to dereference.
+	     * @final
+	     * @private
+	     */
+	    detachRef: function(ref) {
+	      delete this.refs[ref];
+	    }
+
 	  }
+
+	};
+
+	module.exports = ReactOwner;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule keyMirror
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * Constructs an enumeration with keys equal to their value.
+	 *
+	 * For example:
+	 *
+	 *   var COLORS = keyMirror({blue: null, red: null});
+	 *   var myColor = COLORS.blue;
+	 *   var isColorValid = !!COLORS[myColor];
+	 *
+	 * The last line could not be performed if the values of the generated enum were
+	 * not equal to their keys.
+	 *
+	 *   Input:  {key1: val1, key2: val2}
+	 *   Output: {key1: key1, key2: key2}
+	 *
+	 * @param {object} obj
+	 * @return {object}
+	 */
+	var keyMirror = function(obj) {
+	  var ret = {};
+	  var key;
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    obj instanceof Object && !Array.isArray(obj),
+	    'keyMirror(...): Argument must be an object.'
+	  ) : invariant(obj instanceof Object && !Array.isArray(obj)));
+	  for (key in obj) {
+	    if (!obj.hasOwnProperty(key)) {
+	      continue;
+	    }
+	    ret[key] = key;
+	  }
+	  return ret;
+	};
+
+	module.exports = keyMirror;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule PooledClass
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * Static poolers. Several custom versions for each potential number of
+	 * arguments. A completely generic pooler is easy to implement, but would
+	 * require accessing the `arguments` object. In each of these, `this` refers to
+	 * the Class itself, not an instance. If any others are needed, simply add them
+	 * here, or in their own files.
+	 */
+	var oneArgumentPooler = function(copyFieldsFrom) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, copyFieldsFrom);
+	    return instance;
+	  } else {
+	    return new Klass(copyFieldsFrom);
+	  }
+	};
+
+	var twoArgumentPooler = function(a1, a2) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2);
+	  }
+	};
+
+	var threeArgumentPooler = function(a1, a2, a3) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2, a3);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2, a3);
+	  }
+	};
+
+	var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
+	  var Klass = this;
+	  if (Klass.instancePool.length) {
+	    var instance = Klass.instancePool.pop();
+	    Klass.call(instance, a1, a2, a3, a4, a5);
+	    return instance;
+	  } else {
+	    return new Klass(a1, a2, a3, a4, a5);
+	  }
+	};
+
+	var standardReleaser = function(instance) {
+	  var Klass = this;
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    instance instanceof Klass,
+	    'Trying to release an instance into a pool of a different type.'
+	  ) : invariant(instance instanceof Klass));
+	  if (instance.destructor) {
+	    instance.destructor();
+	  }
+	  if (Klass.instancePool.length < Klass.poolSize) {
+	    Klass.instancePool.push(instance);
+	  }
+	};
+
+	var DEFAULT_POOL_SIZE = 10;
+	var DEFAULT_POOLER = oneArgumentPooler;
+
+	/**
+	 * Augments `CopyConstructor` to be a poolable class, augmenting only the class
+	 * itself (statically) not adding any prototypical fields. Any CopyConstructor
+	 * you give this may have a `poolSize` property, and will look for a
+	 * prototypical `destructor` on instances (optional).
+	 *
+	 * @param {Function} CopyConstructor Constructor that can be used to reset.
+	 * @param {Function} pooler Customizable pooler.
+	 */
+	var addPoolingTo = function(CopyConstructor, pooler) {
+	  var NewKlass = CopyConstructor;
+	  NewKlass.instancePool = [];
+	  NewKlass.getPooled = pooler || DEFAULT_POOLER;
+	  if (!NewKlass.poolSize) {
+	    NewKlass.poolSize = DEFAULT_POOL_SIZE;
+	  }
+	  NewKlass.release = standardReleaser;
+	  return NewKlass;
+	};
+
+	var PooledClass = {
+	  addPoolingTo: addPoolingTo,
+	  oneArgumentPooler: oneArgumentPooler,
+	  twoArgumentPooler: twoArgumentPooler,
+	  threeArgumentPooler: threeArgumentPooler,
+	  fiveArgumentPooler: fiveArgumentPooler
+	};
+
+	module.exports = PooledClass;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule traverseAllChildren
+	 */
+
+	"use strict";
+
+	var ReactElement = __webpack_require__(17);
+	var ReactInstanceHandles = __webpack_require__(22);
+
+	var invariant = __webpack_require__(51);
+
+	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
+	var SUBSEPARATOR = ':';
+
+	/**
+	 * TODO: Test that:
+	 * 1. `mapChildren` transforms strings and numbers into `ReactTextComponent`.
+	 * 2. it('should fail when supplied duplicate key', function() {
+	 * 3. That a single child and an array with one item have the same key pattern.
+	 * });
+	 */
+
+	var userProvidedKeyEscaperLookup = {
+	  '=': '=0',
+	  '.': '=1',
+	  ':': '=2'
+	};
+
+	var userProvidedKeyEscapeRegex = /[=.:]/g;
+
+	function userProvidedKeyEscaper(match) {
+	  return userProvidedKeyEscaperLookup[match];
 	}
 
 	/**
-	 * Accumulates dispatches on an `SyntheticEvent`, but only for the
-	 * `dispatchMarker`.
-	 * @param {SyntheticEvent} event
+	 * Generate a key string that identifies a component within a set.
+	 *
+	 * @param {*} component A component that could contain a manual key.
+	 * @param {number} index Index that is used if a manual key is not provided.
+	 * @return {string}
 	 */
-	function accumulateDirectDispatchesSingle(event) {
-	  if (event && event.dispatchConfig.registrationName) {
-	    accumulateDispatches(event.dispatchMarker, null, event);
+	function getComponentKey(component, index) {
+	  if (component && component.key != null) {
+	    // Explicit key
+	    return wrapUserProvidedKey(component.key);
 	  }
+	  // Implicit key determined by the index in the set
+	  return index.toString(36);
 	}
 
-	function accumulateTwoPhaseDispatches(events) {
-	  forEachAccumulated(events, accumulateTwoPhaseDispatchesSingle);
-	}
-
-	function accumulateEnterLeaveDispatches(leave, enter, fromID, toID) {
-	  EventPluginHub.injection.getInstanceHandle().traverseEnterLeave(
-	    fromID,
-	    toID,
-	    accumulateDispatches,
-	    leave,
-	    enter
+	/**
+	 * Escape a component key so that it is safe to use in a reactid.
+	 *
+	 * @param {*} key Component key to be escaped.
+	 * @return {string} An escaped string.
+	 */
+	function escapeUserProvidedKey(text) {
+	  return ('' + text).replace(
+	    userProvidedKeyEscapeRegex,
+	    userProvidedKeyEscaper
 	  );
 	}
 
-
-	function accumulateDirectDispatches(events) {
-	  forEachAccumulated(events, accumulateDirectDispatchesSingle);
+	/**
+	 * Wrap a `key` value explicitly provided by the user to distinguish it from
+	 * implicitly-generated keys generated by a component's index in its parent.
+	 *
+	 * @param {string} key Value of a user-provided `key` attribute
+	 * @return {string}
+	 */
+	function wrapUserProvidedKey(key) {
+	  return '$' + escapeUserProvidedKey(key);
 	}
 
-
+	/**
+	 * @param {?*} children Children tree container.
+	 * @param {!string} nameSoFar Name of the key path so far.
+	 * @param {!number} indexSoFar Number of children encountered until this point.
+	 * @param {!function} callback Callback to invoke with each child found.
+	 * @param {?*} traverseContext Used to pass information throughout the traversal
+	 * process.
+	 * @return {!number} The number of children in this subtree.
+	 */
+	var traverseAllChildrenImpl =
+	  function(children, nameSoFar, indexSoFar, callback, traverseContext) {
+	    var nextName, nextIndex;
+	    var subtreeCount = 0;  // Count of children found in the current subtree.
+	    if (Array.isArray(children)) {
+	      for (var i = 0; i < children.length; i++) {
+	        var child = children[i];
+	        nextName = (
+	          nameSoFar +
+	          (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
+	          getComponentKey(child, i)
+	        );
+	        nextIndex = indexSoFar + subtreeCount;
+	        subtreeCount += traverseAllChildrenImpl(
+	          child,
+	          nextName,
+	          nextIndex,
+	          callback,
+	          traverseContext
+	        );
+	      }
+	    } else {
+	      var type = typeof children;
+	      var isOnlyChild = nameSoFar === '';
+	      // If it's the only child, treat the name as if it was wrapped in an array
+	      // so that it's consistent if the number of children grows
+	      var storageName =
+	        isOnlyChild ? SEPARATOR + getComponentKey(children, 0) : nameSoFar;
+	      if (children == null || type === 'boolean') {
+	        // All of the above are perceived as null.
+	        callback(traverseContext, null, storageName, indexSoFar);
+	        subtreeCount = 1;
+	      } else if (type === 'string' || type === 'number' ||
+	                 ReactElement.isValidElement(children)) {
+	        callback(traverseContext, children, storageName, indexSoFar);
+	        subtreeCount = 1;
+	      } else if (type === 'object') {
+	        ("production" !== process.env.NODE_ENV ? invariant(
+	          !children || children.nodeType !== 1,
+	          'traverseAllChildren(...): Encountered an invalid child; DOM ' +
+	          'elements are not valid children of React components.'
+	        ) : invariant(!children || children.nodeType !== 1));
+	        for (var key in children) {
+	          if (children.hasOwnProperty(key)) {
+	            nextName = (
+	              nameSoFar + (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
+	              wrapUserProvidedKey(key) + SUBSEPARATOR +
+	              getComponentKey(children[key], 0)
+	            );
+	            nextIndex = indexSoFar + subtreeCount;
+	            subtreeCount += traverseAllChildrenImpl(
+	              children[key],
+	              nextName,
+	              nextIndex,
+	              callback,
+	              traverseContext
+	            );
+	          }
+	        }
+	      }
+	    }
+	    return subtreeCount;
+	  };
 
 	/**
-	 * A small set of propagation patterns, each of which will accept a small amount
-	 * of information, and generate a set of "dispatch ready event objects" - which
-	 * are sets of events that have already been annotated with a set of dispatched
-	 * listener functions/ids. The API is designed this way to discourage these
-	 * propagation strategies from actually executing the dispatches, since we
-	 * always want to collect the entire set of dispatches before executing event a
-	 * single one.
+	 * Traverses children that are typically specified as `props.children`, but
+	 * might also be specified through attributes:
 	 *
-	 * @constructor EventPropagators
+	 * - `traverseAllChildren(this.props.children, ...)`
+	 * - `traverseAllChildren(this.props.leftPanelChildren, ...)`
+	 *
+	 * The `traverseContext` is an optional argument that is passed through the
+	 * entire traversal. It can be used to store accumulations or anything else that
+	 * the callback might find relevant.
+	 *
+	 * @param {?*} children Children tree object.
+	 * @param {!function} callback To invoke upon traversing each child.
+	 * @param {?*} traverseContext Context for traversal.
+	 * @return {!number} The number of children in this subtree.
 	 */
-	var EventPropagators = {
-	  accumulateTwoPhaseDispatches: accumulateTwoPhaseDispatches,
-	  accumulateDirectDispatches: accumulateDirectDispatches,
-	  accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches
-	};
+	function traverseAllChildren(children, callback, traverseContext) {
+	  if (children == null) {
+	    return 0;
+	  }
 
-	module.exports = EventPropagators;
+	  return traverseAllChildrenImpl(children, '', 0, callback, traverseContext);
+	}
+
+	module.exports = traverseAllChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 70 */
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactEmptyComponent
+	 */
+
+	"use strict";
+
+	var ReactElement = __webpack_require__(17);
+
+	var invariant = __webpack_require__(51);
+
+	var component;
+	// This registry keeps track of the React IDs of the components that rendered to
+	// `null` (in reality a placeholder such as `noscript`)
+	var nullComponentIdsRegistry = {};
+
+	var ReactEmptyComponentInjection = {
+	  injectEmptyComponent: function(emptyComponent) {
+	    component = ReactElement.createFactory(emptyComponent);
+	  }
+	};
+
+	/**
+	 * @return {ReactComponent} component The injected empty component.
+	 */
+	function getEmptyComponent() {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    component,
+	    'Trying to return null from a render, but no null placeholder component ' +
+	    'was injected.'
+	  ) : invariant(component));
+	  return component();
+	}
+
+	/**
+	 * Mark the component as having rendered to null.
+	 * @param {string} id Component's `_rootNodeID`.
+	 */
+	function registerNullComponentID(id) {
+	  nullComponentIdsRegistry[id] = true;
+	}
+
+	/**
+	 * Unmark the component as having rendered to null: it renders to something now.
+	 * @param {string} id Component's `_rootNodeID`.
+	 */
+	function deregisterNullComponentID(id) {
+	  delete nullComponentIdsRegistry[id];
+	}
+
+	/**
+	 * @param {string} id Component's `_rootNodeID`.
+	 * @return {boolean} True if the component is rendered to null.
+	 */
+	function isNullComponentID(id) {
+	  return nullComponentIdsRegistry[id];
+	}
+
+	var ReactEmptyComponent = {
+	  deregisterNullComponentID: deregisterNullComponentID,
+	  getEmptyComponent: getEmptyComponent,
+	  injection: ReactEmptyComponentInjection,
+	  isNullComponentID: isNullComponentID,
+	  registerNullComponentID: registerNullComponentID
+	};
+
+	module.exports = ReactEmptyComponent;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactErrorUtils
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var ReactErrorUtils = {
+	  /**
+	   * Creates a guarded version of a function. This is supposed to make debugging
+	   * of event handlers easier. To aid debugging with the browser's debugger,
+	   * this currently simply returns the original function.
+	   *
+	   * @param {function} func Function to be executed
+	   * @param {string} name The name of the guard
+	   * @return {function}
+	   */
+	  guard: function(func, name) {
+	    return func;
+	  }
+	};
+
+	module.exports = ReactErrorUtils;
+
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactPropTransferer
+	 */
+
+	"use strict";
+
+	var assign = __webpack_require__(30);
+	var emptyFunction = __webpack_require__(99);
+	var invariant = __webpack_require__(51);
+	var joinClasses = __webpack_require__(120);
+	var warning = __webpack_require__(49);
+
+	var didWarn = false;
+
+	/**
+	 * Creates a transfer strategy that will merge prop values using the supplied
+	 * `mergeStrategy`. If a prop was previously unset, this just sets it.
+	 *
+	 * @param {function} mergeStrategy
+	 * @return {function}
+	 */
+	function createTransferStrategy(mergeStrategy) {
+	  return function(props, key, value) {
+	    if (!props.hasOwnProperty(key)) {
+	      props[key] = value;
+	    } else {
+	      props[key] = mergeStrategy(props[key], value);
+	    }
+	  };
+	}
+
+	var transferStrategyMerge = createTransferStrategy(function(a, b) {
+	  // `merge` overrides the first object's (`props[key]` above) keys using the
+	  // second object's (`value`) keys. An object's style's existing `propA` would
+	  // get overridden. Flip the order here.
+	  return assign({}, b, a);
+	});
+
+	/**
+	 * Transfer strategies dictate how props are transferred by `transferPropsTo`.
+	 * NOTE: if you add any more exceptions to this list you should be sure to
+	 * update `cloneWithProps()` accordingly.
+	 */
+	var TransferStrategies = {
+	  /**
+	   * Never transfer `children`.
+	   */
+	  children: emptyFunction,
+	  /**
+	   * Transfer the `className` prop by merging them.
+	   */
+	  className: createTransferStrategy(joinClasses),
+	  /**
+	   * Transfer the `style` prop (which is an object) by merging them.
+	   */
+	  style: transferStrategyMerge
+	};
+
+	/**
+	 * Mutates the first argument by transferring the properties from the second
+	 * argument.
+	 *
+	 * @param {object} props
+	 * @param {object} newProps
+	 * @return {object}
+	 */
+	function transferInto(props, newProps) {
+	  for (var thisKey in newProps) {
+	    if (!newProps.hasOwnProperty(thisKey)) {
+	      continue;
+	    }
+
+	    var transferStrategy = TransferStrategies[thisKey];
+
+	    if (transferStrategy && TransferStrategies.hasOwnProperty(thisKey)) {
+	      transferStrategy(props, thisKey, newProps[thisKey]);
+	    } else if (!props.hasOwnProperty(thisKey)) {
+	      props[thisKey] = newProps[thisKey];
+	    }
+	  }
+	  return props;
+	}
+
+	/**
+	 * ReactPropTransferer are capable of transferring props to another component
+	 * using a `transferPropsTo` method.
+	 *
+	 * @class ReactPropTransferer
+	 */
+	var ReactPropTransferer = {
+
+	  TransferStrategies: TransferStrategies,
+
+	  /**
+	   * Merge two props objects using TransferStrategies.
+	   *
+	   * @param {object} oldProps original props (they take precedence)
+	   * @param {object} newProps new props to merge in
+	   * @return {object} a new object containing both sets of props merged.
+	   */
+	  mergeProps: function(oldProps, newProps) {
+	    return transferInto(assign({}, oldProps), newProps);
+	  },
+
+	  /**
+	   * @lends {ReactPropTransferer.prototype}
+	   */
+	  Mixin: {
+
+	    /**
+	     * Transfer props from this component to a target component.
+	     *
+	     * Props that do not have an explicit transfer strategy will be transferred
+	     * only if the target component does not already have the prop set.
+	     *
+	     * This is usually used to pass down props to a returned root component.
+	     *
+	     * @param {ReactElement} element Component receiving the properties.
+	     * @return {ReactElement} The supplied `component`.
+	     * @final
+	     * @protected
+	     */
+	    transferPropsTo: function(element) {
+	      ("production" !== process.env.NODE_ENV ? invariant(
+	        element._owner === this,
+	        '%s: You can\'t call transferPropsTo() on a component that you ' +
+	        'don\'t own, %s. This usually means you are calling ' +
+	        'transferPropsTo() on a component passed in as props or children.',
+	        this.constructor.displayName,
+	        typeof element.type === 'string' ?
+	        element.type :
+	        element.type.displayName
+	      ) : invariant(element._owner === this));
+
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (!didWarn) {
+	          didWarn = true;
+	          ("production" !== process.env.NODE_ENV ? warning(
+	            false,
+	            'transferPropsTo is deprecated. ' +
+	            'See http://fb.me/react-transferpropsto for more information.'
+	          ) : null);
+	        }
+	      }
+
+	      // Because elements are immutable we have to merge into the existing
+	      // props object rather than clone it.
+	      transferInto(element.props, this.props);
+
+	      return element;
+	    }
+
+	  }
+	};
+
+	module.exports = ReactPropTransferer;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactPropTypeLocations
+	 */
+
+	"use strict";
+
+	var keyMirror = __webpack_require__(53);
+
+	var ReactPropTypeLocations = keyMirror({
+	  prop: null,
+	  context: null,
+	  childContext: null
+	});
+
+	module.exports = ReactPropTypeLocations;
+
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactPropTypeLocationNames
+	 */
+
+	"use strict";
+
+	var ReactPropTypeLocationNames = {};
+
+	if ("production" !== process.env.NODE_ENV) {
+	  ReactPropTypeLocationNames = {
+	    prop: 'prop',
+	    context: 'context',
+	    childContext: 'child context'
+	  };
+	}
+
+	module.exports = ReactPropTypeLocationNames;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule instantiateReactComponent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var warning = __webpack_require__(49);
+
+	var ReactElement = __webpack_require__(17);
+	var ReactLegacyElement = __webpack_require__(23);
+	var ReactNativeComponent = __webpack_require__(121);
+	var ReactEmptyComponent = __webpack_require__(56);
+
+	/**
+	 * Given an `element` create an instance that will actually be mounted.
+	 *
+	 * @param {object} element
+	 * @param {*} parentCompositeType The composite type that resolved this.
+	 * @return {object} A new instance of the element's constructor.
+	 * @protected
+	 */
+	function instantiateReactComponent(element, parentCompositeType) {
+	  var instance;
+
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      element && (typeof element.type === 'function' ||
+	                     typeof element.type === 'string'),
+	      'Only functions or strings can be mounted as React components.'
+	    ) : null);
+
+	    // Resolve mock instances
+	    if (element.type._mockedReactClassConstructor) {
+	      // If this is a mocked class, we treat the legacy factory as if it was the
+	      // class constructor for future proofing unit tests. Because this might
+	      // be mocked as a legacy factory, we ignore any warnings triggerd by
+	      // this temporary hack.
+	      ReactLegacyElement._isLegacyCallWarningEnabled = false;
+	      try {
+	        instance = new element.type._mockedReactClassConstructor(
+	          element.props
+	        );
+	      } finally {
+	        ReactLegacyElement._isLegacyCallWarningEnabled = true;
+	      }
+
+	      // If the mock implementation was a legacy factory, then it returns a
+	      // element. We need to turn this into a real component instance.
+	      if (ReactElement.isValidElement(instance)) {
+	        instance = new instance.type(instance.props);
+	      }
+
+	      var render = instance.render;
+	      if (!render) {
+	        // For auto-mocked factories, the prototype isn't shimmed and therefore
+	        // there is no render function on the instance. We replace the whole
+	        // component with an empty component instance instead.
+	        element = ReactEmptyComponent.getEmptyComponent();
+	      } else {
+	        if (render._isMockFunction && !render._getMockImplementation()) {
+	          // Auto-mocked components may have a prototype with a mocked render
+	          // function. For those, we'll need to mock the result of the render
+	          // since we consider undefined to be invalid results from render.
+	          render.mockImplementation(
+	            ReactEmptyComponent.getEmptyComponent
+	          );
+	        }
+	        instance.construct(element);
+	        return instance;
+	      }
+	    }
+	  }
+
+	  // Special case string values
+	  if (typeof element.type === 'string') {
+	    instance = ReactNativeComponent.createInstanceForTag(
+	      element.type,
+	      element.props,
+	      parentCompositeType
+	    );
+	  } else {
+	    // Normal case for non-mocks and non-strings
+	    instance = new element.type(element.props);
+	  }
+
+	  if ("production" !== process.env.NODE_ENV) {
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      typeof instance.construct === 'function' &&
+	      typeof instance.mountComponent === 'function' &&
+	      typeof instance.receiveComponent === 'function',
+	      'Only React Components can be mounted.'
+	    ) : null);
+	  }
+
+	  // This actually sets up the internal instance. This will become decoupled
+	  // from the public instance in a future diff.
+	  instance.construct(element);
+
+	  return instance;
+	}
+
+	module.exports = instantiateReactComponent;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule keyOf
+	 */
+
+	/**
+	 * Allows extraction of a minified key. Let's the build system minify keys
+	 * without loosing the ability to dynamically use key strings as values
+	 * themselves. Pass in an object with a single key/val pair and it will return
+	 * you the string key of that single record. Suppose you want to grab the
+	 * value for a key 'className' inside of an object. Key/val minification may
+	 * have aliased that key to be 'xa12'. keyOf({className: null}) will return
+	 * 'xa12' in that case. Resolve keys you want to use once at startup time, then
+	 * reuse those resolutions.
+	 */
+	var keyOf = function(oneKeyObj) {
+	  var key;
+	  for (key in oneKeyObj) {
+	    if (!oneKeyObj.hasOwnProperty(key)) {
+	      continue;
+	    }
+	    return key;
+	  }
+	  return null;
+	};
+
+
+	module.exports = keyOf;
+
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule monitorCodeUse
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * Provides open-source compatible instrumentation for monitoring certain API
+	 * uses before we're ready to issue a warning or refactor. It accepts an event
+	 * name which may only contain the characters [a-z0-9_] and an optional data
+	 * object with further information.
+	 */
+
+	function monitorCodeUse(eventName, data) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    eventName && !/[^a-z0-9_]/.test(eventName),
+	    'You must provide an eventName using only the characters [a-z0-9_]'
+	  ) : invariant(eventName && !/[^a-z0-9_]/.test(eventName)));
+	}
+
+	module.exports = monitorCodeUse;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule mapObject
+	 */
+
+	'use strict';
+
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+	/**
+	 * Executes the provided `callback` once for each enumerable own property in the
+	 * object and constructs a new object from the results. The `callback` is
+	 * invoked with three arguments:
+	 *
+	 *  - the property value
+	 *  - the property name
+	 *  - the object being traversed
+	 *
+	 * Properties that are added after the call to `mapObject` will not be visited
+	 * by `callback`. If the values of existing properties are changed, the value
+	 * passed to `callback` will be the value at the time `mapObject` visits them.
+	 * Properties that are deleted before being visited are not visited.
+	 *
+	 * @grep function objectMap()
+	 * @grep function objMap()
+	 *
+	 * @param {?object} object
+	 * @param {function} callback
+	 * @param {*} context
+	 * @return {?object}
+	 */
+	function mapObject(object, callback, context) {
+	  if (!object) {
+	    return null;
+	  }
+	  var result = {};
+	  for (var name in object) {
+	    if (hasOwnProperty.call(object, name)) {
+	      result[name] = callback.call(context, object[name], name, object);
+	    }
+	  }
+	  return result;
+	}
+
+	module.exports = mapObject;
+
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule shouldUpdateReactComponent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	/**
+	 * Given a `prevElement` and `nextElement`, determines if the existing
+	 * instance should be updated as opposed to being destroyed or replaced by a new
+	 * instance. Both arguments are elements. This ensures that this logic can
+	 * operate on stateless trees without any backing instance.
+	 *
+	 * @param {?object} prevElement
+	 * @param {?object} nextElement
+	 * @return {boolean} True if the existing instance should be updated.
+	 * @protected
+	 */
+	function shouldUpdateReactComponent(prevElement, nextElement) {
+	  if (prevElement && nextElement &&
+	      prevElement.type === nextElement.type &&
+	      prevElement.key === nextElement.key &&
+	      prevElement._owner === nextElement._owner) {
+	    return true;
+	  }
+	  return false;
+	}
+
+	module.exports = shouldUpdateReactComponent;
+
+
+/***/ },
+/* 66 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule CSSPropertyOperations
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var CSSProperty = __webpack_require__(122);
+	var ExecutionEnvironment = __webpack_require__(33);
+
+	var camelizeStyleName = __webpack_require__(123);
+	var dangerousStyleValue = __webpack_require__(124);
+	var hyphenateStyleName = __webpack_require__(125);
+	var memoizeStringOnly = __webpack_require__(48);
+	var warning = __webpack_require__(49);
+
+	var processStyleName = memoizeStringOnly(function(styleName) {
+	  return hyphenateStyleName(styleName);
+	});
+
+	var styleFloatAccessor = 'cssFloat';
+	if (ExecutionEnvironment.canUseDOM) {
+	  // IE8 only supports accessing cssFloat (standard) as styleFloat
+	  if (document.documentElement.style.cssFloat === undefined) {
+	    styleFloatAccessor = 'styleFloat';
+	  }
+	}
+
+	if ("production" !== process.env.NODE_ENV) {
+	  var warnedStyleNames = {};
+
+	  var warnHyphenatedStyleName = function(name) {
+	    if (warnedStyleNames.hasOwnProperty(name) && warnedStyleNames[name]) {
+	      return;
+	    }
+
+	    warnedStyleNames[name] = true;
+	    ("production" !== process.env.NODE_ENV ? warning(
+	      false,
+	      'Unsupported style property ' + name + '. Did you mean ' +
+	      camelizeStyleName(name) + '?'
+	    ) : null);
+	  };
+	}
+
+	/**
+	 * Operations for dealing with CSS properties.
+	 */
+	var CSSPropertyOperations = {
+
+	  /**
+	   * Serializes a mapping of style properties for use as inline styles:
+	   *
+	   *   > createMarkupForStyles({width: '200px', height: 0})
+	   *   "width:200px;height:0;"
+	   *
+	   * Undefined values are ignored so that declarative programming is easier.
+	   * The result should be HTML-escaped before insertion into the DOM.
+	   *
+	   * @param {object} styles
+	   * @return {?string}
+	   */
+	  createMarkupForStyles: function(styles) {
+	    var serialized = '';
+	    for (var styleName in styles) {
+	      if (!styles.hasOwnProperty(styleName)) {
+	        continue;
+	      }
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (styleName.indexOf('-') > -1) {
+	          warnHyphenatedStyleName(styleName);
+	        }
+	      }
+	      var styleValue = styles[styleName];
+	      if (styleValue != null) {
+	        serialized += processStyleName(styleName) + ':';
+	        serialized += dangerousStyleValue(styleName, styleValue) + ';';
+	      }
+	    }
+	    return serialized || null;
+	  },
+
+	  /**
+	   * Sets the value for multiple styles on a node.  If a value is specified as
+	   * '' (empty string), the corresponding style property will be unset.
+	   *
+	   * @param {DOMElement} node
+	   * @param {object} styles
+	   */
+	  setValueForStyles: function(node, styles) {
+	    var style = node.style;
+	    for (var styleName in styles) {
+	      if (!styles.hasOwnProperty(styleName)) {
+	        continue;
+	      }
+	      if ("production" !== process.env.NODE_ENV) {
+	        if (styleName.indexOf('-') > -1) {
+	          warnHyphenatedStyleName(styleName);
+	        }
+	      }
+	      var styleValue = dangerousStyleValue(styleName, styles[styleName]);
+	      if (styleName === 'float') {
+	        styleName = styleFloatAccessor;
+	      }
+	      if (styleValue) {
+	        style[styleName] = styleValue;
+	      } else {
+	        var expansion = CSSProperty.shorthandPropertyExpansions[styleName];
+	        if (expansion) {
+	          // Shorthand property that IE8 won't like unsetting, so unset each
+	          // component to placate it
+	          for (var individualStyleName in expansion) {
+	            style[individualStyleName] = '';
+	          }
+	        } else {
+	          style[styleName] = '';
+	        }
+	      }
+	    }
+	  }
+
+	};
+
+	module.exports = CSSPropertyOperations;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactBrowserComponentMixin
+	 */
+
+	"use strict";
+
+	var ReactEmptyComponent = __webpack_require__(56);
+	var ReactMount = __webpack_require__(24);
+
+	var invariant = __webpack_require__(51);
+
+	var ReactBrowserComponentMixin = {
+	  /**
+	   * Returns the DOM node rendered by this component.
+	   *
+	   * @return {DOMElement} The root node of this component.
+	   * @final
+	   * @protected
+	   */
+	  getDOMNode: function() {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      this.isMounted(),
+	      'getDOMNode(): A component must be mounted to have a DOM node.'
+	    ) : invariant(this.isMounted()));
+	    if (ReactEmptyComponent.isNullComponentID(this._rootNodeID)) {
+	      return null;
+	    }
+	    return ReactMount.getNode(this._rootNodeID);
+	  }
+	};
+
+	module.exports = ReactBrowserComponentMixin;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -17713,14 +15940,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPluginHub = __webpack_require__(68);
-	var EventPluginRegistry = __webpack_require__(125);
-	var ReactEventEmitterMixin = __webpack_require__(126);
-	var ViewportMetrics = __webpack_require__(127);
+	var EventConstants = __webpack_require__(50);
+	var EventPluginHub = __webpack_require__(115);
+	var EventPluginRegistry = __webpack_require__(126);
+	var ReactEventEmitterMixin = __webpack_require__(127);
+	var ViewportMetrics = __webpack_require__(128);
 
-	var assign = __webpack_require__(49);
-	var isEventSupported = __webpack_require__(87);
+	var assign = __webpack_require__(30);
+	var isEventSupported = __webpack_require__(69);
 
 	/**
 	 * Summary of `ReactBrowserEventEmitter` event handling:
@@ -18055,1267 +16282,7 @@
 
 
 /***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule SyntheticEvent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var PooledClass = __webpack_require__(56);
-
-	var assign = __webpack_require__(49);
-	var emptyFunction = __webpack_require__(61);
-	var getEventTarget = __webpack_require__(128);
-
-	/**
-	 * @interface Event
-	 * @see http://www.w3.org/TR/DOM-Level-3-Events/
-	 */
-	var EventInterface = {
-	  type: null,
-	  target: getEventTarget,
-	  // currentTarget is set when dispatching; no use in copying it here
-	  currentTarget: emptyFunction.thatReturnsNull,
-	  eventPhase: null,
-	  bubbles: null,
-	  cancelable: null,
-	  timeStamp: function(event) {
-	    return event.timeStamp || Date.now();
-	  },
-	  defaultPrevented: null,
-	  isTrusted: null
-	};
-
-	/**
-	 * Synthetic events are dispatched by event plugins, typically in response to a
-	 * top-level event delegation handler.
-	 *
-	 * These systems should generally use pooling to reduce the frequency of garbage
-	 * collection. The system should check `isPersistent` to determine whether the
-	 * event should be released into the pool after being dispatched. Users that
-	 * need a persisted event should invoke `persist`.
-	 *
-	 * Synthetic events (and subclasses) implement the DOM Level 3 Events API by
-	 * normalizing browser quirks. Subclasses do not necessarily have to implement a
-	 * DOM interface; custom application-specific events can also subclass this.
-	 *
-	 * @param {object} dispatchConfig Configuration used to dispatch this event.
-	 * @param {string} dispatchMarker Marker identifying the event target.
-	 * @param {object} nativeEvent Native browser event.
-	 */
-	function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent) {
-	  this.dispatchConfig = dispatchConfig;
-	  this.dispatchMarker = dispatchMarker;
-	  this.nativeEvent = nativeEvent;
-
-	  var Interface = this.constructor.Interface;
-	  for (var propName in Interface) {
-	    if (!Interface.hasOwnProperty(propName)) {
-	      continue;
-	    }
-	    var normalize = Interface[propName];
-	    if (normalize) {
-	      this[propName] = normalize(nativeEvent);
-	    } else {
-	      this[propName] = nativeEvent[propName];
-	    }
-	  }
-
-	  var defaultPrevented = nativeEvent.defaultPrevented != null ?
-	    nativeEvent.defaultPrevented :
-	    nativeEvent.returnValue === false;
-	  if (defaultPrevented) {
-	    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
-	  } else {
-	    this.isDefaultPrevented = emptyFunction.thatReturnsFalse;
-	  }
-	  this.isPropagationStopped = emptyFunction.thatReturnsFalse;
-	}
-
-	assign(SyntheticEvent.prototype, {
-
-	  preventDefault: function() {
-	    this.defaultPrevented = true;
-	    var event = this.nativeEvent;
-	    event.preventDefault ? event.preventDefault() : event.returnValue = false;
-	    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
-	  },
-
-	  stopPropagation: function() {
-	    var event = this.nativeEvent;
-	    event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true;
-	    this.isPropagationStopped = emptyFunction.thatReturnsTrue;
-	  },
-
-	  /**
-	   * We release all dispatched `SyntheticEvent`s after each event loop, adding
-	   * them back into the pool. This allows a way to hold onto a reference that
-	   * won't be added back into the pool.
-	   */
-	  persist: function() {
-	    this.isPersistent = emptyFunction.thatReturnsTrue;
-	  },
-
-	  /**
-	   * Checks if this event should be released back into the pool.
-	   *
-	   * @return {boolean} True if this should not be released, false otherwise.
-	   */
-	  isPersistent: emptyFunction.thatReturnsFalse,
-
-	  /**
-	   * `PooledClass` looks for `destructor` on each instance it releases.
-	   */
-	  destructor: function() {
-	    var Interface = this.constructor.Interface;
-	    for (var propName in Interface) {
-	      this[propName] = null;
-	    }
-	    this.dispatchConfig = null;
-	    this.dispatchMarker = null;
-	    this.nativeEvent = null;
-	  }
-
-	});
-
-	SyntheticEvent.Interface = EventInterface;
-
-	/**
-	 * Helper to reduce boilerplate when creating subclasses.
-	 *
-	 * @param {function} Class
-	 * @param {?object} Interface
-	 */
-	SyntheticEvent.augmentClass = function(Class, Interface) {
-	  var Super = this;
-
-	  var prototype = Object.create(Super.prototype);
-	  assign(prototype, Class.prototype);
-	  Class.prototype = prototype;
-	  Class.prototype.constructor = Class;
-
-	  Class.Interface = assign({}, Super.Interface, Interface);
-	  Class.augmentClass = Super.augmentClass;
-
-	  PooledClass.addPoolingTo(Class, PooledClass.threeArgumentPooler);
-	};
-
-	PooledClass.addPoolingTo(SyntheticEvent, PooledClass.threeArgumentPooler);
-
-	module.exports = SyntheticEvent;
-
-
-/***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule escapeTextForBrowser
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var ESCAPE_LOOKUP = {
-	  "&": "&amp;",
-	  ">": "&gt;",
-	  "<": "&lt;",
-	  "\"": "&quot;",
-	  "'": "&#x27;"
-	};
-
-	var ESCAPE_REGEX = /[&><"']/g;
-
-	function escaper(match) {
-	  return ESCAPE_LOOKUP[match];
-	}
-
-	/**
-	 * Escapes text to prevent scripting attacks.
-	 *
-	 * @param {*} text Text value to escape.
-	 * @return {string} An escaped string.
-	 */
-	function escapeTextForBrowser(text) {
-	  return ('' + text).replace(ESCAPE_REGEX, escaper);
-	}
-
-	module.exports = escapeTextForBrowser;
-
-
-/***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule memoizeStringOnly
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * Memoizes the return value of a function that accepts one string argument.
-	 *
-	 * @param {function} callback
-	 * @return {function}
-	 */
-	function memoizeStringOnly(callback) {
-	  var cache = {};
-	  return function(string) {
-	    if (cache.hasOwnProperty(string)) {
-	      return cache[string];
-	    } else {
-	      return cache[string] = callback.call(this, string);
-	    }
-	  };
-	}
-
-	module.exports = memoizeStringOnly;
-
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule traverseAllChildren
-	 */
-
-	"use strict";
-
-	var ReactElement = __webpack_require__(36);
-	var ReactInstanceHandles = __webpack_require__(41);
-
-	var invariant = __webpack_require__(58);
-
-	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
-	var SUBSEPARATOR = ':';
-
-	/**
-	 * TODO: Test that:
-	 * 1. `mapChildren` transforms strings and numbers into `ReactTextComponent`.
-	 * 2. it('should fail when supplied duplicate key', function() {
-	 * 3. That a single child and an array with one item have the same key pattern.
-	 * });
-	 */
-
-	var userProvidedKeyEscaperLookup = {
-	  '=': '=0',
-	  '.': '=1',
-	  ':': '=2'
-	};
-
-	var userProvidedKeyEscapeRegex = /[=.:]/g;
-
-	function userProvidedKeyEscaper(match) {
-	  return userProvidedKeyEscaperLookup[match];
-	}
-
-	/**
-	 * Generate a key string that identifies a component within a set.
-	 *
-	 * @param {*} component A component that could contain a manual key.
-	 * @param {number} index Index that is used if a manual key is not provided.
-	 * @return {string}
-	 */
-	function getComponentKey(component, index) {
-	  if (component && component.key != null) {
-	    // Explicit key
-	    return wrapUserProvidedKey(component.key);
-	  }
-	  // Implicit key determined by the index in the set
-	  return index.toString(36);
-	}
-
-	/**
-	 * Escape a component key so that it is safe to use in a reactid.
-	 *
-	 * @param {*} key Component key to be escaped.
-	 * @return {string} An escaped string.
-	 */
-	function escapeUserProvidedKey(text) {
-	  return ('' + text).replace(
-	    userProvidedKeyEscapeRegex,
-	    userProvidedKeyEscaper
-	  );
-	}
-
-	/**
-	 * Wrap a `key` value explicitly provided by the user to distinguish it from
-	 * implicitly-generated keys generated by a component's index in its parent.
-	 *
-	 * @param {string} key Value of a user-provided `key` attribute
-	 * @return {string}
-	 */
-	function wrapUserProvidedKey(key) {
-	  return '$' + escapeUserProvidedKey(key);
-	}
-
-	/**
-	 * @param {?*} children Children tree container.
-	 * @param {!string} nameSoFar Name of the key path so far.
-	 * @param {!number} indexSoFar Number of children encountered until this point.
-	 * @param {!function} callback Callback to invoke with each child found.
-	 * @param {?*} traverseContext Used to pass information throughout the traversal
-	 * process.
-	 * @return {!number} The number of children in this subtree.
-	 */
-	var traverseAllChildrenImpl =
-	  function(children, nameSoFar, indexSoFar, callback, traverseContext) {
-	    var nextName, nextIndex;
-	    var subtreeCount = 0;  // Count of children found in the current subtree.
-	    if (Array.isArray(children)) {
-	      for (var i = 0; i < children.length; i++) {
-	        var child = children[i];
-	        nextName = (
-	          nameSoFar +
-	          (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
-	          getComponentKey(child, i)
-	        );
-	        nextIndex = indexSoFar + subtreeCount;
-	        subtreeCount += traverseAllChildrenImpl(
-	          child,
-	          nextName,
-	          nextIndex,
-	          callback,
-	          traverseContext
-	        );
-	      }
-	    } else {
-	      var type = typeof children;
-	      var isOnlyChild = nameSoFar === '';
-	      // If it's the only child, treat the name as if it was wrapped in an array
-	      // so that it's consistent if the number of children grows
-	      var storageName =
-	        isOnlyChild ? SEPARATOR + getComponentKey(children, 0) : nameSoFar;
-	      if (children == null || type === 'boolean') {
-	        // All of the above are perceived as null.
-	        callback(traverseContext, null, storageName, indexSoFar);
-	        subtreeCount = 1;
-	      } else if (type === 'string' || type === 'number' ||
-	                 ReactElement.isValidElement(children)) {
-	        callback(traverseContext, children, storageName, indexSoFar);
-	        subtreeCount = 1;
-	      } else if (type === 'object') {
-	        ("production" !== process.env.NODE_ENV ? invariant(
-	          !children || children.nodeType !== 1,
-	          'traverseAllChildren(...): Encountered an invalid child; DOM ' +
-	          'elements are not valid children of React components.'
-	        ) : invariant(!children || children.nodeType !== 1));
-	        for (var key in children) {
-	          if (children.hasOwnProperty(key)) {
-	            nextName = (
-	              nameSoFar + (nameSoFar ? SUBSEPARATOR : SEPARATOR) +
-	              wrapUserProvidedKey(key) + SUBSEPARATOR +
-	              getComponentKey(children[key], 0)
-	            );
-	            nextIndex = indexSoFar + subtreeCount;
-	            subtreeCount += traverseAllChildrenImpl(
-	              children[key],
-	              nextName,
-	              nextIndex,
-	              callback,
-	              traverseContext
-	            );
-	          }
-	        }
-	      }
-	    }
-	    return subtreeCount;
-	  };
-
-	/**
-	 * Traverses children that are typically specified as `props.children`, but
-	 * might also be specified through attributes:
-	 *
-	 * - `traverseAllChildren(this.props.children, ...)`
-	 * - `traverseAllChildren(this.props.leftPanelChildren, ...)`
-	 *
-	 * The `traverseContext` is an optional argument that is passed through the
-	 * entire traversal. It can be used to store accumulations or anything else that
-	 * the callback might find relevant.
-	 *
-	 * @param {?*} children Children tree object.
-	 * @param {!function} callback To invoke upon traversing each child.
-	 * @param {?*} traverseContext Context for traversal.
-	 * @return {!number} The number of children in this subtree.
-	 */
-	function traverseAllChildren(children, callback, traverseContext) {
-	  if (children == null) {
-	    return 0;
-	  }
-
-	  return traverseAllChildrenImpl(children, '', 0, callback, traverseContext);
-	}
-
-	module.exports = traverseAllChildren;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactOwner
-	 */
-
-	"use strict";
-
-	var emptyObject = __webpack_require__(129);
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * ReactOwners are capable of storing references to owned components.
-	 *
-	 * All components are capable of //being// referenced by owner components, but
-	 * only ReactOwner components are capable of //referencing// owned components.
-	 * The named reference is known as a "ref".
-	 *
-	 * Refs are available when mounted and updated during reconciliation.
-	 *
-	 *   var MyComponent = React.createClass({
-	 *     render: function() {
-	 *       return (
-	 *         <div onClick={this.handleClick}>
-	 *           <CustomComponent ref="custom" />
-	 *         </div>
-	 *       );
-	 *     },
-	 *     handleClick: function() {
-	 *       this.refs.custom.handleClick();
-	 *     },
-	 *     componentDidMount: function() {
-	 *       this.refs.custom.initialize();
-	 *     }
-	 *   });
-	 *
-	 * Refs should rarely be used. When refs are used, they should only be done to
-	 * control data that is not handled by React's data flow.
-	 *
-	 * @class ReactOwner
-	 */
-	var ReactOwner = {
-
-	  /**
-	   * @param {?object} object
-	   * @return {boolean} True if `object` is a valid owner.
-	   * @final
-	   */
-	  isValidOwner: function(object) {
-	    return !!(
-	      object &&
-	      typeof object.attachRef === 'function' &&
-	      typeof object.detachRef === 'function'
-	    );
-	  },
-
-	  /**
-	   * Adds a component by ref to an owner component.
-	   *
-	   * @param {ReactComponent} component Component to reference.
-	   * @param {string} ref Name by which to refer to the component.
-	   * @param {ReactOwner} owner Component on which to record the ref.
-	   * @final
-	   * @internal
-	   */
-	  addComponentAsRefTo: function(component, ref, owner) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      ReactOwner.isValidOwner(owner),
-	      'addComponentAsRefTo(...): Only a ReactOwner can have refs. This ' +
-	      'usually means that you\'re trying to add a ref to a component that ' +
-	      'doesn\'t have an owner (that is, was not created inside of another ' +
-	      'component\'s `render` method). Try rendering this component inside of ' +
-	      'a new top-level component which will hold the ref.'
-	    ) : invariant(ReactOwner.isValidOwner(owner)));
-	    owner.attachRef(ref, component);
-	  },
-
-	  /**
-	   * Removes a component by ref from an owner component.
-	   *
-	   * @param {ReactComponent} component Component to dereference.
-	   * @param {string} ref Name of the ref to remove.
-	   * @param {ReactOwner} owner Component on which the ref is recorded.
-	   * @final
-	   * @internal
-	   */
-	  removeComponentAsRefFrom: function(component, ref, owner) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      ReactOwner.isValidOwner(owner),
-	      'removeComponentAsRefFrom(...): Only a ReactOwner can have refs. This ' +
-	      'usually means that you\'re trying to remove a ref to a component that ' +
-	      'doesn\'t have an owner (that is, was not created inside of another ' +
-	      'component\'s `render` method). Try rendering this component inside of ' +
-	      'a new top-level component which will hold the ref.'
-	    ) : invariant(ReactOwner.isValidOwner(owner)));
-	    // Check that `component` is still the current ref because we do not want to
-	    // detach the ref if another component stole it.
-	    if (owner.refs[ref] === component) {
-	      owner.detachRef(ref);
-	    }
-	  },
-
-	  /**
-	   * A ReactComponent must mix this in to have refs.
-	   *
-	   * @lends {ReactOwner.prototype}
-	   */
-	  Mixin: {
-
-	    construct: function() {
-	      this.refs = emptyObject;
-	    },
-
-	    /**
-	     * Lazily allocates the refs object and stores `component` as `ref`.
-	     *
-	     * @param {string} ref Reference name.
-	     * @param {component} component Component to store as `ref`.
-	     * @final
-	     * @private
-	     */
-	    attachRef: function(ref, component) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        component.isOwnedBy(this),
-	        'attachRef(%s, ...): Only a component\'s owner can store a ref to it.',
-	        ref
-	      ) : invariant(component.isOwnedBy(this)));
-	      var refs = this.refs === emptyObject ? (this.refs = {}) : this.refs;
-	      refs[ref] = component;
-	    },
-
-	    /**
-	     * Detaches a reference name.
-	     *
-	     * @param {string} ref Name to dereference.
-	     * @final
-	     * @private
-	     */
-	    detachRef: function(ref) {
-	      delete this.refs[ref];
-	    }
-
-	  }
-
-	};
-
-	module.exports = ReactOwner;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule keyMirror
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * Constructs an enumeration with keys equal to their value.
-	 *
-	 * For example:
-	 *
-	 *   var COLORS = keyMirror({blue: null, red: null});
-	 *   var myColor = COLORS.blue;
-	 *   var isColorValid = !!COLORS[myColor];
-	 *
-	 * The last line could not be performed if the values of the generated enum were
-	 * not equal to their keys.
-	 *
-	 *   Input:  {key1: val1, key2: val2}
-	 *   Output: {key1: key1, key2: key2}
-	 *
-	 * @param {object} obj
-	 * @return {object}
-	 */
-	var keyMirror = function(obj) {
-	  var ret = {};
-	  var key;
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    obj instanceof Object && !Array.isArray(obj),
-	    'keyMirror(...): Argument must be an object.'
-	  ) : invariant(obj instanceof Object && !Array.isArray(obj)));
-	  for (key in obj) {
-	    if (!obj.hasOwnProperty(key)) {
-	      continue;
-	    }
-	    ret[key] = key;
-	  }
-	  return ret;
-	};
-
-	module.exports = keyMirror;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactEmptyComponent
-	 */
-
-	"use strict";
-
-	var ReactElement = __webpack_require__(36);
-
-	var invariant = __webpack_require__(58);
-
-	var component;
-	// This registry keeps track of the React IDs of the components that rendered to
-	// `null` (in reality a placeholder such as `noscript`)
-	var nullComponentIdsRegistry = {};
-
-	var ReactEmptyComponentInjection = {
-	  injectEmptyComponent: function(emptyComponent) {
-	    component = ReactElement.createFactory(emptyComponent);
-	  }
-	};
-
-	/**
-	 * @return {ReactComponent} component The injected empty component.
-	 */
-	function getEmptyComponent() {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    component,
-	    'Trying to return null from a render, but no null placeholder component ' +
-	    'was injected.'
-	  ) : invariant(component));
-	  return component();
-	}
-
-	/**
-	 * Mark the component as having rendered to null.
-	 * @param {string} id Component's `_rootNodeID`.
-	 */
-	function registerNullComponentID(id) {
-	  nullComponentIdsRegistry[id] = true;
-	}
-
-	/**
-	 * Unmark the component as having rendered to null: it renders to something now.
-	 * @param {string} id Component's `_rootNodeID`.
-	 */
-	function deregisterNullComponentID(id) {
-	  delete nullComponentIdsRegistry[id];
-	}
-
-	/**
-	 * @param {string} id Component's `_rootNodeID`.
-	 * @return {boolean} True if the component is rendered to null.
-	 */
-	function isNullComponentID(id) {
-	  return nullComponentIdsRegistry[id];
-	}
-
-	var ReactEmptyComponent = {
-	  deregisterNullComponentID: deregisterNullComponentID,
-	  getEmptyComponent: getEmptyComponent,
-	  injection: ReactEmptyComponentInjection,
-	  isNullComponentID: isNullComponentID,
-	  registerNullComponentID: registerNullComponentID
-	};
-
-	module.exports = ReactEmptyComponent;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactErrorUtils
-	 * @typechecks
-	 */
-
-	"use strict";
-
-	var ReactErrorUtils = {
-	  /**
-	   * Creates a guarded version of a function. This is supposed to make debugging
-	   * of event handlers easier. To aid debugging with the browser's debugger,
-	   * this currently simply returns the original function.
-	   *
-	   * @param {function} func Function to be executed
-	   * @param {string} name The name of the guard
-	   * @return {function}
-	   */
-	  guard: function(func, name) {
-	    return func;
-	  }
-	};
-
-	module.exports = ReactErrorUtils;
-
-
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactPropTypeLocations
-	 */
-
-	"use strict";
-
-	var keyMirror = __webpack_require__(76);
-
-	var ReactPropTypeLocations = keyMirror({
-	  prop: null,
-	  context: null,
-	  childContext: null
-	});
-
-	module.exports = ReactPropTypeLocations;
-
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactPropTypeLocationNames
-	 */
-
-	"use strict";
-
-	var ReactPropTypeLocationNames = {};
-
-	if ("production" !== process.env.NODE_ENV) {
-	  ReactPropTypeLocationNames = {
-	    prop: 'prop',
-	    context: 'context',
-	    childContext: 'child context'
-	  };
-	}
-
-	module.exports = ReactPropTypeLocationNames;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule instantiateReactComponent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var warning = __webpack_require__(59);
-
-	var ReactElement = __webpack_require__(36);
-	var ReactLegacyElement = __webpack_require__(42);
-	var ReactNativeComponent = __webpack_require__(130);
-	var ReactEmptyComponent = __webpack_require__(77);
-
-	/**
-	 * Given an `element` create an instance that will actually be mounted.
-	 *
-	 * @param {object} element
-	 * @param {*} parentCompositeType The composite type that resolved this.
-	 * @return {object} A new instance of the element's constructor.
-	 * @protected
-	 */
-	function instantiateReactComponent(element, parentCompositeType) {
-	  var instance;
-
-	  if ("production" !== process.env.NODE_ENV) {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      element && (typeof element.type === 'function' ||
-	                     typeof element.type === 'string'),
-	      'Only functions or strings can be mounted as React components.'
-	    ) : null);
-
-	    // Resolve mock instances
-	    if (element.type._mockedReactClassConstructor) {
-	      // If this is a mocked class, we treat the legacy factory as if it was the
-	      // class constructor for future proofing unit tests. Because this might
-	      // be mocked as a legacy factory, we ignore any warnings triggerd by
-	      // this temporary hack.
-	      ReactLegacyElement._isLegacyCallWarningEnabled = false;
-	      try {
-	        instance = new element.type._mockedReactClassConstructor(
-	          element.props
-	        );
-	      } finally {
-	        ReactLegacyElement._isLegacyCallWarningEnabled = true;
-	      }
-
-	      // If the mock implementation was a legacy factory, then it returns a
-	      // element. We need to turn this into a real component instance.
-	      if (ReactElement.isValidElement(instance)) {
-	        instance = new instance.type(instance.props);
-	      }
-
-	      var render = instance.render;
-	      if (!render) {
-	        // For auto-mocked factories, the prototype isn't shimmed and therefore
-	        // there is no render function on the instance. We replace the whole
-	        // component with an empty component instance instead.
-	        element = ReactEmptyComponent.getEmptyComponent();
-	      } else {
-	        if (render._isMockFunction && !render._getMockImplementation()) {
-	          // Auto-mocked components may have a prototype with a mocked render
-	          // function. For those, we'll need to mock the result of the render
-	          // since we consider undefined to be invalid results from render.
-	          render.mockImplementation(
-	            ReactEmptyComponent.getEmptyComponent
-	          );
-	        }
-	        instance.construct(element);
-	        return instance;
-	      }
-	    }
-	  }
-
-	  // Special case string values
-	  if (typeof element.type === 'string') {
-	    instance = ReactNativeComponent.createInstanceForTag(
-	      element.type,
-	      element.props,
-	      parentCompositeType
-	    );
-	  } else {
-	    // Normal case for non-mocks and non-strings
-	    instance = new element.type(element.props);
-	  }
-
-	  if ("production" !== process.env.NODE_ENV) {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      typeof instance.construct === 'function' &&
-	      typeof instance.mountComponent === 'function' &&
-	      typeof instance.receiveComponent === 'function',
-	      'Only React Components can be mounted.'
-	    ) : null);
-	  }
-
-	  // This actually sets up the internal instance. This will become decoupled
-	  // from the public instance in a future diff.
-	  instance.construct(element);
-
-	  return instance;
-	}
-
-	module.exports = instantiateReactComponent;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 82 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule monitorCodeUse
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * Provides open-source compatible instrumentation for monitoring certain API
-	 * uses before we're ready to issue a warning or refactor. It accepts an event
-	 * name which may only contain the characters [a-z0-9_] and an optional data
-	 * object with further information.
-	 */
-
-	function monitorCodeUse(eventName, data) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    eventName && !/[^a-z0-9_]/.test(eventName),
-	    'You must provide an eventName using only the characters [a-z0-9_]'
-	  ) : invariant(eventName && !/[^a-z0-9_]/.test(eventName)));
-	}
-
-	module.exports = monitorCodeUse;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule mapObject
-	 */
-
-	'use strict';
-
-	var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-	/**
-	 * Executes the provided `callback` once for each enumerable own property in the
-	 * object and constructs a new object from the results. The `callback` is
-	 * invoked with three arguments:
-	 *
-	 *  - the property value
-	 *  - the property name
-	 *  - the object being traversed
-	 *
-	 * Properties that are added after the call to `mapObject` will not be visited
-	 * by `callback`. If the values of existing properties are changed, the value
-	 * passed to `callback` will be the value at the time `mapObject` visits them.
-	 * Properties that are deleted before being visited are not visited.
-	 *
-	 * @grep function objectMap()
-	 * @grep function objMap()
-	 *
-	 * @param {?object} object
-	 * @param {function} callback
-	 * @param {*} context
-	 * @return {?object}
-	 */
-	function mapObject(object, callback, context) {
-	  if (!object) {
-	    return null;
-	  }
-	  var result = {};
-	  for (var name in object) {
-	    if (hasOwnProperty.call(object, name)) {
-	      result[name] = callback.call(context, object[name], name, object);
-	    }
-	  }
-	  return result;
-	}
-
-	module.exports = mapObject;
-
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule shouldUpdateReactComponent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * Given a `prevElement` and `nextElement`, determines if the existing
-	 * instance should be updated as opposed to being destroyed or replaced by a new
-	 * instance. Both arguments are elements. This ensures that this logic can
-	 * operate on stateless trees without any backing instance.
-	 *
-	 * @param {?object} prevElement
-	 * @param {?object} nextElement
-	 * @return {boolean} True if the existing instance should be updated.
-	 * @protected
-	 */
-	function shouldUpdateReactComponent(prevElement, nextElement) {
-	  if (prevElement && nextElement &&
-	      prevElement.type === nextElement.type &&
-	      prevElement.key === nextElement.key &&
-	      prevElement._owner === nextElement._owner) {
-	    return true;
-	  }
-	  return false;
-	}
-
-	module.exports = shouldUpdateReactComponent;
-
-
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule CSSPropertyOperations
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var CSSProperty = __webpack_require__(131);
-	var ExecutionEnvironment = __webpack_require__(52);
-
-	var camelizeStyleName = __webpack_require__(132);
-	var dangerousStyleValue = __webpack_require__(133);
-	var hyphenateStyleName = __webpack_require__(134);
-	var memoizeStringOnly = __webpack_require__(73);
-	var warning = __webpack_require__(59);
-
-	var processStyleName = memoizeStringOnly(function(styleName) {
-	  return hyphenateStyleName(styleName);
-	});
-
-	var styleFloatAccessor = 'cssFloat';
-	if (ExecutionEnvironment.canUseDOM) {
-	  // IE8 only supports accessing cssFloat (standard) as styleFloat
-	  if (document.documentElement.style.cssFloat === undefined) {
-	    styleFloatAccessor = 'styleFloat';
-	  }
-	}
-
-	if ("production" !== process.env.NODE_ENV) {
-	  var warnedStyleNames = {};
-
-	  var warnHyphenatedStyleName = function(name) {
-	    if (warnedStyleNames.hasOwnProperty(name) && warnedStyleNames[name]) {
-	      return;
-	    }
-
-	    warnedStyleNames[name] = true;
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      false,
-	      'Unsupported style property ' + name + '. Did you mean ' +
-	      camelizeStyleName(name) + '?'
-	    ) : null);
-	  };
-	}
-
-	/**
-	 * Operations for dealing with CSS properties.
-	 */
-	var CSSPropertyOperations = {
-
-	  /**
-	   * Serializes a mapping of style properties for use as inline styles:
-	   *
-	   *   > createMarkupForStyles({width: '200px', height: 0})
-	   *   "width:200px;height:0;"
-	   *
-	   * Undefined values are ignored so that declarative programming is easier.
-	   * The result should be HTML-escaped before insertion into the DOM.
-	   *
-	   * @param {object} styles
-	   * @return {?string}
-	   */
-	  createMarkupForStyles: function(styles) {
-	    var serialized = '';
-	    for (var styleName in styles) {
-	      if (!styles.hasOwnProperty(styleName)) {
-	        continue;
-	      }
-	      if ("production" !== process.env.NODE_ENV) {
-	        if (styleName.indexOf('-') > -1) {
-	          warnHyphenatedStyleName(styleName);
-	        }
-	      }
-	      var styleValue = styles[styleName];
-	      if (styleValue != null) {
-	        serialized += processStyleName(styleName) + ':';
-	        serialized += dangerousStyleValue(styleName, styleValue) + ';';
-	      }
-	    }
-	    return serialized || null;
-	  },
-
-	  /**
-	   * Sets the value for multiple styles on a node.  If a value is specified as
-	   * '' (empty string), the corresponding style property will be unset.
-	   *
-	   * @param {DOMElement} node
-	   * @param {object} styles
-	   */
-	  setValueForStyles: function(node, styles) {
-	    var style = node.style;
-	    for (var styleName in styles) {
-	      if (!styles.hasOwnProperty(styleName)) {
-	        continue;
-	      }
-	      if ("production" !== process.env.NODE_ENV) {
-	        if (styleName.indexOf('-') > -1) {
-	          warnHyphenatedStyleName(styleName);
-	        }
-	      }
-	      var styleValue = dangerousStyleValue(styleName, styles[styleName]);
-	      if (styleName === 'float') {
-	        styleName = styleFloatAccessor;
-	      }
-	      if (styleValue) {
-	        style[styleName] = styleValue;
-	      } else {
-	        var expansion = CSSProperty.shorthandPropertyExpansions[styleName];
-	        if (expansion) {
-	          // Shorthand property that IE8 won't like unsetting, so unset each
-	          // component to placate it
-	          for (var individualStyleName in expansion) {
-	            style[individualStyleName] = '';
-	          }
-	        } else {
-	          style[styleName] = '';
-	        }
-	      }
-	    }
-	  }
-
-	};
-
-	module.exports = CSSPropertyOperations;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactBrowserComponentMixin
-	 */
-
-	"use strict";
-
-	var ReactEmptyComponent = __webpack_require__(77);
-	var ReactMount = __webpack_require__(43);
-
-	var invariant = __webpack_require__(58);
-
-	var ReactBrowserComponentMixin = {
-	  /**
-	   * Returns the DOM node rendered by this component.
-	   *
-	   * @return {DOMElement} The root node of this component.
-	   * @final
-	   * @protected
-	   */
-	  getDOMNode: function() {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      this.isMounted(),
-	      'getDOMNode(): A component must be mounted to have a DOM node.'
-	    ) : invariant(this.isMounted()));
-	    if (ReactEmptyComponent.isNullComponentID(this._rootNodeID)) {
-	      return null;
-	    }
-	    return ReactMount.getNode(this._rootNodeID);
-	  }
-	};
-
-	module.exports = ReactBrowserComponentMixin;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 87 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -19331,7 +16298,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
 	var useHasFeature;
 	if (ExecutionEnvironment.canUseDOM) {
@@ -19384,7 +16351,7 @@
 
 
 /***/ },
-/* 88 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -19401,10 +16368,10 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPropagators = __webpack_require__(69);
-	var ExecutionEnvironment = __webpack_require__(52);
-	var SyntheticInputEvent = __webpack_require__(135);
+	var EventConstants = __webpack_require__(50);
+	var EventPropagators = __webpack_require__(116);
+	var ExecutionEnvironment = __webpack_require__(33);
+	var SyntheticInputEvent = __webpack_require__(129);
 
 	var keyOf = __webpack_require__(62);
 
@@ -19610,7 +16577,7 @@
 
 
 /***/ },
-/* 89 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -19626,15 +16593,15 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPluginHub = __webpack_require__(68);
-	var EventPropagators = __webpack_require__(69);
-	var ExecutionEnvironment = __webpack_require__(52);
-	var ReactUpdates = __webpack_require__(19);
-	var SyntheticEvent = __webpack_require__(71);
+	var EventConstants = __webpack_require__(50);
+	var EventPluginHub = __webpack_require__(115);
+	var EventPropagators = __webpack_require__(116);
+	var ExecutionEnvironment = __webpack_require__(33);
+	var ReactUpdates = __webpack_require__(39);
+	var SyntheticEvent = __webpack_require__(117);
 
-	var isEventSupported = __webpack_require__(87);
-	var isTextInputElement = __webpack_require__(136);
+	var isEventSupported = __webpack_require__(69);
+	var isTextInputElement = __webpack_require__(130);
 	var keyOf = __webpack_require__(62);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
@@ -19996,7 +16963,7 @@
 
 
 /***/ },
-/* 90 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20025,7 +16992,7 @@
 
 
 /***/ },
-/* 91 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20042,13 +17009,13 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPropagators = __webpack_require__(69);
-	var ExecutionEnvironment = __webpack_require__(52);
-	var ReactInputSelection = __webpack_require__(137);
-	var SyntheticCompositionEvent = __webpack_require__(138);
+	var EventConstants = __webpack_require__(50);
+	var EventPropagators = __webpack_require__(116);
+	var ExecutionEnvironment = __webpack_require__(33);
+	var ReactInputSelection = __webpack_require__(131);
+	var SyntheticCompositionEvent = __webpack_require__(132);
 
-	var getTextContentAccessor = __webpack_require__(139);
+	var getTextContentAccessor = __webpack_require__(133);
 	var keyOf = __webpack_require__(62);
 
 	var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
@@ -20288,7 +17255,7 @@
 
 
 /***/ },
-/* 92 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20332,7 +17299,7 @@
 
 
 /***/ },
-/* 93 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20349,11 +17316,11 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPropagators = __webpack_require__(69);
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var EventConstants = __webpack_require__(50);
+	var EventPropagators = __webpack_require__(116);
+	var SyntheticMouseEvent = __webpack_require__(134);
 
-	var ReactMount = __webpack_require__(43);
+	var ReactMount = __webpack_require__(24);
 	var keyOf = __webpack_require__(62);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
@@ -20476,7 +17443,7 @@
 
 
 /***/ },
-/* 94 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20494,8 +17461,8 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(64);
-	var ExecutionEnvironment = __webpack_require__(52);
+	var DOMProperty = __webpack_require__(46);
+	var ExecutionEnvironment = __webpack_require__(33);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
@@ -20672,7 +17639,7 @@
 
 
 /***/ },
-/* 95 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20689,9 +17656,9 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
+	var EventConstants = __webpack_require__(50);
 
-	var emptyFunction = __webpack_require__(61);
+	var emptyFunction = __webpack_require__(99);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -20734,7 +17701,7 @@
 
 
 /***/ },
-/* 96 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -20752,15 +17719,15 @@
 
 	"use strict";
 
-	var ReactDOMIDOperations = __webpack_require__(141);
-	var ReactMarkupChecksum = __webpack_require__(117);
-	var ReactMount = __webpack_require__(43);
-	var ReactPerf = __webpack_require__(45);
-	var ReactReconcileTransaction = __webpack_require__(142);
+	var ReactDOMIDOperations = __webpack_require__(135);
+	var ReactMarkupChecksum = __webpack_require__(100);
+	var ReactMount = __webpack_require__(24);
+	var ReactPerf = __webpack_require__(26);
+	var ReactReconcileTransaction = __webpack_require__(136);
 
-	var getReactRootElementInContainer = __webpack_require__(114);
-	var invariant = __webpack_require__(58);
-	var setInnerHTML = __webpack_require__(143);
+	var getReactRootElementInContainer = __webpack_require__(96);
+	var invariant = __webpack_require__(51);
+	var setInnerHTML = __webpack_require__(137);
 
 
 	var ELEMENT_NODE_TYPE = 1;
@@ -20856,10 +17823,10 @@
 
 	module.exports = ReactComponentBrowserEnvironment;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 97 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20875,11 +17842,11 @@
 
 	"use strict";
 
-	var ReactUpdates = __webpack_require__(19);
-	var Transaction = __webpack_require__(57);
+	var ReactUpdates = __webpack_require__(39);
+	var Transaction = __webpack_require__(112);
 
-	var assign = __webpack_require__(49);
-	var emptyFunction = __webpack_require__(61);
+	var assign = __webpack_require__(30);
+	var emptyFunction = __webpack_require__(99);
 
 	var RESET_BATCHED_UPDATES = {
 	  initialize: emptyFunction,
@@ -20936,7 +17903,7 @@
 
 
 /***/ },
-/* 98 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -20952,13 +17919,13 @@
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
+	var AutoFocusMixin = __webpack_require__(138);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
 
-	var keyMirror = __webpack_require__(76);
+	var keyMirror = __webpack_require__(53);
 
 	// Store a reference to the <button> `ReactDOMComponent`. TODO: use string
 	var button = ReactElement.createFactory(ReactDOM.button.type);
@@ -21005,7 +17972,7 @@
 
 
 /***/ },
-/* 99 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21021,12 +17988,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var LocalEventTrapMixin = __webpack_require__(145);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
+	var EventConstants = __webpack_require__(50);
+	var LocalEventTrapMixin = __webpack_require__(139);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
 
 	// Store a reference to the <form> `ReactDOMComponent`. TODO: use string
 	var form = ReactElement.createFactory(ReactDOM.form.type);
@@ -21059,7 +18026,7 @@
 
 
 /***/ },
-/* 100 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21075,12 +18042,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var LocalEventTrapMixin = __webpack_require__(145);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
+	var EventConstants = __webpack_require__(50);
+	var LocalEventTrapMixin = __webpack_require__(139);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
 
 	// Store a reference to the <img> `ReactDOMComponent`. TODO: use string
 	var img = ReactElement.createFactory(ReactDOM.img.type);
@@ -21111,7 +18078,7 @@
 
 
 /***/ },
-/* 101 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -21127,18 +18094,18 @@
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var DOMPropertyOperations = __webpack_require__(29);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
-	var ReactMount = __webpack_require__(43);
-	var ReactUpdates = __webpack_require__(19);
+	var AutoFocusMixin = __webpack_require__(138);
+	var DOMPropertyOperations = __webpack_require__(10);
+	var LinkedValueUtils = __webpack_require__(140);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
+	var ReactMount = __webpack_require__(24);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
 
 	// Store a reference to the <input> `ReactDOMComponent`. TODO: use string
 	var input = ReactElement.createFactory(ReactDOM.input.type);
@@ -21289,10 +18256,10 @@
 
 	module.exports = ReactDOMInput;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 102 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -21308,12 +18275,12 @@
 
 	"use strict";
 
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
 
-	var warning = __webpack_require__(59);
+	var warning = __webpack_require__(49);
 
 	// Store a reference to the <option> `ReactDOMComponent`. TODO: use string
 	var option = ReactElement.createFactory(ReactDOM.option.type);
@@ -21345,10 +18312,10 @@
 
 	module.exports = ReactDOMOption;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 103 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21364,15 +18331,15 @@
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
-	var ReactUpdates = __webpack_require__(19);
+	var AutoFocusMixin = __webpack_require__(138);
+	var LinkedValueUtils = __webpack_require__(140);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
+	var assign = __webpack_require__(30);
 
 	// Store a reference to the <select> `ReactDOMComponent`. TODO: use string
 	var select = ReactElement.createFactory(ReactDOM.select.type);
@@ -21536,7 +18503,7 @@
 
 
 /***/ },
-/* 104 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -21552,19 +18519,19 @@
 
 	"use strict";
 
-	var AutoFocusMixin = __webpack_require__(144);
-	var DOMPropertyOperations = __webpack_require__(29);
-	var LinkedValueUtils = __webpack_require__(146);
-	var ReactBrowserComponentMixin = __webpack_require__(86);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
-	var ReactDOM = __webpack_require__(38);
-	var ReactUpdates = __webpack_require__(19);
+	var AutoFocusMixin = __webpack_require__(138);
+	var DOMPropertyOperations = __webpack_require__(10);
+	var LinkedValueUtils = __webpack_require__(140);
+	var ReactBrowserComponentMixin = __webpack_require__(67);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
+	var ReactDOM = __webpack_require__(19);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
 
-	var warning = __webpack_require__(59);
+	var warning = __webpack_require__(49);
 
 	// Store a reference to the <textarea> `ReactDOMComponent`. TODO: use string
 	var textarea = ReactElement.createFactory(ReactDOM.textarea.type);
@@ -21677,10 +18644,10 @@
 
 	module.exports = ReactDOMTextarea;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 105 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21697,16 +18664,16 @@
 
 	"use strict";
 
-	var EventListener = __webpack_require__(147);
-	var ExecutionEnvironment = __webpack_require__(52);
-	var PooledClass = __webpack_require__(56);
-	var ReactInstanceHandles = __webpack_require__(41);
-	var ReactMount = __webpack_require__(43);
-	var ReactUpdates = __webpack_require__(19);
+	var EventListener = __webpack_require__(141);
+	var ExecutionEnvironment = __webpack_require__(33);
+	var PooledClass = __webpack_require__(54);
+	var ReactInstanceHandles = __webpack_require__(22);
+	var ReactMount = __webpack_require__(24);
+	var ReactUpdates = __webpack_require__(39);
 
-	var assign = __webpack_require__(49);
-	var getEventTarget = __webpack_require__(128);
-	var getUnboundedScrollPosition = __webpack_require__(148);
+	var assign = __webpack_require__(30);
+	var getEventTarget = __webpack_require__(142);
+	var getUnboundedScrollPosition = __webpack_require__(143);
 
 	/**
 	 * Finds the parent React component of `node`.
@@ -21868,7 +18835,7 @@
 
 
 /***/ },
-/* 106 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21884,16 +18851,16 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(64);
-	var EventPluginHub = __webpack_require__(68);
-	var ReactComponent = __webpack_require__(32);
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactEmptyComponent = __webpack_require__(77);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
-	var ReactNativeComponent = __webpack_require__(130);
-	var ReactPerf = __webpack_require__(45);
-	var ReactRootIndex = __webpack_require__(112);
-	var ReactUpdates = __webpack_require__(19);
+	var DOMProperty = __webpack_require__(46);
+	var EventPluginHub = __webpack_require__(115);
+	var ReactComponent = __webpack_require__(13);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactEmptyComponent = __webpack_require__(56);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
+	var ReactNativeComponent = __webpack_require__(121);
+	var ReactPerf = __webpack_require__(26);
+	var ReactRootIndex = __webpack_require__(94);
+	var ReactUpdates = __webpack_require__(39);
 
 	var ReactInjection = {
 	  Component: ReactComponent.injection,
@@ -21912,7 +18879,7 @@
 
 
 /***/ },
-/* 107 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -21928,15 +18895,15 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPropagators = __webpack_require__(69);
-	var ReactInputSelection = __webpack_require__(137);
-	var SyntheticEvent = __webpack_require__(71);
+	var EventConstants = __webpack_require__(50);
+	var EventPropagators = __webpack_require__(116);
+	var ReactInputSelection = __webpack_require__(131);
+	var SyntheticEvent = __webpack_require__(117);
 
-	var getActiveElement = __webpack_require__(149);
-	var isTextInputElement = __webpack_require__(136);
+	var getActiveElement = __webpack_require__(144);
+	var isTextInputElement = __webpack_require__(130);
 	var keyOf = __webpack_require__(62);
-	var shallowEqual = __webpack_require__(54);
+	var shallowEqual = __webpack_require__(104);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -22111,7 +19078,7 @@
 
 
 /***/ },
-/* 108 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22146,7 +19113,7 @@
 
 
 /***/ },
-/* 109 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22162,24 +19129,24 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(67);
-	var EventPluginUtils = __webpack_require__(30);
-	var EventPropagators = __webpack_require__(69);
-	var SyntheticClipboardEvent = __webpack_require__(150);
-	var SyntheticEvent = __webpack_require__(71);
-	var SyntheticFocusEvent = __webpack_require__(151);
-	var SyntheticKeyboardEvent = __webpack_require__(152);
-	var SyntheticMouseEvent = __webpack_require__(140);
-	var SyntheticDragEvent = __webpack_require__(153);
-	var SyntheticTouchEvent = __webpack_require__(154);
-	var SyntheticUIEvent = __webpack_require__(155);
-	var SyntheticWheelEvent = __webpack_require__(156);
+	var EventConstants = __webpack_require__(50);
+	var EventPluginUtils = __webpack_require__(11);
+	var EventPropagators = __webpack_require__(116);
+	var SyntheticClipboardEvent = __webpack_require__(145);
+	var SyntheticEvent = __webpack_require__(117);
+	var SyntheticFocusEvent = __webpack_require__(146);
+	var SyntheticKeyboardEvent = __webpack_require__(147);
+	var SyntheticMouseEvent = __webpack_require__(134);
+	var SyntheticDragEvent = __webpack_require__(148);
+	var SyntheticTouchEvent = __webpack_require__(149);
+	var SyntheticUIEvent = __webpack_require__(150);
+	var SyntheticWheelEvent = __webpack_require__(151);
 
-	var getEventCharCode = __webpack_require__(157);
+	var getEventCharCode = __webpack_require__(152);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 	var keyOf = __webpack_require__(62);
-	var warning = __webpack_require__(59);
+	var warning = __webpack_require__(49);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -22574,10 +19541,10 @@
 
 	module.exports = SimpleEventPlugin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 110 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22595,7 +19562,7 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(64);
+	var DOMProperty = __webpack_require__(46);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 
@@ -22673,7 +19640,7 @@
 
 
 /***/ },
-/* 111 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22691,10 +19658,10 @@
 	"use strict";
 
 	// Defeat circular references by requiring this directly.
-	var ReactCompositeComponent = __webpack_require__(33);
-	var ReactElement = __webpack_require__(36);
+	var ReactCompositeComponent = __webpack_require__(14);
+	var ReactElement = __webpack_require__(17);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Create a component that will throw an exception when unmounted.
@@ -22734,10 +19701,10 @@
 
 	module.exports = createFullPageComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 112 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22772,7 +19739,7 @@
 
 
 /***/ },
-/* 113 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22787,7 +19754,7 @@
 	 * @typechecks
 	 */
 
-	var isTextNode = __webpack_require__(158);
+	var isTextNode = __webpack_require__(153);
 
 	/*jslint bitwise:true */
 
@@ -22820,7 +19787,7 @@
 
 
 /***/ },
-/* 114 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22859,7 +19826,7 @@
 
 
 /***/ },
-/* 115 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22875,7 +19842,7 @@
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(76);
+	var keyMirror = __webpack_require__(53);
 
 	/**
 	 * When a component's children are updated, a series of update configuration
@@ -22896,7 +19863,7 @@
 
 
 /***/ },
-/* 116 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -22912,10 +19879,10 @@
 
 	"use strict";
 
-	var ReactTextComponent = __webpack_require__(48);
+	var ReactTextComponent = __webpack_require__(29);
 
-	var traverseAllChildren = __webpack_require__(74);
-	var warning = __webpack_require__(59);
+	var traverseAllChildren = __webpack_require__(55);
+	var warning = __webpack_require__(49);
 
 	/**
 	 * @param {function} traverseContext Context passed through traversal.
@@ -22965,10 +19932,48 @@
 
 	module.exports = flattenChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 117 */
+/* 99 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule emptyFunction
+	 */
+
+	function makeEmptyFunction(arg) {
+	  return function() {
+	    return arg;
+	  };
+	}
+
+	/**
+	 * This function accepts and discards inputs; it has no side effects. This is
+	 * primarily useful idiomatically for overridable function endpoints which
+	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+	 */
+	function emptyFunction() {}
+
+	emptyFunction.thatReturns = makeEmptyFunction;
+	emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+	emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+	emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+	emptyFunction.thatReturnsThis = function() { return this; };
+	emptyFunction.thatReturnsArgument = function(arg) { return arg; };
+
+	module.exports = emptyFunction;
+
+
+/***/ },
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -22984,7 +19989,7 @@
 
 	"use strict";
 
-	var adler32 = __webpack_require__(159);
+	var adler32 = __webpack_require__(154);
 
 	var ReactMarkupChecksum = {
 	  CHECKSUM_ATTR_NAME: 'data-react-checksum',
@@ -23020,7 +20025,7 @@
 
 
 /***/ },
-/* 118 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23037,13 +20042,13 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(56);
-	var CallbackQueue = __webpack_require__(55);
-	var ReactPutListenerQueue = __webpack_require__(160);
-	var Transaction = __webpack_require__(57);
+	var PooledClass = __webpack_require__(54);
+	var CallbackQueue = __webpack_require__(111);
+	var ReactPutListenerQueue = __webpack_require__(155);
+	var Transaction = __webpack_require__(112);
 
-	var assign = __webpack_require__(49);
-	var emptyFunction = __webpack_require__(61);
+	var assign = __webpack_require__(30);
+	var emptyFunction = __webpack_require__(99);
 
 	/**
 	 * Provides a `CallbackQueue` queue for collecting `onDOMReady` callbacks
@@ -23137,6 +20142,2954 @@
 
 
 /***/ },
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactLink
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	/**
+	 * ReactLink encapsulates a common pattern in which a component wants to modify
+	 * a prop received from its parent. ReactLink allows the parent to pass down a
+	 * value coupled with a callback that, when invoked, expresses an intent to
+	 * modify that value. For example:
+	 *
+	 * React.createClass({
+	 *   getInitialState: function() {
+	 *     return {value: ''};
+	 *   },
+	 *   render: function() {
+	 *     var valueLink = new ReactLink(this.state.value, this._handleValueChange);
+	 *     return <input valueLink={valueLink} />;
+	 *   },
+	 *   this._handleValueChange: function(newValue) {
+	 *     this.setState({value: newValue});
+	 *   }
+	 * });
+	 *
+	 * We have provided some sugary mixins to make the creation and
+	 * consumption of ReactLink easier; see LinkedValueUtils and LinkedStateMixin.
+	 */
+
+	var React = __webpack_require__(5);
+
+	/**
+	 * @param {*} value current value of the link
+	 * @param {function} requestChange callback to request a change
+	 */
+	function ReactLink(value, requestChange) {
+	  this.value = value;
+	  this.requestChange = requestChange;
+	}
+
+	/**
+	 * Creates a PropType that enforces the ReactLink API and optionally checks the
+	 * type of the value being passed inside the link. Example:
+	 *
+	 * MyComponent.propTypes = {
+	 *   tabIndexLink: ReactLink.PropTypes.link(React.PropTypes.number)
+	 * }
+	 */
+	function createLinkTypeChecker(linkType) {
+	  var shapes = {
+	    value: typeof linkType === 'undefined' ?
+	      React.PropTypes.any.isRequired :
+	      linkType.isRequired,
+	    requestChange: React.PropTypes.func.isRequired
+	  };
+	  return React.PropTypes.shape(shapes);
+	}
+
+	ReactLink.PropTypes = {
+	  link: createLinkTypeChecker
+	};
+
+	module.exports = ReactLink;
+
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactStateSetters
+	 */
+
+	"use strict";
+
+	var ReactStateSetters = {
+	  /**
+	   * Returns a function that calls the provided function, and uses the result
+	   * of that to set the component's state.
+	   *
+	   * @param {ReactCompositeComponent} component
+	   * @param {function} funcReturningState Returned callback uses this to
+	   *                                      determine how to update state.
+	   * @return {function} callback that when invoked uses funcReturningState to
+	   *                    determined the object literal to setState.
+	   */
+	  createStateSetter: function(component, funcReturningState) {
+	    return function(a, b, c, d, e, f) {
+	      var partialState = funcReturningState.call(component, a, b, c, d, e, f);
+	      if (partialState) {
+	        component.setState(partialState);
+	      }
+	    };
+	  },
+
+	  /**
+	   * Returns a single-argument callback that can be used to update a single
+	   * key in the component's state.
+	   *
+	   * Note: this is memoized function, which makes it inexpensive to call.
+	   *
+	   * @param {ReactCompositeComponent} component
+	   * @param {string} key The key in the state that you should update.
+	   * @return {function} callback of 1 argument which calls setState() with
+	   *                    the provided keyName and callback argument.
+	   */
+	  createStateKeySetter: function(component, key) {
+	    // Memoize the setters.
+	    var cache = component.__keySetters || (component.__keySetters = {});
+	    return cache[key] || (cache[key] = createStateKeySetter(component, key));
+	  }
+	};
+
+	function createStateKeySetter(component, key) {
+	  // Partial state is allocated outside of the function closure so it can be
+	  // reused with every call, avoiding memory allocation when this function
+	  // is called.
+	  var partialState = {};
+	  return function stateKeySetter(value) {
+	    partialState[key] = value;
+	    component.setState(partialState);
+	  };
+	}
+
+	ReactStateSetters.Mixin = {
+	  /**
+	   * Returns a function that calls the provided function, and uses the result
+	   * of that to set the component's state.
+	   *
+	   * For example, these statements are equivalent:
+	   *
+	   *   this.setState({x: 1});
+	   *   this.createStateSetter(function(xValue) {
+	   *     return {x: xValue};
+	   *   })(1);
+	   *
+	   * @param {function} funcReturningState Returned callback uses this to
+	   *                                      determine how to update state.
+	   * @return {function} callback that when invoked uses funcReturningState to
+	   *                    determined the object literal to setState.
+	   */
+	  createStateSetter: function(funcReturningState) {
+	    return ReactStateSetters.createStateSetter(this, funcReturningState);
+	  },
+
+	  /**
+	   * Returns a single-argument callback that can be used to update a single
+	   * key in the component's state.
+	   *
+	   * For example, these statements are equivalent:
+	   *
+	   *   this.setState({x: 1});
+	   *   this.createStateKeySetter('x')(1);
+	   *
+	   * Note: this is memoized function, which makes it inexpensive to call.
+	   *
+	   * @param {string} key The key in the state that you should update.
+	   * @return {function} callback of 1 argument which calls setState() with
+	   *                    the provided keyName and callback argument.
+	   */
+	  createStateKeySetter: function(key) {
+	    return ReactStateSetters.createStateKeySetter(this, key);
+	  }
+	};
+
+	module.exports = ReactStateSetters;
+
+
+/***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule shallowEqual
+	 */
+
+	"use strict";
+
+	/**
+	 * Performs equality by iterating through keys on an object and returning
+	 * false when any key has values which are not strictly equal between
+	 * objA and objB. Returns true when the values of all keys are strictly equal.
+	 *
+	 * @return {boolean}
+	 */
+	function shallowEqual(objA, objB) {
+	  if (objA === objB) {
+	    return true;
+	  }
+	  var key;
+	  // Test for A's keys different from B.
+	  for (key in objA) {
+	    if (objA.hasOwnProperty(key) &&
+	        (!objB.hasOwnProperty(key) || objA[key] !== objB[key])) {
+	      return false;
+	    }
+	  }
+	  // Test for B's keys missing from A.
+	  for (key in objB) {
+	    if (objB.hasOwnProperty(key) && !objA.hasOwnProperty(key)) {
+	      return false;
+	    }
+	  }
+	  return true;
+	}
+
+	module.exports = shallowEqual;
+
+
+/***/ },
+/* 105 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * @name Util
+	 * @namespace
+	 * @classdesc Miscellaneous util functions.
+	 */
+
+	/* ---------------- */
+	/* Private helpers. */
+	/* ---------------- */
+
+	// resolveArgs
+
+	var isRequired, findTurningPoint, prepare;
+
+	isRequired = function (spec) {
+	  return typeof spec === 'string' && spec.charAt(0) !== '?';
+	};
+
+	findTurningPoint = function (arr, pred) {
+	  var first = pred(arr[0]);
+	  for (var i = 1; i < arr.length; i++) {
+	    if (pred(arr[i]) !== first) return i;
+	  }
+	  return null;
+	};
+
+	prepare = function (arr, splitAt) {
+	  return arr.slice(splitAt).reverse().concat(arr.slice(0, splitAt));
+	};
+
+	module.exports = {
+
+	  /** Identity function. Returns its first argument.
+	   * @param {*} x argument to return
+	   * @return {*} its first argument
+	   * @memberOf Util */
+	  identity: function (x) {
+	    return x;
+	  },
+
+	  /** 'Not' function returning logical not of its argument.
+	   * @param {*} x argument
+	   * @returns {*} !x
+	   * @memberOf Util */
+	  not: function (x) {
+	    return !x;
+	  },
+
+	  /** Create constant function (always returning x).
+	   * @param {*} x constant function return value
+	   * @return {Function} function always returning x
+	   * @memberOf Util */
+	  constantly: function (x) {
+	    return function () { return x; };
+	  },
+
+	  /** Execute function asynchronously.
+	   * @param {Function} f function */
+	  async: function (f) {
+	    setTimeout(f, 0);
+	  },
+
+	  /** Execute function f, then function cont. If f returns a promise, cont is executed when the promise resolves.
+	   * @param {Function} f function to execute first
+	   * @param {Function} cont function to execute after f
+	   * @memberOf Util */
+	  afterComplete: function (f, cont) {
+	    var result = f();
+	    if (result && typeof result.always === 'function') {
+	      result.always(cont);
+	    } else {
+	      cont();
+	    }
+	  },
+
+	  /** Check if argument is undefined or null.
+	   * @param {*} x argument to check
+	   * @returns {Boolean}
+	   * @memberOf Util */
+	  undefinedOrNull: function (x) {
+	    return x === undefined || x === null;
+	  },
+
+	  /** Get values of object properties.
+	   * @param {Object} obj object
+	   * @return {Array} object's properties values
+	   * @memberOf Util */
+	  getPropertyValues: function (obj) {
+	    return Object.keys(obj).map(function (key) { return obj[key]; });
+	  },
+
+	  /** Find array element satisfying the predicate.
+	   * @param {Array} arr array
+	   * @param {Function} pred predicate accepting current value, index, original array
+	   * @return {*} found value or null
+	   * @memberOf Util */
+	  find: function (arr, pred) {
+	    for (var i = 0; i < arr.length; i++) {
+	      var value = arr[i];
+	      if (pred(value, i, arr)) {
+	        return value;
+	      }
+	    }
+	    return null;
+	  },
+
+	  /** Resolve arguments. Acceptable spec formats:
+	   * <ul>
+	   *   <li>'foo' - required argument 'foo';</li>
+	   *   <li>'?foo' - optional argument 'foo';</li>
+	   *   <li>function (arg) { return arg instanceof MyClass ? 'foo' : null; } - checked optional argument.</li>
+	   * </ul>
+	   * Specs can only switch optional flag once in the list. This invariant isn't checked by the method,
+	   * its violation will produce indeterminate results.
+	   * <p>Optional arguments are matched in order, left to right. Provide check function if you need to allow to skip
+	   * one optional argument and use sebsequent optional arguments instead.
+	   * <p>Returned arguments descriptor contains argument names mapped to resolved values.
+	   * @param {Array} args arguments 'array'
+	   * @param {*} var_args arguments specs as a var-args list or array, see method description
+	   * @returns {Object} arguments descriptor object
+	   * @memberOf Util */
+	  resolveArgs: function (args, var_args) {
+	    var result = {};
+	    if (arguments.length > 1) {
+	      var specs = Array.isArray(var_args) ? var_args : Array.prototype.slice.call(arguments, 1);
+	      var preparedSpecs, preparedArgs;
+	      var turningPoint;
+
+	      if (isRequired(specs[0]) || !(turningPoint = findTurningPoint(specs, isRequired))) {
+	        preparedSpecs = specs;
+	        preparedArgs = args;
+	      } else {
+	        var effectiveArgs = Array.isArray(args) ? args : Array.prototype.slice.call(args);
+	        preparedSpecs = prepare(specs, turningPoint);
+	        preparedArgs = prepare(effectiveArgs, effectiveArgs.length - (specs.length - turningPoint));
+	      }
+
+	      for (var specIndex = 0, argIndex = 0;
+	           specIndex < preparedSpecs.length && argIndex < preparedArgs.length; specIndex++) {
+	        var spec = preparedSpecs[specIndex], arg = preparedArgs[argIndex];
+	        if (isRequired(spec)) {
+	          result[spec] = arg;
+	          argIndex++;
+	        } else {
+	          var name = typeof spec === 'function' ? spec(arg) : (spec.charAt(0) !== '?' ? spec : spec.substring(1));
+	          if (name || arg === undefined) {
+	            result[name] = arg;
+	            argIndex++;
+	          }
+	        }
+	      }
+	    }
+
+	    return result;
+	  },
+
+	  /** Check if argument can be valid binding subpath.
+	   * @param {*} x
+	   * @returns {Boolean}
+	   * @memberOf Util */
+	  canRepresentSubpath: function (x) {
+	    var type = typeof x;
+	    return type === 'string' || type === 'number' || Array.isArray(x);
+	  },
+
+	  /** ES6 Object.assign.
+	   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign */
+	  assign: function (target, firstSource) {
+	    if (target === undefined || target === null) {
+	      throw new TypeError('Cannot convert first argument to object');
+	    }
+
+	    var to = Object(target);
+
+	    var hasPendingException = false;
+	    var pendingException;
+
+	    for (var i = 1; i < arguments.length; i++) {
+	      var nextSource = arguments[i];
+	      if (nextSource === undefined || nextSource === null)
+	        continue;
+
+	      var keysArray = Object.keys(Object(nextSource));
+	      for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
+	        var nextKey = keysArray[nextIndex];
+	        try {
+	          var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+	          if (desc !== undefined && desc.enumerable)
+	            to[nextKey] = nextSource[nextKey];
+	        } catch (e) {
+	          if (!hasPendingException) {
+	            hasPendingException = true;
+	            pendingException = e;
+	          }
+	        }
+	      }
+
+	      if (hasPendingException)
+	        throw pendingException;
+	    }
+	    return to;
+	  }
+
+	};
+
+
+/***/ },
+/* 106 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Imm = __webpack_require__(9);
+	var Util = __webpack_require__(105);
+	var ChangesDescriptor = __webpack_require__(156);
+
+	/* ---------------- */
+	/* Private helpers. */
+	/* ---------------- */
+
+	var UNSET_VALUE = {};
+
+	var getBackingValue, setBackingValue;
+
+	getBackingValue = function (binding) {
+	  return binding._sharedInternals.backingValue;
+	};
+
+	setBackingValue = function (binding, newBackingValue) {
+	  binding._sharedInternals.backingValue = newBackingValue;
+	};
+
+	var EMPTY_PATH, PATH_SEPARATOR, META_NODE, getPathElements, joinPaths, getMetaPath, getValueAtPath;
+
+	EMPTY_PATH = [];
+	PATH_SEPARATOR = '.';
+	META_NODE = '__meta__';
+
+	getPathElements = function (path) {
+	  return path ? path.split(PATH_SEPARATOR) : [];
+	};
+
+	joinPaths = function (path1, path2) {
+	  return path1.length === 0 ? path2 :
+	    (path2.length === 0 ? path1 : path1.concat(path2));
+	};
+
+	getMetaPath = function (subpath, key) {
+	  return joinPaths(subpath, [META_NODE, key]);
+	};
+
+	getValueAtPath = function (backingValue, path) {
+	  return backingValue && path.length > 0 ? backingValue.getIn(path) : backingValue;
+	};
+
+	var asArrayPath, asStringPath;
+
+	asArrayPath = function (path) {
+	  return typeof path === 'string' ?
+	    getPathElements(path) :
+	    (Util.undefinedOrNull(path) ? [] : path);
+	};
+
+	asStringPath = function (path) {
+	  switch (typeof path) {
+	    case 'string':
+	      return path;
+	    case 'number':
+	      return path.toString();
+	    default:
+	      return Util.undefinedOrNull(path) ? '' : path.join(PATH_SEPARATOR);
+	  }
+	};
+
+	var setOrUpdate, updateValue, deleteValue, merge, clear;
+
+	setOrUpdate = function (rootValue, effectivePath, f) {
+	  return rootValue.updateIn(effectivePath, UNSET_VALUE, function (value) {
+	    return value === UNSET_VALUE ? f() : f(value);
+	  });
+	};
+
+	updateValue = function (self, subpath, f) {
+	  var effectivePath = joinPaths(self._path, subpath);
+	  var newBackingValue = setOrUpdate(getBackingValue(self), effectivePath, f);
+	  setBackingValue(self, newBackingValue);
+	  return effectivePath;
+	};
+
+	deleteValue = function (self, subpath) {
+	  var effectivePath = joinPaths(self._path, subpath);
+	  var backingValue = getBackingValue(self);
+
+	  var len = effectivePath.length;
+	  switch (len) {
+	    case 0:
+	      throw new Error('Cannot delete root value');
+	    default:
+	      var pathTo = effectivePath.slice(0, len - 1);
+	      if (backingValue.has(pathTo[0]) || len === 1) {
+	        var newBackingValue = backingValue.updateIn(pathTo, function (coll) {
+	          var key = effectivePath[len - 1];
+	          if (coll instanceof Imm.List) {
+	            return coll.splice(key, 1);
+	          } else {
+	            return coll && coll.delete(key);
+	          }
+	        });
+
+	        setBackingValue(self, newBackingValue);
+	      }
+
+	      return pathTo;
+	  }
+	};
+
+	merge = function (preserve, newValue, value) {
+	  if (Util.undefinedOrNull(value)) {
+	    return newValue;
+	  } else {
+	    if (value instanceof Imm.Iterable && newValue instanceof Imm.Iterable) {
+	      return preserve ? newValue.mergeDeep(value) : value.mergeDeep(newValue);
+	    } else {
+	      return preserve ? value : newValue;
+	    }
+	  }
+	};
+
+	clear = function (value) {
+	  return value instanceof Imm.Iterable ? value.clear() : null;
+	};
+
+	var notifySamePathListeners, notifyGlobalListeners, startsWith, isPathAffected, notifyNonGlobalListeners, notifyAllListeners;
+
+	notifySamePathListeners =
+	  function (self, samePathListeners, listenerPath, path, previousBackingValue, previousMeta) {
+	    if (previousBackingValue || previousMeta) {
+	      Util.getPropertyValues(samePathListeners).forEach(function (listenerDescriptor) {
+	        if (!listenerDescriptor.disabled) {
+	          var listenerPathAsArray = asArrayPath(listenerPath);
+	          var currentBackingValue = getBackingValue(self);
+
+	          var valueChanged = !!previousBackingValue &&
+	            currentBackingValue.getIn(listenerPathAsArray) !== previousBackingValue.getIn(listenerPathAsArray);
+	          var metaChanged = !!previousMeta;
+
+	          if (valueChanged || metaChanged) {
+	            listenerDescriptor.cb(
+	              new ChangesDescriptor(
+	                path, listenerPathAsArray, valueChanged, previousBackingValue, previousMeta
+	              )
+	            );
+	          }
+	        }
+	      });
+	    }
+	  };
+
+	notifyGlobalListeners = function (self, path, previousBackingValue, previousMeta) {
+	  var listeners = self._sharedInternals.listeners;
+	  var globalListeners = listeners[''];
+	  if (globalListeners) {
+	    notifySamePathListeners(
+	      self, globalListeners, EMPTY_PATH, path, previousBackingValue, previousMeta);
+	  }
+	};
+
+	startsWith = function (s1, s2) {
+	  return s1.indexOf(s2) === 0;
+	};
+
+	isPathAffected = function (listenerPath, changedPath) {
+	  return startsWith(changedPath, listenerPath) || startsWith(listenerPath, changedPath);
+	};
+
+	notifyNonGlobalListeners = function (self, path, previousBackingValue, previousMeta) {
+	  var listeners = self._sharedInternals.listeners;
+	  Object.keys(listeners).filter(Util.identity).forEach(function (listenerPath) {
+	    if (isPathAffected(listenerPath, asStringPath(path))) {
+	      notifySamePathListeners(
+	        self, listeners[listenerPath], listenerPath, path, previousBackingValue, previousMeta);
+	    }
+	  });
+	};
+
+	notifyAllListeners = function (self, path, previousBackingValue, previousMeta) {
+	  notifyGlobalListeners(self, path, previousBackingValue, previousMeta);
+	  notifyNonGlobalListeners(self, path, previousBackingValue, previousMeta);
+	};
+
+	var linkMeta, unlinkMeta;
+
+	linkMeta = function (self, metaBinding) {
+	  self._sharedInternals.metaBindingListenerId = metaBinding.addListener(function (changes) {
+	    var metaNodePath = changes.getPath();
+	    var changedPath = metaNodePath.slice(0, metaNodePath.length - 1);
+	    var previousMeta = changes.isValueChanged() ? changes.getPreviousValue() : getBackingValue(metaBinding);
+
+	    notifyAllListeners(self, changedPath, null, previousMeta);
+	  });
+	};
+
+	unlinkMeta = function (self, metaBinding) {
+	  var removed = metaBinding.removeListener(self._sharedInternals.metaBindingListenerId);
+	  self._sharedInternals.metaBinding = null;
+	  self._sharedInternals.metaBindingListenerId = null;
+	  return removed;
+	};
+
+	var findSamePathListeners, setListenerDisabled;
+
+	findSamePathListeners = function (self, listenerId) {
+	  return Util.find(
+	    Util.getPropertyValues(self._sharedInternals.listeners),
+	    function (samePathListeners) { return !!samePathListeners[listenerId]; }
+	  );
+	};
+
+	setListenerDisabled = function (self, listenerId, disabled) {
+	  var samePathListeners = findSamePathListeners(self, listenerId);
+	  if (samePathListeners) {
+	    samePathListeners[listenerId].disabled = disabled;
+	  }
+	};
+
+	var update, delete_;
+
+	update = function (self, subpath, f) {
+	  var previousBackingValue = getBackingValue(self);
+	  var affectedPath = updateValue(self, asArrayPath(subpath), f);
+	  notifyAllListeners(self, affectedPath, previousBackingValue, null);
+	};
+
+	delete_ = function (self, subpath) {
+	  var previousBackingValue = getBackingValue(self);
+	  var affectedPath = deleteValue(self, asArrayPath(subpath));
+	  notifyAllListeners(self, affectedPath, previousBackingValue, null);
+	};
+
+	/** Binding constructor.
+	 * @param {String[]} [path] binding path, empty array if omitted
+	 * @param {Object} [sharedInternals] shared relative bindings internals:
+	 * <ul>
+	 *   <li>backingValue - backing value;</li>
+	 *   <li>metaBinding - meta binding;</li>
+	 *   <li>metaBindingListenerId - meta binding listener id;</li>
+	 *   <li>regCount - registration count (used for listener id generation);</li>
+	 *   <li>listeners - change listeners;</li>
+	 *   <li>cache - bindings cache.</li>
+	 * </ul>
+	 * @public
+	 * @class Binding
+	 * @classdesc Wraps immutable collection. Provides convenient read-write access to nested values.
+	 * Allows to create sub-bindings (or views) narrowed to a subpath and sharing the same backing value.
+	 * Changes to these bindings are mutually visible.
+	 * <p>Terminology:
+	 * <ul>
+	 *   <li>
+	 *     (sub)path - path to a value within nested associative data structure, example: 'path.t.0.some.value';
+	 *   </li>
+	 *   <li>
+	 *     backing value - value shared by all bindings created using [sub]{@link Binding#sub} method.
+	 *   </li>
+	 * </ul>
+	 * <p>Features:
+	 * <ul>
+	 *   <li>can create sub-bindings sharing same backing value. Sub-binding can only modify values down its subpath;</li>
+	 *   <li>allows to conveniently modify nested values: assign, update with a function, remove, and so on;</li>
+	 *   <li>can attach change listeners to a specific subpath;</li>
+	 *   <li>can perform multiple changes atomically in respect of listener notification.</li>
+	 * </ul>
+	 * @see Binding.init */
+	var Binding = function (path, sharedInternals) {
+	  /** @private */
+	  this._path = path || EMPTY_PATH;
+
+	  /** @private */
+	  this._sharedInternals = sharedInternals || {};
+
+	  if (Util.undefinedOrNull(this._sharedInternals.regCount)) {
+	    this._sharedInternals.regCount = 0;
+	  }
+
+	  if (!this._sharedInternals.listeners) {
+	    this._sharedInternals.listeners = {};
+	  }
+
+	  if (!this._sharedInternals.cache) {
+	    this._sharedInternals.cache = {};
+	  }
+	};
+
+	/* --------------- */
+	/* Static helpers. */
+	/* --------------- */
+
+	/** Create new binding with empty listeners set.
+	 * @param {Immutable.Map} backingValue backing value
+	 * @param {Binding} [metaBinding] meta binding
+	 * @return {Binding} fresh binding instance */
+	Binding.init = function (backingValue, metaBinding) {
+	  var binding = new Binding(EMPTY_PATH, {
+	    backingValue: backingValue,
+	    metaBinding: metaBinding
+	  });
+
+	  if (metaBinding) {
+	    linkMeta(binding, metaBinding);
+	  }
+
+	  return binding;
+	};
+
+	/** Convert string path to array path.
+	 * @param {String} pathAsString path as string
+	 * @return {Array} path as an array */
+	Binding.asArrayPath = function (pathAsString) {
+	  return asArrayPath(pathAsString);
+	};
+
+	/** Convert array path to string path.
+	 * @param {String[]} pathAsAnArray path as an array
+	 * @return {String} path as a string */
+	Binding.asStringPath = function (pathAsAnArray) {
+	  return asStringPath(pathAsAnArray);
+	};
+
+	/** Meta node name.
+	 * @type {String} */
+	Binding.META_NODE = META_NODE;
+
+	Binding.prototype = Object.freeze( /** @lends Binding.prototype */ {
+
+	  /** Get binding path.
+	   * @returns {Array} binding path */
+	  getPath: function () {
+	    return this._path;
+	  },
+
+	  /** Update backing value.
+	   * @param {Immutable.Map} newBackingValue new backing value
+	   * @return {Binding} new binding instance, original is unaffected */
+	  withBackingValue: function (newBackingValue) {
+	    var newSharedInternals = {};
+	    Util.assign(newSharedInternals, this._sharedInternals);
+	    newSharedInternals.backingValue = newBackingValue;
+	    return new Binding(this._path, newSharedInternals);
+	  },
+
+	  /** Check if binding value is changed in alternative backing value.
+	   * @param {Immutable.Map} alternativeBackingValue alternative backing value
+	   * @param {Function} [compare] alternative compare function, does reference equality check if omitted */
+	  isChanged: function (alternativeBackingValue, compare) {
+	    var value = this.get();
+	    if (!Util.undefinedOrNull(alternativeBackingValue)) {
+	      var alternativeValue =
+	        this._path.length > 0 ? alternativeBackingValue.getIn(this._path) : alternativeBackingValue;
+	      return !(compare ? compare(value, alternativeValue) : value === alternativeValue);
+	    } else {
+	      return !Util.undefinedOrNull(this._sharedInternals.backingValue);
+	    }
+	  },
+
+	  /** Check if this and supplied binding are relatives (i.e. share same backing value).
+	   * @param {Binding} otherBinding potential relative
+	   * @return {Boolean} */
+	  isRelative: function (otherBinding) {
+	    return this._sharedInternals === otherBinding._sharedInternals &&
+	      this._sharedInternals.backingValue === otherBinding._sharedInternals.backingValue;
+	  },
+
+	  /** Get binding's meta binding.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers;
+	   *                                 b.meta('path') is equivalent to b.meta().sub('path')
+	   * @returns {Binding} meta binding or undefined */
+	  meta: function (subpath) {
+	    if (!this._sharedInternals.metaBinding) {
+	      var metaBinding = Binding.init(Imm.Map());
+	      linkMeta(this, metaBinding);
+	      this._sharedInternals.metaBinding = metaBinding;
+	    }
+
+	    var effectiveSubpath = subpath ? joinPaths([META_NODE], asArrayPath(subpath)) : [META_NODE];
+	    var thisPath = this.getPath();
+	    var absolutePath = thisPath.length > 0 ? joinPaths(thisPath, effectiveSubpath) : effectiveSubpath;
+	    return this._sharedInternals.metaBinding.sub(absolutePath);
+	  },
+
+	  /** Unlink this binding's meta binding, removing change listener and making them totally independent.
+	   * May be used to prevent memory leaks when appropriate.
+	   * @return {Boolean} true if binding's meta binding was unlinked */
+	  unlinkMeta: function () {
+	    var metaBinding = this._sharedInternals.metaBinding;
+	    return metaBinding ? unlinkMeta(this, metaBinding) : false;
+	  },
+
+	  /** Get binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {*} value at path or null */
+	  get: function (subpath) {
+	    return getValueAtPath(getBackingValue(this), joinPaths(this._path, asArrayPath(subpath)));
+	  },
+
+	  /** Convert to JS representation.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {*} JS representation of data at subpath */
+	  toJS: function (subpath) {
+	    var value = this.sub(subpath).get();
+	    return value instanceof Imm.Iterable ? value.toJS() : value;
+	  },
+
+	  /** Bind to subpath. Both bindings share the same backing value. Changes are mutually visible.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} new binding instance, original is unaffected */
+	  sub: function (subpath) {
+	    var pathAsArray = asArrayPath(subpath);
+	    var absolutePath = joinPaths(this._path, pathAsArray);
+	    if (absolutePath.length > 0) {
+	      var absolutePathAsString = asStringPath(absolutePath);
+	      var cached = this._sharedInternals.cache[absolutePathAsString];
+
+	      if (cached) {
+	        return cached;
+	      } else {
+	        var subBinding = new Binding(absolutePath, this._sharedInternals);
+	        this._sharedInternals.cache[absolutePathAsString] = subBinding;
+	        return subBinding;
+	      }
+	    } else {
+	      return this;
+	    }
+	  },
+
+	  /** Update binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} f f function
+	   * @return {Binding} this binding */
+	  update: function (subpath, f) {
+	    var args = Util.resolveArgs(arguments, '?subpath', 'f');
+	    update(this, args.subpath, args.f);
+	    return this;
+	  },
+
+	  /** Set binding value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {*} newValue new value
+	   * @return {Binding} this binding */
+	  set: function (subpath, newValue) {
+	    var args = Util.resolveArgs(arguments, '?subpath', 'newValue');
+	    update(this, args.subpath, Util.constantly(args.newValue));
+	    return this;
+	  },
+
+	  /** Delete value.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} this binding */
+	  delete: function (subpath) {
+	    delete_(this, subpath);
+	    return this;
+	  },
+
+	  /** Deep merge values.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Boolean} [preserve] preserve existing values when merging, false by default
+	   * @param {*} newValue new value
+	   * @return {Binding} this binding */
+	  merge: function (subpath, preserve, newValue) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
+	      '?preserve',
+	      'newValue'
+	    );
+	    update(this, args.subpath, merge.bind(null, args.preserve, args.newValue));
+	    return this;
+	  },
+
+	  /** Clear nested collection. Does '.clear()' on Immutable values, nullifies otherwise.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @return {Binding} this binding */
+	  clear: function (subpath) {
+	    var subpathAsArray = asArrayPath(subpath);
+	    if (!Util.undefinedOrNull(this.get(subpathAsArray))) {
+	      update(this, subpathAsArray, clear);
+	    }
+	    return this;
+	  },
+
+	  /** Add change listener.
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} cb function receiving changes descriptor
+	   * @return {String} unique id which should be used to un-register the listener
+	   * @see ChangesDescriptor */
+	  addListener: function (subpath, cb) {
+	    var args = Util.resolveArgs(
+	      arguments, function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, 'cb'
+	    );
+
+	    var listenerId = 'reg' + this._sharedInternals.regCount++;
+	    var pathAsString = asStringPath(joinPaths(this._path, asArrayPath(args.subpath || '')));
+	    var samePathListeners = this._sharedInternals.listeners[pathAsString];
+	    var listenerDescriptor = { cb: args.cb, disabled: false };
+	    if (samePathListeners) {
+	      samePathListeners[listenerId] = listenerDescriptor;
+	    } else {
+	      var listeners = {};
+	      listeners[listenerId] = listenerDescriptor;
+	      this._sharedInternals.listeners[pathAsString] = listeners;
+	    }
+	    return listenerId;
+	  },
+
+	  /** Enable listener.
+	   * @param {String} listenerId listener id
+	   * @return {Binding} this binding */
+	  enableListener: function (listenerId) {
+	    setListenerDisabled(this, listenerId, false);
+	    return this;
+	  },
+
+	  /** Disable listener.
+	   * @param {String} listenerId listener id
+	   * @return {Binding} this binding */
+	  disableListener: function (listenerId) {
+	    setListenerDisabled(this, listenerId, true);
+	    return this;
+	  },
+
+	  /** Execute function with listener temporarily disabled. Correctly handles functions returning promises.
+	   * @param {String} listenerId listener id
+	   * @param {Function} f function to execute
+	   * @return {Binding} this binding */
+	  withDisabledListener: function (listenerId, f) {
+	    var samePathListeners = findSamePathListeners(this, listenerId);
+	    if (samePathListeners) {
+	      var descriptor = samePathListeners[listenerId];
+	      descriptor.disabled = true;
+	      Util.afterComplete(f, function () { descriptor.disabled = false; });
+	    } else {
+	      f();
+	    }
+	    return this;
+	  },
+
+	  /** Un-register the listener.
+	   * @param {String} listenerId listener id
+	   * @return {Boolean} true if listener removed successfully, false otherwise */
+	  removeListener: function (listenerId) {
+	    var samePathListeners = findSamePathListeners(this, listenerId);
+	    return samePathListeners ? delete samePathListeners[listenerId] : false;
+	  },
+
+	  /** Create transaction context.
+	   * @return {TransactionContext} transaction context */
+	  atomically: function () {
+	    return new TransactionContext(this);
+	  }
+
+	});
+
+	/** Transaction context constructor.
+	 * @param {Binding} binding binding
+	 * @param {Function[]} [updates] queued updates
+	 * @param {Function[]} [removals] queued removals
+	 * @public
+	 * @class TransactionContext
+	 * @classdesc Transaction context. */
+	var TransactionContext = function (binding, updates, removals) {
+	  /** @private */
+	  this._binding = binding;
+	  /** @private */
+	  this._updates = updates || [];
+	  /** @private */
+	  this._deletions = removals || [];
+	  /** @private */
+	  this._committed = false;
+
+	  /** @private */
+	  this._hasChanges = false;
+	  /** @private */
+	  this._hasMetaChanges = false;
+	};
+
+	TransactionContext.prototype = (function () {
+
+	  var registerUpdate, hasChanges;
+
+	  registerUpdate = function (self, binding) {
+	    if (!self._hasChanges) {
+	      self._hasChanges = binding.isRelative(self._binding);
+	    }
+
+	    if (!self._hasMetaChanges) {
+	      self._hasMetaChanges = !binding.isRelative(self._binding);
+	    }
+	  };
+
+	  hasChanges = function (self) {
+	    return self._hasChanges || self._hasMetaChanges;
+	  };
+
+	  var addUpdate, addDeletion, areSiblings, filterRedundantPaths, commitSilently;
+
+	  addUpdate = function (self, binding, update, subpath) {
+	    registerUpdate(self, binding);
+	    self._updates.push({ binding: binding, update: update, subpath: subpath });
+	  };
+
+	  addDeletion = function (self, binding, subpath) {
+	    registerUpdate(self, binding);
+	    self._deletions.push({ binding: binding, subpath: subpath });
+	  };
+
+	  areSiblings = function (path1, path2) {
+	    var path1Length = path1.length, path2Length = path2.length;
+	    return path1Length === path2Length &&
+	      (path1Length === 1 || path1[path1Length - 2] === path2[path1Length - 2]);
+	  };
+
+	  filterRedundantPaths = function (affectedPaths) {
+	    if (affectedPaths.length < 2) {
+	      return affectedPaths;
+	    } else {
+	      var sortedPaths = affectedPaths.sort();
+	      var previousPath = sortedPaths[0], previousPathAsString = asStringPath(previousPath);
+	      var result = [previousPath];
+	      for (var i = 1; i < sortedPaths.length; i++) {
+	        var currentPath = sortedPaths[i], currentPathAsString = asStringPath(currentPath);
+	        if (!startsWith(currentPathAsString, previousPathAsString)) {
+	          if (areSiblings(currentPath, previousPath)) {
+	            var commonParentPath = currentPath.slice(0, currentPath.length - 1);
+	            result.pop();
+	            result.push(commonParentPath);
+	            previousPath = commonParentPath;
+	            previousPathAsString = asStringPath(commonParentPath);
+	          } else {
+	            result.push(currentPath);
+	            previousPath = currentPath;
+	            previousPathAsString = currentPathAsString;
+	          }
+	        }
+	      }
+	      return result;
+	    }
+	  };
+
+	  commitSilently = function (self) {
+	    if (!self._committed) {
+	      var updatedPaths = self._updates.map(function (o) { return updateValue(o.binding, o.subpath, o.update); });
+	      var removedPaths = self._deletions.map(function (o) { return deleteValue(o.binding, o.subpath); });
+	      self._committed = true;
+	      return joinPaths(updatedPaths, removedPaths);
+	    } else {
+	      throw new Error('Transaction already committed');
+	    }
+	  };
+
+	  return Object.freeze( /** @lends TransactionContext.prototype */ {
+
+	    /** Update binding value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {Function} f update function
+	     * @return {TransactionContext} updated transaction */
+	    update: function (binding, subpath, f) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'f'
+	      );
+	      addUpdate(this, args.binding || this._binding, args.f, asArrayPath(args.subpath));
+	      return this;
+	    },
+
+	    /** Set binding value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {*} newValue new value
+	     * @return {TransactionContext} updated transaction context */
+	    set: function (binding, subpath, newValue) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath', 'newValue'
+	      );
+	      return this.update(args.binding, args.subpath, Util.constantly(args.newValue));
+	    },
+
+	    /** Remove value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @return {TransactionContext} updated transaction context */
+	    delete: function (binding, subpath) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
+	      );
+	      addDeletion(this, args.binding || this._binding, asArrayPath(args.subpath));
+	      return this;
+	    },
+
+	    /** Deep merge values.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @param {Boolean} [preserve] preserve existing values when merging, false by default
+	     * @param {*} newValue new value
+	     * @return {TransactionContext} updated transaction context */
+	    merge: function (binding, subpath, preserve, newValue) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; },
+	        function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; },
+	        function (x) { return typeof x === 'boolean' ? 'preserve' : null; },
+	        'newValue'
+	      );
+	      return this.update(args.binding, args.subpath, merge.bind(null, args.preserve, args.newValue));
+	    },
+
+	    /** Clear collection or nullify nested value.
+	     * @param {Binding} [binding] binding to apply update to
+	     * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	     * @return {TransactionContext} updated transaction context */
+	    clear: function (binding, subpath) {
+	      var args = Util.resolveArgs(
+	        arguments,
+	        function (x) { return x instanceof Binding ? 'binding' : null; }, '?subpath'
+	      );
+	      addUpdate(this, args.binding || this._binding, clear, asArrayPath(args.subpath));
+	      return this;
+	    },
+
+	    /** Commit transaction (write changes and notify listeners).
+	     * @param {Object} [options] options object, supported options are:
+	     * <ul>
+	     *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	     * </ul>
+	     * @return {String[]} array of affected paths */
+	    commit: function (options) {
+	      if (hasChanges(this)) {
+	        var effectiveOptions = options || {};
+	        var binding = this._binding;
+
+	        var previousBackingValue = null, previousMetaValue = null;
+	        if (effectiveOptions.notify !== false) {
+	          if (this._hasChanges) previousBackingValue = getBackingValue(binding);
+	          if (this._hasMetaChanges) previousMetaValue = getBackingValue(binding.meta());
+	        }
+
+	        var affectedPaths = commitSilently(this);
+
+	        if (effectiveOptions.notify !== false) {
+	          var filteredPaths = filterRedundantPaths(affectedPaths);
+	          notifyGlobalListeners(binding, filteredPaths[0], previousBackingValue, previousMetaValue);
+	          filteredPaths.forEach(function (path) {
+	            notifyNonGlobalListeners(binding, path, previousBackingValue, previousMetaValue);
+	          });
+	        }
+
+	        return affectedPaths;
+
+	      } else {
+	        return [];
+	      }
+	    }
+
+	  });
+	})();
+
+	module.exports = Binding;
+
+
+/***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Imm = __webpack_require__(9);
+	var Binding = __webpack_require__(106);
+
+	var getHistoryBinding, initHistory, clearHistory, destroyHistory, listenForChanges, revertToStep, revert;
+
+	getHistoryBinding = function (binding) {
+	  return binding.meta('history');
+	};
+
+	initHistory = function (historyBinding) {
+	  historyBinding.set(Imm.fromJS({ listenerId: null, undo: [], redo: [] }));
+	};
+
+	clearHistory = function (historyBinding) {
+	  var listenerId = historyBinding.get('listenerId');
+	  historyBinding.withDisabledListener(listenerId, function () {
+	    historyBinding.atomically()
+	      .set('undo', Imm.List.of())
+	      .set('redo', Imm.List.of())
+	      .commit();
+	  });
+	};
+
+	destroyHistory = function (binding, notify) {
+	  var historyBinding = getHistoryBinding(binding);
+	  var listenerId = historyBinding.get('listenerId');
+	  binding.removeListener(listenerId);
+	  historyBinding.atomically().set(null).commit({ notify: notify });
+	};
+
+	listenForChanges = function (binding, historyBinding) {
+	  var listenerId = binding.addListener([], function (changes) {
+	    if (changes.isValueChanged()) {
+	      historyBinding.atomically().update(function (history) {
+	        var path = changes.getPath();
+	        var previousValue = changes.getPreviousValue(), newValue = binding.get();
+	        return history
+	          .update('undo', function (undo) {
+	            var pathAsArray = Binding.asArrayPath(path);
+	            return undo && undo.unshift(Imm.Map({
+	              newValue: pathAsArray.length ? newValue.getIn(pathAsArray) : newValue,
+	              oldValue: pathAsArray.length ? previousValue && previousValue.getIn(pathAsArray) : previousValue,
+	              path: path
+	            }));
+	          })
+	          .set('redo', Imm.List.of());
+	      }).commit({ notify: false });
+	    }
+	  });
+
+	  historyBinding.atomically().set('listenerId', listenerId).commit({ notify: false });
+	};
+
+	revertToStep = function (path, value, listenerId, binding) {
+	  binding.withDisabledListener(listenerId, function () {
+	    binding.set(path, value);
+	  });
+	};
+
+	revert = function (binding, fromBinding, toBinding, listenerId, valueProperty) {
+	  var from = fromBinding.get();
+	  if (from.count() > 0) {
+	    var step = from.get(0);
+
+	    fromBinding.atomically()
+	      .delete(0)
+	      .update(toBinding, function (to) {
+	        return to.unshift(step);
+	      })
+	      .commit({ notify: false });
+
+	    revertToStep(step.get('path'), step.get(valueProperty), listenerId, binding);
+	    return true;
+	  } else {
+	    return false;
+	  }
+	};
+
+
+	/**
+	 * @name History
+	 * @namespace
+	 * @classdesc Undo/redo history handling.
+	 */
+	var History = {
+
+	  /** Init history.
+	   * @param {Binding} binding binding
+	   * @memberOf History */
+	  init: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    initHistory(historyBinding);
+	    listenForChanges(binding, historyBinding);
+	  },
+
+	  /** Clear history.
+	   * @param {Binding} binding binding
+	   * @memberOf History */
+	  clear: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    clearHistory(historyBinding);
+	  },
+
+	  /** Clear history and shutdown listener.
+	   * @param {Binding} binding history binding
+	   * @param {Object} [options] options object, supported options are:
+	   * <ul>
+	   *   <li>notify - should listeners be notified, true by default, set to false to disable notification.</li>
+	   * </ul>
+	   * @memberOf History */
+	  destroy: function (binding, options) {
+	    var effectiveOptions = options || {};
+	    destroyHistory(binding, effectiveOptions.notify);
+	  },
+
+	  /** Check if history has undo information.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean}
+	   * @memberOf History */
+	  hasUndo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var undo = historyBinding.get('undo');
+	    return !!undo && undo.count() > 0;
+	  },
+
+	  /** Check if history has redo information.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean}
+	   * @memberOf History */
+	  hasRedo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var redo = historyBinding.get('redo');
+	    return !!redo && redo.count() > 0;
+	  },
+
+	  /** Revert to previous state.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean} true, if binding has undo information
+	   * @memberOf History */
+	  undo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var listenerId = historyBinding.get('listenerId');
+	    var undoBinding = historyBinding.sub('undo');
+	    var redoBinding = historyBinding.sub('redo');
+	    return revert(binding, undoBinding, redoBinding, listenerId, 'oldValue');
+	  },
+
+	  /** Revert to next state.
+	   * @param {Binding} binding binding
+	   * @returns {Boolean} true, if binding has redo information
+	   * @memberOf History */
+	  redo: function (binding) {
+	    var historyBinding = getHistoryBinding(binding);
+	    var listenerId = historyBinding.get('listenerId');
+	    var undoBinding = historyBinding.sub('undo');
+	    var redoBinding = historyBinding.sub('redo');
+	    return revert(binding, redoBinding, undoBinding, listenerId, 'newValue');
+	  }
+
+	};
+
+	module.exports = History;
+
+
+/***/ },
+/* 108 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Util  = __webpack_require__(105);
+	var React = __webpack_require__(3);
+
+	var _ = (function() {
+	  if (React) return React.DOM;
+	  else {
+	    throw new Error('Morearty: global variable React not found');
+	  }
+	})();
+
+	var wrapComponent = function (comp, displayName) {
+	  return React.createClass({
+
+	    displayName: displayName,
+
+	    getInitialState: function () {
+	      return { value: this.props.value };
+	    },
+
+	    onChange: function (event) {
+	      var handler = this.props.onChange;
+	      if (handler) {
+	        handler(event);
+	        this.setState({ value: event.target.value });
+	      }
+	    },
+
+	    componentWillReceiveProps: function (newProps) {
+	      this.setState({ value: newProps.value });
+	    },
+
+	    render: function () {
+	      var props = Util.assign({}, this.props, {
+	        value: this.state.value,
+	        onChange: this.onChange,
+	        children: this.props.children
+	      });
+	      return comp(props);
+	    }
+
+	  });
+	};
+
+	/**
+	 * @name DOM
+	 * @namespace
+	 * @classdesc DOM module. Exposes requestAnimationFrame-friendly wrappers around input, textarea, and option.
+	 */
+	var DOM = {
+
+	  input: wrapComponent(_.input, 'input'),
+
+	  textarea: wrapComponent(_.textarea, 'textarea'),
+
+	  option: wrapComponent(_.option, 'option')
+
+	};
+
+	module.exports = DOM;
+
+
+/***/ },
+/* 109 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @typechecks
+	 * @providesModule ReactCSSTransitionGroupChild
+	 */
+
+	"use strict";
+
+	var React = __webpack_require__(5);
+
+	var CSSCore = __webpack_require__(157);
+	var ReactTransitionEvents = __webpack_require__(158);
+
+	var onlyChild = __webpack_require__(32);
+
+	// We don't remove the element from the DOM until we receive an animationend or
+	// transitionend event. If the user screws up and forgets to add an animation
+	// their node will be stuck in the DOM forever, so we detect if an animation
+	// does not start and if it doesn't, we just call the end listener immediately.
+	var TICK = 17;
+	var NO_EVENT_TIMEOUT = 5000;
+
+	var noEventListener = null;
+
+
+	if ("production" !== process.env.NODE_ENV) {
+	  noEventListener = function() {
+	    console.warn(
+	      'transition(): tried to perform an animation without ' +
+	      'an animationend or transitionend event after timeout (' +
+	      NO_EVENT_TIMEOUT + 'ms). You should either disable this ' +
+	      'transition in JS or add a CSS animation/transition.'
+	    );
+	  };
+	}
+
+	var ReactCSSTransitionGroupChild = React.createClass({
+	  displayName: 'ReactCSSTransitionGroupChild',
+
+	  transition: function(animationType, finishCallback) {
+	    var node = this.getDOMNode();
+	    var className = this.props.name + '-' + animationType;
+	    var activeClassName = className + '-active';
+	    var noEventTimeout = null;
+
+	    var endListener = function(e) {
+	      if (e && e.target !== node) {
+	        return;
+	      }
+	      if ("production" !== process.env.NODE_ENV) {
+	        clearTimeout(noEventTimeout);
+	      }
+
+	      CSSCore.removeClass(node, className);
+	      CSSCore.removeClass(node, activeClassName);
+
+	      ReactTransitionEvents.removeEndEventListener(node, endListener);
+
+	      // Usually this optional callback is used for informing an owner of
+	      // a leave animation and telling it to remove the child.
+	      finishCallback && finishCallback();
+	    };
+
+	    ReactTransitionEvents.addEndEventListener(node, endListener);
+
+	    CSSCore.addClass(node, className);
+
+	    // Need to do this to actually trigger a transition.
+	    this.queueClass(activeClassName);
+
+	    if ("production" !== process.env.NODE_ENV) {
+	      noEventTimeout = setTimeout(noEventListener, NO_EVENT_TIMEOUT);
+	    }
+	  },
+
+	  queueClass: function(className) {
+	    this.classNameQueue.push(className);
+
+	    if (!this.timeout) {
+	      this.timeout = setTimeout(this.flushClassNameQueue, TICK);
+	    }
+	  },
+
+	  flushClassNameQueue: function() {
+	    if (this.isMounted()) {
+	      this.classNameQueue.forEach(
+	        CSSCore.addClass.bind(CSSCore, this.getDOMNode())
+	      );
+	    }
+	    this.classNameQueue.length = 0;
+	    this.timeout = null;
+	  },
+
+	  componentWillMount: function() {
+	    this.classNameQueue = [];
+	  },
+
+	  componentWillUnmount: function() {
+	    if (this.timeout) {
+	      clearTimeout(this.timeout);
+	    }
+	  },
+
+	  componentWillEnter: function(done) {
+	    if (this.props.enter) {
+	      this.transition('enter', done);
+	    } else {
+	      done();
+	    }
+	  },
+
+	  componentWillLeave: function(done) {
+	    if (this.props.leave) {
+	      this.transition('leave', done);
+	    } else {
+	      done();
+	    }
+	  },
+
+	  render: function() {
+	    return onlyChild(this.props.children);
+	  }
+	});
+
+	module.exports = ReactCSSTransitionGroupChild;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 110 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @typechecks static-only
+	 * @providesModule ReactTransitionChildMapping
+	 */
+
+	"use strict";
+
+	var ReactChildren = __webpack_require__(12);
+
+	var ReactTransitionChildMapping = {
+	  /**
+	   * Given `this.props.children`, return an object mapping key to child. Just
+	   * simple syntactic sugar around ReactChildren.map().
+	   *
+	   * @param {*} children `this.props.children`
+	   * @return {object} Mapping of key to child
+	   */
+	  getChildMapping: function(children) {
+	    return ReactChildren.map(children, function(child) {
+	      return child;
+	    });
+	  },
+
+	  /**
+	   * When you're adding or removing children some may be added or removed in the
+	   * same render pass. We want to show *both* since we want to simultaneously
+	   * animate elements in and out. This function takes a previous set of keys
+	   * and a new set of keys and merges them with its best guess of the correct
+	   * ordering. In the future we may expose some of the utilities in
+	   * ReactMultiChild to make this easy, but for now React itself does not
+	   * directly have this concept of the union of prevChildren and nextChildren
+	   * so we implement it here.
+	   *
+	   * @param {object} prev prev children as returned from
+	   * `ReactTransitionChildMapping.getChildMapping()`.
+	   * @param {object} next next children as returned from
+	   * `ReactTransitionChildMapping.getChildMapping()`.
+	   * @return {object} a key set that contains all keys in `prev` and all keys
+	   * in `next` in a reasonable order.
+	   */
+	  mergeChildMappings: function(prev, next) {
+	    prev = prev || {};
+	    next = next || {};
+
+	    function getValueForKey(key) {
+	      if (next.hasOwnProperty(key)) {
+	        return next[key];
+	      } else {
+	        return prev[key];
+	      }
+	    }
+
+	    // For each key of `next`, the list of keys to insert before that key in
+	    // the combined list
+	    var nextKeysPending = {};
+
+	    var pendingKeys = [];
+	    for (var prevKey in prev) {
+	      if (next.hasOwnProperty(prevKey)) {
+	        if (pendingKeys.length) {
+	          nextKeysPending[prevKey] = pendingKeys;
+	          pendingKeys = [];
+	        }
+	      } else {
+	        pendingKeys.push(prevKey);
+	      }
+	    }
+
+	    var i;
+	    var childMapping = {};
+	    for (var nextKey in next) {
+	      if (nextKeysPending.hasOwnProperty(nextKey)) {
+	        for (i = 0; i < nextKeysPending[nextKey].length; i++) {
+	          var pendingNextKey = nextKeysPending[nextKey][i];
+	          childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
+	            pendingNextKey
+	          );
+	        }
+	      }
+	      childMapping[nextKey] = getValueForKey(nextKey);
+	    }
+
+	    // Finally, add the keys which didn't appear before any key in `next`
+	    for (i = 0; i < pendingKeys.length; i++) {
+	      childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
+	    }
+
+	    return childMapping;
+	  }
+	};
+
+	module.exports = ReactTransitionChildMapping;
+
+
+/***/ },
+/* 111 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule CallbackQueue
+	 */
+
+	"use strict";
+
+	var PooledClass = __webpack_require__(54);
+
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * A specialized pseudo-event module to help keep track of components waiting to
+	 * be notified when their DOM representations are available for use.
+	 *
+	 * This implements `PooledClass`, so you should never need to instantiate this.
+	 * Instead, use `CallbackQueue.getPooled()`.
+	 *
+	 * @class ReactMountReady
+	 * @implements PooledClass
+	 * @internal
+	 */
+	function CallbackQueue() {
+	  this._callbacks = null;
+	  this._contexts = null;
+	}
+
+	assign(CallbackQueue.prototype, {
+
+	  /**
+	   * Enqueues a callback to be invoked when `notifyAll` is invoked.
+	   *
+	   * @param {function} callback Invoked when `notifyAll` is invoked.
+	   * @param {?object} context Context to call `callback` with.
+	   * @internal
+	   */
+	  enqueue: function(callback, context) {
+	    this._callbacks = this._callbacks || [];
+	    this._contexts = this._contexts || [];
+	    this._callbacks.push(callback);
+	    this._contexts.push(context);
+	  },
+
+	  /**
+	   * Invokes all enqueued callbacks and clears the queue. This is invoked after
+	   * the DOM representation of a component has been created or updated.
+	   *
+	   * @internal
+	   */
+	  notifyAll: function() {
+	    var callbacks = this._callbacks;
+	    var contexts = this._contexts;
+	    if (callbacks) {
+	      ("production" !== process.env.NODE_ENV ? invariant(
+	        callbacks.length === contexts.length,
+	        "Mismatched list of contexts in callback queue"
+	      ) : invariant(callbacks.length === contexts.length));
+	      this._callbacks = null;
+	      this._contexts = null;
+	      for (var i = 0, l = callbacks.length; i < l; i++) {
+	        callbacks[i].call(contexts[i]);
+	      }
+	      callbacks.length = 0;
+	      contexts.length = 0;
+	    }
+	  },
+
+	  /**
+	   * Resets the internal queue.
+	   *
+	   * @internal
+	   */
+	  reset: function() {
+	    this._callbacks = null;
+	    this._contexts = null;
+	  },
+
+	  /**
+	   * `PooledClass` looks for this.
+	   */
+	  destructor: function() {
+	    this.reset();
+	  }
+
+	});
+
+	PooledClass.addPoolingTo(CallbackQueue);
+
+	module.exports = CallbackQueue;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 112 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule Transaction
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * `Transaction` creates a black box that is able to wrap any method such that
+	 * certain invariants are maintained before and after the method is invoked
+	 * (Even if an exception is thrown while invoking the wrapped method). Whoever
+	 * instantiates a transaction can provide enforcers of the invariants at
+	 * creation time. The `Transaction` class itself will supply one additional
+	 * automatic invariant for you - the invariant that any transaction instance
+	 * should not be run while it is already being run. You would typically create a
+	 * single instance of a `Transaction` for reuse multiple times, that potentially
+	 * is used to wrap several different methods. Wrappers are extremely simple -
+	 * they only require implementing two methods.
+	 *
+	 * <pre>
+	 *                       wrappers (injected at creation time)
+	 *                                      +        +
+	 *                                      |        |
+	 *                    +-----------------|--------|--------------+
+	 *                    |                 v        |              |
+	 *                    |      +---------------+   |              |
+	 *                    |   +--|    wrapper1   |---|----+         |
+	 *                    |   |  +---------------+   v    |         |
+	 *                    |   |          +-------------+  |         |
+	 *                    |   |     +----|   wrapper2  |--------+   |
+	 *                    |   |     |    +-------------+  |     |   |
+	 *                    |   |     |                     |     |   |
+	 *                    |   v     v                     v     v   | wrapper
+	 *                    | +---+ +---+   +---------+   +---+ +---+ | invariants
+	 * perform(anyMethod) | |   | |   |   |         |   |   | |   | | maintained
+	 * +----------------->|-|---|-|---|-->|anyMethod|---|---|-|---|-|-------->
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | |   | |   |   |         |   |   | |   | |
+	 *                    | +---+ +---+   +---------+   +---+ +---+ |
+	 *                    |  initialize                    close    |
+	 *                    +-----------------------------------------+
+	 * </pre>
+	 *
+	 * Use cases:
+	 * - Preserving the input selection ranges before/after reconciliation.
+	 *   Restoring selection even in the event of an unexpected error.
+	 * - Deactivating events while rearranging the DOM, preventing blurs/focuses,
+	 *   while guaranteeing that afterwards, the event system is reactivated.
+	 * - Flushing a queue of collected DOM mutations to the main UI thread after a
+	 *   reconciliation takes place in a worker thread.
+	 * - Invoking any collected `componentDidUpdate` callbacks after rendering new
+	 *   content.
+	 * - (Future use case): Wrapping particular flushes of the `ReactWorker` queue
+	 *   to preserve the `scrollTop` (an automatic scroll aware DOM).
+	 * - (Future use case): Layout calculations before and after DOM upates.
+	 *
+	 * Transactional plugin API:
+	 * - A module that has an `initialize` method that returns any precomputation.
+	 * - and a `close` method that accepts the precomputation. `close` is invoked
+	 *   when the wrapped process is completed, or has failed.
+	 *
+	 * @param {Array<TransactionalWrapper>} transactionWrapper Wrapper modules
+	 * that implement `initialize` and `close`.
+	 * @return {Transaction} Single transaction for reuse in thread.
+	 *
+	 * @class Transaction
+	 */
+	var Mixin = {
+	  /**
+	   * Sets up this instance so that it is prepared for collecting metrics. Does
+	   * so such that this setup method may be used on an instance that is already
+	   * initialized, in a way that does not consume additional memory upon reuse.
+	   * That can be useful if you decide to make your subclass of this mixin a
+	   * "PooledClass".
+	   */
+	  reinitializeTransaction: function() {
+	    this.transactionWrappers = this.getTransactionWrappers();
+	    if (!this.wrapperInitData) {
+	      this.wrapperInitData = [];
+	    } else {
+	      this.wrapperInitData.length = 0;
+	    }
+	    this._isInTransaction = false;
+	  },
+
+	  _isInTransaction: false,
+
+	  /**
+	   * @abstract
+	   * @return {Array<TransactionWrapper>} Array of transaction wrappers.
+	   */
+	  getTransactionWrappers: null,
+
+	  isInTransaction: function() {
+	    return !!this._isInTransaction;
+	  },
+
+	  /**
+	   * Executes the function within a safety window. Use this for the top level
+	   * methods that result in large amounts of computation/mutations that would
+	   * need to be safety checked.
+	   *
+	   * @param {function} method Member of scope to call.
+	   * @param {Object} scope Scope to invoke from.
+	   * @param {Object?=} args... Arguments to pass to the method (optional).
+	   *                           Helps prevent need to bind in many cases.
+	   * @return Return value from `method`.
+	   */
+	  perform: function(method, scope, a, b, c, d, e, f) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !this.isInTransaction(),
+	      'Transaction.perform(...): Cannot initialize a transaction when there ' +
+	      'is already an outstanding transaction.'
+	    ) : invariant(!this.isInTransaction()));
+	    var errorThrown;
+	    var ret;
+	    try {
+	      this._isInTransaction = true;
+	      // Catching errors makes debugging more difficult, so we start with
+	      // errorThrown set to true before setting it to false after calling
+	      // close -- if it's still set to true in the finally block, it means
+	      // one of these calls threw.
+	      errorThrown = true;
+	      this.initializeAll(0);
+	      ret = method.call(scope, a, b, c, d, e, f);
+	      errorThrown = false;
+	    } finally {
+	      try {
+	        if (errorThrown) {
+	          // If `method` throws, prefer to show that stack trace over any thrown
+	          // by invoking `closeAll`.
+	          try {
+	            this.closeAll(0);
+	          } catch (err) {
+	          }
+	        } else {
+	          // Since `method` didn't throw, we don't want to silence the exception
+	          // here.
+	          this.closeAll(0);
+	        }
+	      } finally {
+	        this._isInTransaction = false;
+	      }
+	    }
+	    return ret;
+	  },
+
+	  initializeAll: function(startIndex) {
+	    var transactionWrappers = this.transactionWrappers;
+	    for (var i = startIndex; i < transactionWrappers.length; i++) {
+	      var wrapper = transactionWrappers[i];
+	      try {
+	        // Catching errors makes debugging more difficult, so we start with the
+	        // OBSERVED_ERROR state before overwriting it with the real return value
+	        // of initialize -- if it's still set to OBSERVED_ERROR in the finally
+	        // block, it means wrapper.initialize threw.
+	        this.wrapperInitData[i] = Transaction.OBSERVED_ERROR;
+	        this.wrapperInitData[i] = wrapper.initialize ?
+	          wrapper.initialize.call(this) :
+	          null;
+	      } finally {
+	        if (this.wrapperInitData[i] === Transaction.OBSERVED_ERROR) {
+	          // The initializer for wrapper i threw an error; initialize the
+	          // remaining wrappers but silence any exceptions from them to ensure
+	          // that the first error is the one to bubble up.
+	          try {
+	            this.initializeAll(i + 1);
+	          } catch (err) {
+	          }
+	        }
+	      }
+	    }
+	  },
+
+	  /**
+	   * Invokes each of `this.transactionWrappers.close[i]` functions, passing into
+	   * them the respective return values of `this.transactionWrappers.init[i]`
+	   * (`close`rs that correspond to initializers that failed will not be
+	   * invoked).
+	   */
+	  closeAll: function(startIndex) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      this.isInTransaction(),
+	      'Transaction.closeAll(): Cannot close transaction when none are open.'
+	    ) : invariant(this.isInTransaction()));
+	    var transactionWrappers = this.transactionWrappers;
+	    for (var i = startIndex; i < transactionWrappers.length; i++) {
+	      var wrapper = transactionWrappers[i];
+	      var initData = this.wrapperInitData[i];
+	      var errorThrown;
+	      try {
+	        // Catching errors makes debugging more difficult, so we start with
+	        // errorThrown set to true before setting it to false after calling
+	        // close -- if it's still set to true in the finally block, it means
+	        // wrapper.close threw.
+	        errorThrown = true;
+	        if (initData !== Transaction.OBSERVED_ERROR) {
+	          wrapper.close && wrapper.close.call(this, initData);
+	        }
+	        errorThrown = false;
+	      } finally {
+	        if (errorThrown) {
+	          // The closer for wrapper i threw an error; close the remaining
+	          // wrappers but silence any exceptions from them to ensure that the
+	          // first error is the one to bubble up.
+	          try {
+	            this.closeAll(i + 1);
+	          } catch (e) {
+	          }
+	        }
+	      }
+	    }
+	    this.wrapperInitData.length = 0;
+	  }
+	};
+
+	var Transaction = {
+
+	  Mixin: Mixin,
+
+	  /**
+	   * Token to look for to determine if an error occured.
+	   */
+	  OBSERVED_ERROR: {}
+
+	};
+
+	module.exports = Transaction;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 113 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactDefaultPerfAnalysis
+	 */
+
+	var assign = __webpack_require__(30);
+
+	// Don't try to save users less than 1.2ms (a number I made up)
+	var DONT_CARE_THRESHOLD = 1.2;
+	var DOM_OPERATION_TYPES = {
+	  'mountImageIntoNode': 'set innerHTML',
+	  INSERT_MARKUP: 'set innerHTML',
+	  MOVE_EXISTING: 'move',
+	  REMOVE_NODE: 'remove',
+	  TEXT_CONTENT: 'set textContent',
+	  'updatePropertyByID': 'update attribute',
+	  'deletePropertyByID': 'delete attribute',
+	  'updateStylesByID': 'update styles',
+	  'updateInnerHTMLByID': 'set innerHTML',
+	  'dangerouslyReplaceNodeWithMarkupByID': 'replace'
+	};
+
+	function getTotalTime(measurements) {
+	  // TODO: return number of DOM ops? could be misleading.
+	  // TODO: measure dropped frames after reconcile?
+	  // TODO: log total time of each reconcile and the top-level component
+	  // class that triggered it.
+	  var totalTime = 0;
+	  for (var i = 0; i < measurements.length; i++) {
+	    var measurement = measurements[i];
+	    totalTime += measurement.totalTime;
+	  }
+	  return totalTime;
+	}
+
+	function getDOMSummary(measurements) {
+	  var items = [];
+	  for (var i = 0; i < measurements.length; i++) {
+	    var measurement = measurements[i];
+	    var id;
+
+	    for (id in measurement.writes) {
+	      measurement.writes[id].forEach(function(write) {
+	        items.push({
+	          id: id,
+	          type: DOM_OPERATION_TYPES[write.type] || write.type,
+	          args: write.args
+	        });
+	      });
+	    }
+	  }
+	  return items;
+	}
+
+	function getExclusiveSummary(measurements) {
+	  var candidates = {};
+	  var displayName;
+
+	  for (var i = 0; i < measurements.length; i++) {
+	    var measurement = measurements[i];
+	    var allIDs = assign(
+	      {},
+	      measurement.exclusive,
+	      measurement.inclusive
+	    );
+
+	    for (var id in allIDs) {
+	      displayName = measurement.displayNames[id].current;
+
+	      candidates[displayName] = candidates[displayName] || {
+	        componentName: displayName,
+	        inclusive: 0,
+	        exclusive: 0,
+	        render: 0,
+	        count: 0
+	      };
+	      if (measurement.render[id]) {
+	        candidates[displayName].render += measurement.render[id];
+	      }
+	      if (measurement.exclusive[id]) {
+	        candidates[displayName].exclusive += measurement.exclusive[id];
+	      }
+	      if (measurement.inclusive[id]) {
+	        candidates[displayName].inclusive += measurement.inclusive[id];
+	      }
+	      if (measurement.counts[id]) {
+	        candidates[displayName].count += measurement.counts[id];
+	      }
+	    }
+	  }
+
+	  // Now make a sorted array with the results.
+	  var arr = [];
+	  for (displayName in candidates) {
+	    if (candidates[displayName].exclusive >= DONT_CARE_THRESHOLD) {
+	      arr.push(candidates[displayName]);
+	    }
+	  }
+
+	  arr.sort(function(a, b) {
+	    return b.exclusive - a.exclusive;
+	  });
+
+	  return arr;
+	}
+
+	function getInclusiveSummary(measurements, onlyClean) {
+	  var candidates = {};
+	  var inclusiveKey;
+
+	  for (var i = 0; i < measurements.length; i++) {
+	    var measurement = measurements[i];
+	    var allIDs = assign(
+	      {},
+	      measurement.exclusive,
+	      measurement.inclusive
+	    );
+	    var cleanComponents;
+
+	    if (onlyClean) {
+	      cleanComponents = getUnchangedComponents(measurement);
+	    }
+
+	    for (var id in allIDs) {
+	      if (onlyClean && !cleanComponents[id]) {
+	        continue;
+	      }
+
+	      var displayName = measurement.displayNames[id];
+
+	      // Inclusive time is not useful for many components without knowing where
+	      // they are instantiated. So we aggregate inclusive time with both the
+	      // owner and current displayName as the key.
+	      inclusiveKey = displayName.owner + ' > ' + displayName.current;
+
+	      candidates[inclusiveKey] = candidates[inclusiveKey] || {
+	        componentName: inclusiveKey,
+	        time: 0,
+	        count: 0
+	      };
+
+	      if (measurement.inclusive[id]) {
+	        candidates[inclusiveKey].time += measurement.inclusive[id];
+	      }
+	      if (measurement.counts[id]) {
+	        candidates[inclusiveKey].count += measurement.counts[id];
+	      }
+	    }
+	  }
+
+	  // Now make a sorted array with the results.
+	  var arr = [];
+	  for (inclusiveKey in candidates) {
+	    if (candidates[inclusiveKey].time >= DONT_CARE_THRESHOLD) {
+	      arr.push(candidates[inclusiveKey]);
+	    }
+	  }
+
+	  arr.sort(function(a, b) {
+	    return b.time - a.time;
+	  });
+
+	  return arr;
+	}
+
+	function getUnchangedComponents(measurement) {
+	  // For a given reconcile, look at which components did not actually
+	  // render anything to the DOM and return a mapping of their ID to
+	  // the amount of time it took to render the entire subtree.
+	  var cleanComponents = {};
+	  var dirtyLeafIDs = Object.keys(measurement.writes);
+	  var allIDs = assign({}, measurement.exclusive, measurement.inclusive);
+
+	  for (var id in allIDs) {
+	    var isDirty = false;
+	    // For each component that rendered, see if a component that triggered
+	    // a DOM op is in its subtree.
+	    for (var i = 0; i < dirtyLeafIDs.length; i++) {
+	      if (dirtyLeafIDs[i].indexOf(id) === 0) {
+	        isDirty = true;
+	        break;
+	      }
+	    }
+	    if (!isDirty && measurement.counts[id] > 0) {
+	      cleanComponents[id] = true;
+	    }
+	  }
+	  return cleanComponents;
+	}
+
+	var ReactDefaultPerfAnalysis = {
+	  getExclusiveSummary: getExclusiveSummary,
+	  getInclusiveSummary: getInclusiveSummary,
+	  getDOMSummary: getDOMSummary,
+	  getTotalTime: getTotalTime
+	};
+
+	module.exports = ReactDefaultPerfAnalysis;
+
+
+/***/ },
+/* 114 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule performanceNow
+	 * @typechecks
+	 */
+
+	var performance = __webpack_require__(159);
+
+	/**
+	 * Detect if we can use `window.performance.now()` and gracefully fallback to
+	 * `Date.now()` if it doesn't exist. We need to support Firefox < 15 for now
+	 * because of Facebook's testing infrastructure.
+	 */
+	if (!performance || !performance.now) {
+	  performance = Date;
+	}
+
+	var performanceNow = performance.now.bind(performance);
+
+	module.exports = performanceNow;
+
+
+/***/ },
+/* 115 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule EventPluginHub
+	 */
+
+	"use strict";
+
+	var EventPluginRegistry = __webpack_require__(126);
+	var EventPluginUtils = __webpack_require__(11);
+
+	var accumulateInto = __webpack_require__(160);
+	var forEachAccumulated = __webpack_require__(161);
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * Internal store for event listeners
+	 */
+	var listenerBank = {};
+
+	/**
+	 * Internal queue of events that have accumulated their dispatches and are
+	 * waiting to have their dispatches executed.
+	 */
+	var eventQueue = null;
+
+	/**
+	 * Dispatches an event and releases it back into the pool, unless persistent.
+	 *
+	 * @param {?object} event Synthetic event to be dispatched.
+	 * @private
+	 */
+	var executeDispatchesAndRelease = function(event) {
+	  if (event) {
+	    var executeDispatch = EventPluginUtils.executeDispatch;
+	    // Plugins can provide custom behavior when dispatching events.
+	    var PluginModule = EventPluginRegistry.getPluginModuleForEvent(event);
+	    if (PluginModule && PluginModule.executeDispatch) {
+	      executeDispatch = PluginModule.executeDispatch;
+	    }
+	    EventPluginUtils.executeDispatchesInOrder(event, executeDispatch);
+
+	    if (!event.isPersistent()) {
+	      event.constructor.release(event);
+	    }
+	  }
+	};
+
+	/**
+	 * - `InstanceHandle`: [required] Module that performs logical traversals of DOM
+	 *   hierarchy given ids of the logical DOM elements involved.
+	 */
+	var InstanceHandle = null;
+
+	function validateInstanceHandle() {
+	  var invalid = !InstanceHandle||
+	    !InstanceHandle.traverseTwoPhase ||
+	    !InstanceHandle.traverseEnterLeave;
+	  if (invalid) {
+	    throw new Error('InstanceHandle not injected before use!');
+	  }
+	}
+
+	/**
+	 * This is a unified interface for event plugins to be installed and configured.
+	 *
+	 * Event plugins can implement the following properties:
+	 *
+	 *   `extractEvents` {function(string, DOMEventTarget, string, object): *}
+	 *     Required. When a top-level event is fired, this method is expected to
+	 *     extract synthetic events that will in turn be queued and dispatched.
+	 *
+	 *   `eventTypes` {object}
+	 *     Optional, plugins that fire events must publish a mapping of registration
+	 *     names that are used to register listeners. Values of this mapping must
+	 *     be objects that contain `registrationName` or `phasedRegistrationNames`.
+	 *
+	 *   `executeDispatch` {function(object, function, string)}
+	 *     Optional, allows plugins to override how an event gets dispatched. By
+	 *     default, the listener is simply invoked.
+	 *
+	 * Each plugin that is injected into `EventsPluginHub` is immediately operable.
+	 *
+	 * @public
+	 */
+	var EventPluginHub = {
+
+	  /**
+	   * Methods for injecting dependencies.
+	   */
+	  injection: {
+
+	    /**
+	     * @param {object} InjectedMount
+	     * @public
+	     */
+	    injectMount: EventPluginUtils.injection.injectMount,
+
+	    /**
+	     * @param {object} InjectedInstanceHandle
+	     * @public
+	     */
+	    injectInstanceHandle: function(InjectedInstanceHandle) {
+	      InstanceHandle = InjectedInstanceHandle;
+	      if ("production" !== process.env.NODE_ENV) {
+	        validateInstanceHandle();
+	      }
+	    },
+
+	    getInstanceHandle: function() {
+	      if ("production" !== process.env.NODE_ENV) {
+	        validateInstanceHandle();
+	      }
+	      return InstanceHandle;
+	    },
+
+	    /**
+	     * @param {array} InjectedEventPluginOrder
+	     * @public
+	     */
+	    injectEventPluginOrder: EventPluginRegistry.injectEventPluginOrder,
+
+	    /**
+	     * @param {object} injectedNamesToPlugins Map from names to plugin modules.
+	     */
+	    injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName
+
+	  },
+
+	  eventNameDispatchConfigs: EventPluginRegistry.eventNameDispatchConfigs,
+
+	  registrationNameModules: EventPluginRegistry.registrationNameModules,
+
+	  /**
+	   * Stores `listener` at `listenerBank[registrationName][id]`. Is idempotent.
+	   *
+	   * @param {string} id ID of the DOM element.
+	   * @param {string} registrationName Name of listener (e.g. `onClick`).
+	   * @param {?function} listener The callback to store.
+	   */
+	  putListener: function(id, registrationName, listener) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !listener || typeof listener === 'function',
+	      'Expected %s listener to be a function, instead got type %s',
+	      registrationName, typeof listener
+	    ) : invariant(!listener || typeof listener === 'function'));
+
+	    var bankForRegistrationName =
+	      listenerBank[registrationName] || (listenerBank[registrationName] = {});
+	    bankForRegistrationName[id] = listener;
+	  },
+
+	  /**
+	   * @param {string} id ID of the DOM element.
+	   * @param {string} registrationName Name of listener (e.g. `onClick`).
+	   * @return {?function} The stored callback.
+	   */
+	  getListener: function(id, registrationName) {
+	    var bankForRegistrationName = listenerBank[registrationName];
+	    return bankForRegistrationName && bankForRegistrationName[id];
+	  },
+
+	  /**
+	   * Deletes a listener from the registration bank.
+	   *
+	   * @param {string} id ID of the DOM element.
+	   * @param {string} registrationName Name of listener (e.g. `onClick`).
+	   */
+	  deleteListener: function(id, registrationName) {
+	    var bankForRegistrationName = listenerBank[registrationName];
+	    if (bankForRegistrationName) {
+	      delete bankForRegistrationName[id];
+	    }
+	  },
+
+	  /**
+	   * Deletes all listeners for the DOM element with the supplied ID.
+	   *
+	   * @param {string} id ID of the DOM element.
+	   */
+	  deleteAllListeners: function(id) {
+	    for (var registrationName in listenerBank) {
+	      delete listenerBank[registrationName][id];
+	    }
+	  },
+
+	  /**
+	   * Allows registered plugins an opportunity to extract events from top-level
+	   * native browser events.
+	   *
+	   * @param {string} topLevelType Record from `EventConstants`.
+	   * @param {DOMEventTarget} topLevelTarget The listening component root node.
+	   * @param {string} topLevelTargetID ID of `topLevelTarget`.
+	   * @param {object} nativeEvent Native browser event.
+	   * @return {*} An accumulation of synthetic events.
+	   * @internal
+	   */
+	  extractEvents: function(
+	      topLevelType,
+	      topLevelTarget,
+	      topLevelTargetID,
+	      nativeEvent) {
+	    var events;
+	    var plugins = EventPluginRegistry.plugins;
+	    for (var i = 0, l = plugins.length; i < l; i++) {
+	      // Not every plugin in the ordering may be loaded at runtime.
+	      var possiblePlugin = plugins[i];
+	      if (possiblePlugin) {
+	        var extractedEvents = possiblePlugin.extractEvents(
+	          topLevelType,
+	          topLevelTarget,
+	          topLevelTargetID,
+	          nativeEvent
+	        );
+	        if (extractedEvents) {
+	          events = accumulateInto(events, extractedEvents);
+	        }
+	      }
+	    }
+	    return events;
+	  },
+
+	  /**
+	   * Enqueues a synthetic event that should be dispatched when
+	   * `processEventQueue` is invoked.
+	   *
+	   * @param {*} events An accumulation of synthetic events.
+	   * @internal
+	   */
+	  enqueueEvents: function(events) {
+	    if (events) {
+	      eventQueue = accumulateInto(eventQueue, events);
+	    }
+	  },
+
+	  /**
+	   * Dispatches all synthetic events on the event queue.
+	   *
+	   * @internal
+	   */
+	  processEventQueue: function() {
+	    // Set `eventQueue` to null before processing it so that we can tell if more
+	    // events get enqueued while processing.
+	    var processingEventQueue = eventQueue;
+	    eventQueue = null;
+	    forEachAccumulated(processingEventQueue, executeDispatchesAndRelease);
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !eventQueue,
+	      'processEventQueue(): Additional events were enqueued while processing ' +
+	      'an event queue. Support for this has not yet been implemented.'
+	    ) : invariant(!eventQueue));
+	  },
+
+	  /**
+	   * These are needed for tests only. Do not use!
+	   */
+	  __purge: function() {
+	    listenerBank = {};
+	  },
+
+	  __getListenerBank: function() {
+	    return listenerBank;
+	  }
+
+	};
+
+	module.exports = EventPluginHub;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 116 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule EventPropagators
+	 */
+
+	"use strict";
+
+	var EventConstants = __webpack_require__(50);
+	var EventPluginHub = __webpack_require__(115);
+
+	var accumulateInto = __webpack_require__(160);
+	var forEachAccumulated = __webpack_require__(161);
+
+	var PropagationPhases = EventConstants.PropagationPhases;
+	var getListener = EventPluginHub.getListener;
+
+	/**
+	 * Some event types have a notion of different registration names for different
+	 * "phases" of propagation. This finds listeners by a given phase.
+	 */
+	function listenerAtPhase(id, event, propagationPhase) {
+	  var registrationName =
+	    event.dispatchConfig.phasedRegistrationNames[propagationPhase];
+	  return getListener(id, registrationName);
+	}
+
+	/**
+	 * Tags a `SyntheticEvent` with dispatched listeners. Creating this function
+	 * here, allows us to not have to bind or create functions for each event.
+	 * Mutating the event's members allows us to not have to create a wrapping
+	 * "dispatch" object that pairs the event with the listener.
+	 */
+	function accumulateDirectionalDispatches(domID, upwards, event) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    if (!domID) {
+	      throw new Error('Dispatching id must not be null');
+	    }
+	  }
+	  var phase = upwards ? PropagationPhases.bubbled : PropagationPhases.captured;
+	  var listener = listenerAtPhase(domID, event, phase);
+	  if (listener) {
+	    event._dispatchListeners =
+	      accumulateInto(event._dispatchListeners, listener);
+	    event._dispatchIDs = accumulateInto(event._dispatchIDs, domID);
+	  }
+	}
+
+	/**
+	 * Collect dispatches (must be entirely collected before dispatching - see unit
+	 * tests). Lazily allocate the array to conserve memory.  We must loop through
+	 * each event and perform the traversal for each one. We can not perform a
+	 * single traversal for the entire collection of events because each event may
+	 * have a different target.
+	 */
+	function accumulateTwoPhaseDispatchesSingle(event) {
+	  if (event && event.dispatchConfig.phasedRegistrationNames) {
+	    EventPluginHub.injection.getInstanceHandle().traverseTwoPhase(
+	      event.dispatchMarker,
+	      accumulateDirectionalDispatches,
+	      event
+	    );
+	  }
+	}
+
+
+	/**
+	 * Accumulates without regard to direction, does not look for phased
+	 * registration names. Same as `accumulateDirectDispatchesSingle` but without
+	 * requiring that the `dispatchMarker` be the same as the dispatched ID.
+	 */
+	function accumulateDispatches(id, ignoredDirection, event) {
+	  if (event && event.dispatchConfig.registrationName) {
+	    var registrationName = event.dispatchConfig.registrationName;
+	    var listener = getListener(id, registrationName);
+	    if (listener) {
+	      event._dispatchListeners =
+	        accumulateInto(event._dispatchListeners, listener);
+	      event._dispatchIDs = accumulateInto(event._dispatchIDs, id);
+	    }
+	  }
+	}
+
+	/**
+	 * Accumulates dispatches on an `SyntheticEvent`, but only for the
+	 * `dispatchMarker`.
+	 * @param {SyntheticEvent} event
+	 */
+	function accumulateDirectDispatchesSingle(event) {
+	  if (event && event.dispatchConfig.registrationName) {
+	    accumulateDispatches(event.dispatchMarker, null, event);
+	  }
+	}
+
+	function accumulateTwoPhaseDispatches(events) {
+	  forEachAccumulated(events, accumulateTwoPhaseDispatchesSingle);
+	}
+
+	function accumulateEnterLeaveDispatches(leave, enter, fromID, toID) {
+	  EventPluginHub.injection.getInstanceHandle().traverseEnterLeave(
+	    fromID,
+	    toID,
+	    accumulateDispatches,
+	    leave,
+	    enter
+	  );
+	}
+
+
+	function accumulateDirectDispatches(events) {
+	  forEachAccumulated(events, accumulateDirectDispatchesSingle);
+	}
+
+
+
+	/**
+	 * A small set of propagation patterns, each of which will accept a small amount
+	 * of information, and generate a set of "dispatch ready event objects" - which
+	 * are sets of events that have already been annotated with a set of dispatched
+	 * listener functions/ids. The API is designed this way to discourage these
+	 * propagation strategies from actually executing the dispatches, since we
+	 * always want to collect the entire set of dispatches before executing event a
+	 * single one.
+	 *
+	 * @constructor EventPropagators
+	 */
+	var EventPropagators = {
+	  accumulateTwoPhaseDispatches: accumulateTwoPhaseDispatches,
+	  accumulateDirectDispatches: accumulateDirectDispatches,
+	  accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches
+	};
+
+	module.exports = EventPropagators;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 117 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule SyntheticEvent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var PooledClass = __webpack_require__(54);
+
+	var assign = __webpack_require__(30);
+	var emptyFunction = __webpack_require__(99);
+	var getEventTarget = __webpack_require__(142);
+
+	/**
+	 * @interface Event
+	 * @see http://www.w3.org/TR/DOM-Level-3-Events/
+	 */
+	var EventInterface = {
+	  type: null,
+	  target: getEventTarget,
+	  // currentTarget is set when dispatching; no use in copying it here
+	  currentTarget: emptyFunction.thatReturnsNull,
+	  eventPhase: null,
+	  bubbles: null,
+	  cancelable: null,
+	  timeStamp: function(event) {
+	    return event.timeStamp || Date.now();
+	  },
+	  defaultPrevented: null,
+	  isTrusted: null
+	};
+
+	/**
+	 * Synthetic events are dispatched by event plugins, typically in response to a
+	 * top-level event delegation handler.
+	 *
+	 * These systems should generally use pooling to reduce the frequency of garbage
+	 * collection. The system should check `isPersistent` to determine whether the
+	 * event should be released into the pool after being dispatched. Users that
+	 * need a persisted event should invoke `persist`.
+	 *
+	 * Synthetic events (and subclasses) implement the DOM Level 3 Events API by
+	 * normalizing browser quirks. Subclasses do not necessarily have to implement a
+	 * DOM interface; custom application-specific events can also subclass this.
+	 *
+	 * @param {object} dispatchConfig Configuration used to dispatch this event.
+	 * @param {string} dispatchMarker Marker identifying the event target.
+	 * @param {object} nativeEvent Native browser event.
+	 */
+	function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent) {
+	  this.dispatchConfig = dispatchConfig;
+	  this.dispatchMarker = dispatchMarker;
+	  this.nativeEvent = nativeEvent;
+
+	  var Interface = this.constructor.Interface;
+	  for (var propName in Interface) {
+	    if (!Interface.hasOwnProperty(propName)) {
+	      continue;
+	    }
+	    var normalize = Interface[propName];
+	    if (normalize) {
+	      this[propName] = normalize(nativeEvent);
+	    } else {
+	      this[propName] = nativeEvent[propName];
+	    }
+	  }
+
+	  var defaultPrevented = nativeEvent.defaultPrevented != null ?
+	    nativeEvent.defaultPrevented :
+	    nativeEvent.returnValue === false;
+	  if (defaultPrevented) {
+	    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
+	  } else {
+	    this.isDefaultPrevented = emptyFunction.thatReturnsFalse;
+	  }
+	  this.isPropagationStopped = emptyFunction.thatReturnsFalse;
+	}
+
+	assign(SyntheticEvent.prototype, {
+
+	  preventDefault: function() {
+	    this.defaultPrevented = true;
+	    var event = this.nativeEvent;
+	    event.preventDefault ? event.preventDefault() : event.returnValue = false;
+	    this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
+	  },
+
+	  stopPropagation: function() {
+	    var event = this.nativeEvent;
+	    event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true;
+	    this.isPropagationStopped = emptyFunction.thatReturnsTrue;
+	  },
+
+	  /**
+	   * We release all dispatched `SyntheticEvent`s after each event loop, adding
+	   * them back into the pool. This allows a way to hold onto a reference that
+	   * won't be added back into the pool.
+	   */
+	  persist: function() {
+	    this.isPersistent = emptyFunction.thatReturnsTrue;
+	  },
+
+	  /**
+	   * Checks if this event should be released back into the pool.
+	   *
+	   * @return {boolean} True if this should not be released, false otherwise.
+	   */
+	  isPersistent: emptyFunction.thatReturnsFalse,
+
+	  /**
+	   * `PooledClass` looks for `destructor` on each instance it releases.
+	   */
+	  destructor: function() {
+	    var Interface = this.constructor.Interface;
+	    for (var propName in Interface) {
+	      this[propName] = null;
+	    }
+	    this.dispatchConfig = null;
+	    this.dispatchMarker = null;
+	    this.nativeEvent = null;
+	  }
+
+	});
+
+	SyntheticEvent.Interface = EventInterface;
+
+	/**
+	 * Helper to reduce boilerplate when creating subclasses.
+	 *
+	 * @param {function} Class
+	 * @param {?object} Interface
+	 */
+	SyntheticEvent.augmentClass = function(Class, Interface) {
+	  var Super = this;
+
+	  var prototype = Object.create(Super.prototype);
+	  assign(prototype, Class.prototype);
+	  Class.prototype = prototype;
+	  Class.prototype.constructor = Class;
+
+	  Class.Interface = assign({}, Super.Interface, Interface);
+	  Class.augmentClass = Super.augmentClass;
+
+	  PooledClass.addPoolingTo(Class, PooledClass.threeArgumentPooler);
+	};
+
+	PooledClass.addPoolingTo(SyntheticEvent, PooledClass.threeArgumentPooler);
+
+	module.exports = SyntheticEvent;
+
+
+/***/ },
+/* 118 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * @name Callback
+	 * @namespace
+	 * @classdesc Miscellaneous callback util functions.
+	 */
+	var Util = __webpack_require__(105);
+
+	module.exports = {
+
+	  /** Create callback used to set binding value on an event.
+	   * @param {Binding} binding binding
+	   * @param {String|Array} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} [f] value transformer
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  set: function (binding, subpath, f) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?f'
+	    );
+
+	    return function (event) {
+	      var value = event.target.value;
+	      binding.set(args.subpath, args.f ? args.f(value) : value);
+	    };
+	  },
+
+	  /** Create callback used to delete binding value on an event.
+	   * @param {Binding} binding binding
+	   * @param {String|String[]} [subpath] subpath as a dot-separated string or an array of strings and numbers
+	   * @param {Function} [pred] predicate
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  delete: function (binding, subpath, pred) {
+	    var args = Util.resolveArgs(
+	      arguments,
+	      'binding', function (x) { return Util.canRepresentSubpath(x) ? 'subpath' : null; }, '?pred'
+	    );
+
+	    return function (event) {
+	      var value = event.target.value;
+	      if (!args.pred || args.pred(value)) {
+	        binding.delete(args.subpath);
+	      }
+	    };
+	  },
+
+	  /** Create callback invoked when specified key combination is pressed.
+	   * @param {Function} cb callback
+	   * @param {String|Array} key key
+	   * @param {Boolean} [shiftKey] shift key flag
+	   * @param {Boolean} [ctrlKey] ctrl key flag
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onKey: function (cb, key, shiftKey, ctrlKey) {
+	    var effectiveShiftKey = shiftKey || false;
+	    var effectiveCtrlKey = ctrlKey || false;
+	    return function (event) {
+	      var keyMatched = typeof key === 'string' ?
+	        event.key === key :
+	        Util.find(key, function (k) { return k === event.key; });
+
+	      if (keyMatched && event.shiftKey === effectiveShiftKey && event.ctrlKey === effectiveCtrlKey) {
+	        cb(event);
+	      }
+	    };
+	  },
+
+	  /** Create callback invoked when enter key is pressed.
+	   * @param {Function} cb callback
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onEnter: function (cb) {
+	    return this.onKey(cb, 'Enter');
+	  },
+
+	  /** Create callback invoked when escape key is pressed.
+	   * @param {Function} cb callback
+	   * @returns {Function} callback
+	   * @memberOf Callback */
+	  onEscape: function (cb) {
+	    return this.onKey(cb, 'Escape');
+	  }
+
+	};
+
+
+/***/ },
 /* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -23148,226 +23101,23 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule CSSCore
-	 * @typechecks
-	 */
-
-	var invariant = __webpack_require__(58);
-
-	/**
-	 * The CSSCore module specifies the API (and implements most of the methods)
-	 * that should be used when dealing with the display of elements (via their
-	 * CSS classes and visibility on screen. It is an API focused on mutating the
-	 * display and not reading it as no logical state should be encoded in the
-	 * display of elements.
-	 */
-
-	var CSSCore = {
-
-	  /**
-	   * Adds the class passed in to the element if it doesn't already have it.
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {DOMElement} the element passed in
-	   */
-	  addClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSSCore.addClass takes only a single class name. "%s" contains ' +
-	      'multiple classes.', className
-	    ) : invariant(!/\s/.test(className)));
-
-	    if (className) {
-	      if (element.classList) {
-	        element.classList.add(className);
-	      } else if (!CSSCore.hasClass(element, className)) {
-	        element.className = element.className + ' ' + className;
-	      }
-	    }
-	    return element;
-	  },
-
-	  /**
-	   * Removes the class passed in from the element
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {DOMElement} the element passed in
-	   */
-	  removeClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSSCore.removeClass takes only a single class name. "%s" contains ' +
-	      'multiple classes.', className
-	    ) : invariant(!/\s/.test(className)));
-
-	    if (className) {
-	      if (element.classList) {
-	        element.classList.remove(className);
-	      } else if (CSSCore.hasClass(element, className)) {
-	        element.className = element.className
-	          .replace(new RegExp('(^|\\s)' + className + '(?:\\s|$)', 'g'), '$1')
-	          .replace(/\s+/g, ' ') // multiple spaces to one
-	          .replace(/^\s*|\s*$/g, ''); // trim the ends
-	      }
-	    }
-	    return element;
-	  },
-
-	  /**
-	   * Helper to add or remove a class from an element based on a condition.
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @param {*} bool condition to whether to add or remove the class
-	   * @return {DOMElement} the element passed in
-	   */
-	  conditionClass: function(element, className, bool) {
-	    return (bool ? CSSCore.addClass : CSSCore.removeClass)(element, className);
-	  },
-
-	  /**
-	   * Tests whether the element has the class specified.
-	   *
-	   * @param {DOMNode|DOMWindow} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {boolean} true if the element has the class, false if not
-	   */
-	  hasClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSS.hasClass takes only a single class name.'
-	    ) : invariant(!/\s/.test(className)));
-	    if (element.classList) {
-	      return !!className && element.classList.contains(className);
-	    }
-	    return (' ' + element.className + ' ').indexOf(' ' + className + ' ') > -1;
-	  }
-
-	};
-
-	module.exports = CSSCore;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 120 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTransitionEvents
+	 * @providesModule emptyObject
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var emptyObject = {};
 
-	/**
-	 * EVENT_NAME_MAP is used to determine which event fired when a
-	 * transition/animation ends, based on the style property used to
-	 * define that event.
-	 */
-	var EVENT_NAME_MAP = {
-	  transitionend: {
-	    'transition': 'transitionend',
-	    'WebkitTransition': 'webkitTransitionEnd',
-	    'MozTransition': 'mozTransitionEnd',
-	    'OTransition': 'oTransitionEnd',
-	    'msTransition': 'MSTransitionEnd'
-	  },
-
-	  animationend: {
-	    'animation': 'animationend',
-	    'WebkitAnimation': 'webkitAnimationEnd',
-	    'MozAnimation': 'mozAnimationEnd',
-	    'OAnimation': 'oAnimationEnd',
-	    'msAnimation': 'MSAnimationEnd'
-	  }
-	};
-
-	var endEvents = [];
-
-	function detectEvents() {
-	  var testEl = document.createElement('div');
-	  var style = testEl.style;
-
-	  // On some platforms, in particular some releases of Android 4.x,
-	  // the un-prefixed "animation" and "transition" properties are defined on the
-	  // style object but the events that fire will still be prefixed, so we need
-	  // to check if the un-prefixed events are useable, and if not remove them
-	  // from the map
-	  if (!('AnimationEvent' in window)) {
-	    delete EVENT_NAME_MAP.animationend.animation;
-	  }
-
-	  if (!('TransitionEvent' in window)) {
-	    delete EVENT_NAME_MAP.transitionend.transition;
-	  }
-
-	  for (var baseEventName in EVENT_NAME_MAP) {
-	    var baseEvents = EVENT_NAME_MAP[baseEventName];
-	    for (var styleName in baseEvents) {
-	      if (styleName in style) {
-	        endEvents.push(baseEvents[styleName]);
-	        break;
-	      }
-	    }
-	  }
+	if ("production" !== process.env.NODE_ENV) {
+	  Object.freeze(emptyObject);
 	}
 
-	if (ExecutionEnvironment.canUseDOM) {
-	  detectEvents();
-	}
-
-	// We use the raw {add|remove}EventListener() call because EventListener
-	// does not know how to remove event listeners and we really should
-	// clean up. Also, these events are not triggered in older browsers
-	// so we should be A-OK here.
-
-	function addEventListener(node, eventName, eventListener) {
-	  node.addEventListener(eventName, eventListener, false);
-	}
-
-	function removeEventListener(node, eventName, eventListener) {
-	  node.removeEventListener(eventName, eventListener, false);
-	}
-
-	var ReactTransitionEvents = {
-	  addEndEventListener: function(node, eventListener) {
-	    if (endEvents.length === 0) {
-	      // If CSS transitions are not supported, trigger an "end animation"
-	      // event immediately.
-	      window.setTimeout(eventListener, 0);
-	      return;
-	    }
-	    endEvents.forEach(function(endEvent) {
-	      addEventListener(node, endEvent, eventListener);
-	    });
-	  },
-
-	  removeEndEventListener: function(node, eventListener) {
-	    if (endEvents.length === 0) {
-	      return;
-	    }
-	    endEvents.forEach(function(endEvent) {
-	      removeEventListener(node, endEvent, eventListener);
-	    });
-	  }
-	};
-
-	module.exports = ReactTransitionEvents;
-
+	module.exports = emptyObject;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 121 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23412,6 +23162,82 @@
 
 
 /***/ },
+/* 121 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactNativeComponent
+	 */
+
+	"use strict";
+
+	var assign = __webpack_require__(30);
+	var invariant = __webpack_require__(51);
+
+	var genericComponentClass = null;
+	// This registry keeps track of wrapper classes around native tags
+	var tagToComponentClass = {};
+
+	var ReactNativeComponentInjection = {
+	  // This accepts a class that receives the tag string. This is a catch all
+	  // that can render any kind of tag.
+	  injectGenericComponentClass: function(componentClass) {
+	    genericComponentClass = componentClass;
+	  },
+	  // This accepts a keyed object with classes as values. Each key represents a
+	  // tag. That particular tag will use this class instead of the generic one.
+	  injectComponentClasses: function(componentClasses) {
+	    assign(tagToComponentClass, componentClasses);
+	  }
+	};
+
+	/**
+	 * Create an internal class for a specific tag.
+	 *
+	 * @param {string} tag The tag for which to create an internal instance.
+	 * @param {any} props The props passed to the instance constructor.
+	 * @return {ReactComponent} component The injected empty component.
+	 */
+	function createInstanceForTag(tag, props, parentType) {
+	  var componentClass = tagToComponentClass[tag];
+	  if (componentClass == null) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      genericComponentClass,
+	      'There is no registered component for the tag %s',
+	      tag
+	    ) : invariant(genericComponentClass));
+	    return new genericComponentClass(tag, props);
+	  }
+	  if (parentType === tag) {
+	    // Avoid recursion
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      genericComponentClass,
+	      'There is no registered component for the tag %s',
+	      tag
+	    ) : invariant(genericComponentClass));
+	    return new genericComponentClass(tag, props);
+	  }
+	  // Unwrap legacy factories
+	  return new componentClass.type(props);
+	}
+
+	var ReactNativeComponent = {
+	  createInstanceForTag: createInstanceForTag,
+	  injection: ReactNativeComponentInjection
+	};
+
+	module.exports = ReactNativeComponent;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
 /* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -23423,31 +23249,122 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule performance
-	 * @typechecks
+	 * @providesModule CSSProperty
 	 */
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	/**
+	 * CSS properties which accept numbers but are not in units of "px".
+	 */
+	var isUnitlessNumber = {
+	  columnCount: true,
+	  flex: true,
+	  flexGrow: true,
+	  flexShrink: true,
+	  fontWeight: true,
+	  lineClamp: true,
+	  lineHeight: true,
+	  opacity: true,
+	  order: true,
+	  orphans: true,
+	  widows: true,
+	  zIndex: true,
+	  zoom: true,
 
-	var performance;
+	  // SVG-related properties
+	  fillOpacity: true,
+	  strokeOpacity: true
+	};
 
-	if (ExecutionEnvironment.canUseDOM) {
-	  performance =
-	    window.performance ||
-	    window.msPerformance ||
-	    window.webkitPerformance;
+	/**
+	 * @param {string} prefix vendor-specific prefix, eg: Webkit
+	 * @param {string} key style name, eg: transitionDuration
+	 * @return {string} style name prefixed with `prefix`, properly camelCased, eg:
+	 * WebkitTransitionDuration
+	 */
+	function prefixKey(prefix, key) {
+	  return prefix + key.charAt(0).toUpperCase() + key.substring(1);
 	}
 
-	module.exports = performance || {};
+	/**
+	 * Support style names that may come passed in prefixed by adding permutations
+	 * of vendor prefixes.
+	 */
+	var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
+
+	// Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
+	// infinite loop, because it iterates over the newly added props too.
+	Object.keys(isUnitlessNumber).forEach(function(prop) {
+	  prefixes.forEach(function(prefix) {
+	    isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
+	  });
+	});
+
+	/**
+	 * Most style properties can be unset by doing .style[prop] = '' but IE8
+	 * doesn't like doing that with shorthand properties so for the properties that
+	 * IE8 breaks on, which are listed here, we instead unset each of the
+	 * individual properties. See http://bugs.jquery.com/ticket/12385.
+	 * The 4-value 'clock' properties like margin, padding, border-width seem to
+	 * behave without any problems. Curiously, list-style works too without any
+	 * special prodding.
+	 */
+	var shorthandPropertyExpansions = {
+	  background: {
+	    backgroundImage: true,
+	    backgroundPosition: true,
+	    backgroundRepeat: true,
+	    backgroundColor: true
+	  },
+	  border: {
+	    borderWidth: true,
+	    borderStyle: true,
+	    borderColor: true
+	  },
+	  borderBottom: {
+	    borderBottomWidth: true,
+	    borderBottomStyle: true,
+	    borderBottomColor: true
+	  },
+	  borderLeft: {
+	    borderLeftWidth: true,
+	    borderLeftStyle: true,
+	    borderLeftColor: true
+	  },
+	  borderRight: {
+	    borderRightWidth: true,
+	    borderRightStyle: true,
+	    borderRightColor: true
+	  },
+	  borderTop: {
+	    borderTopWidth: true,
+	    borderTopStyle: true,
+	    borderTopColor: true
+	  },
+	  font: {
+	    fontStyle: true,
+	    fontVariant: true,
+	    fontWeight: true,
+	    fontSize: true,
+	    lineHeight: true,
+	    fontFamily: true
+	  }
+	};
+
+	var CSSProperty = {
+	  isUnitlessNumber: isUnitlessNumber,
+	  shorthandPropertyExpansions: shorthandPropertyExpansions
+	};
+
+	module.exports = CSSProperty;
 
 
 /***/ },
 /* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
+	/**
 	 * Copyright 2014, Facebook, Inc.
 	 * All rights reserved.
 	 *
@@ -23455,62 +23372,39 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule accumulateInto
+	 * @providesModule camelizeStyleName
+	 * @typechecks
 	 */
 
 	"use strict";
 
-	var invariant = __webpack_require__(58);
+	var camelize = __webpack_require__(162);
+
+	var msPattern = /^-ms-/;
 
 	/**
+	 * Camelcases a hyphenated CSS property name, for example:
 	 *
-	 * Accumulates items that must not be null or undefined into the first one. This
-	 * is used to conserve memory by avoiding array allocations, and thus sacrifices
-	 * API cleanness. Since `current` can be null before being passed in and not
-	 * null after this function, make sure to assign it back to `current`:
+	 *   > camelizeStyleName('background-color')
+	 *   < "backgroundColor"
+	 *   > camelizeStyleName('-moz-transition')
+	 *   < "MozTransition"
+	 *   > camelizeStyleName('-ms-transition')
+	 *   < "msTransition"
 	 *
-	 * `a = accumulateInto(a, b);`
+	 * As Andi Smith suggests
+	 * (http://www.andismith.com/blog/2012/02/modernizr-prefixed/), an `-ms` prefix
+	 * is converted to lowercase `ms`.
 	 *
-	 * This API should be sparingly used. Try `accumulate` for something cleaner.
-	 *
-	 * @return {*|array<*>} An accumulation of items.
+	 * @param {string} string
+	 * @return {string}
 	 */
-
-	function accumulateInto(current, next) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    next != null,
-	    'accumulateInto(...): Accumulated items must not be null or undefined.'
-	  ) : invariant(next != null));
-	  if (current == null) {
-	    return next;
-	  }
-
-	  // Both are not empty. Warning: Never call x.concat(y) when you are not
-	  // certain that x is an Array (x could be a string with concat method).
-	  var currentIsArray = Array.isArray(current);
-	  var nextIsArray = Array.isArray(next);
-
-	  if (currentIsArray && nextIsArray) {
-	    current.push.apply(current, next);
-	    return current;
-	  }
-
-	  if (currentIsArray) {
-	    current.push(next);
-	    return current;
-	  }
-
-	  if (nextIsArray) {
-	    // A bit too dangerous to mutate `next`.
-	    return [current].concat(next);
-	  }
-
-	  return [current, next];
+	function camelizeStyleName(string) {
+	  return camelize(string.replace(msPattern, 'ms-'));
 	}
 
-	module.exports = accumulateInto;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	module.exports = camelizeStyleName;
+
 
 /***/ },
 /* 124 */
@@ -23524,31 +23418,103 @@
 	 * LICENSE file in the root directory of this source tree. An additional grant
 	 * of patent rights can be found in the PATENTS file in the same directory.
 	 *
-	 * @providesModule forEachAccumulated
+	 * @providesModule dangerousStyleValue
+	 * @typechecks static-only
 	 */
 
 	"use strict";
 
-	/**
-	 * @param {array} an "accumulation" of items which is either an Array or
-	 * a single item. Useful when paired with the `accumulate` module. This is a
-	 * simple utility that allows us to reason about a collection of items, but
-	 * handling the case when there is exactly one item (and we do not need to
-	 * allocate an array).
-	 */
-	var forEachAccumulated = function(arr, cb, scope) {
-	  if (Array.isArray(arr)) {
-	    arr.forEach(cb, scope);
-	  } else if (arr) {
-	    cb.call(scope, arr);
-	  }
-	};
+	var CSSProperty = __webpack_require__(122);
 
-	module.exports = forEachAccumulated;
+	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
+
+	/**
+	 * Convert a value into the proper css writable value. The style name `name`
+	 * should be logical (no hyphens), as specified
+	 * in `CSSProperty.isUnitlessNumber`.
+	 *
+	 * @param {string} name CSS property name such as `topMargin`.
+	 * @param {*} value CSS property value such as `10px`.
+	 * @return {string} Normalized style value with dimensions applied.
+	 */
+	function dangerousStyleValue(name, value) {
+	  // Note that we've removed escapeTextForBrowser() calls here since the
+	  // whole string will be escaped when the attribute is injected into
+	  // the markup. If you provide unsafe user data here they can inject
+	  // arbitrary CSS which may be problematic (I couldn't repro this):
+	  // https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
+	  // http://www.thespanner.co.uk/2007/11/26/ultimate-xss-css-injection/
+	  // This is not an XSS hole but instead a potential CSS injection issue
+	  // which has lead to a greater discussion about how we're going to
+	  // trust URLs moving forward. See #2115901
+
+	  var isEmpty = value == null || typeof value === 'boolean' || value === '';
+	  if (isEmpty) {
+	    return '';
+	  }
+
+	  var isNonNumeric = isNaN(value);
+	  if (isNonNumeric || value === 0 ||
+	      isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
+	    return '' + value; // cast to string
+	  }
+
+	  if (typeof value === 'string') {
+	    value = value.trim();
+	  }
+	  return value + 'px';
+	}
+
+	module.exports = dangerousStyleValue;
 
 
 /***/ },
 /* 125 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule hyphenateStyleName
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var hyphenate = __webpack_require__(163);
+
+	var msPattern = /^ms-/;
+
+	/**
+	 * Hyphenates a camelcased CSS property name, for example:
+	 *
+	 *   > hyphenateStyleName('backgroundColor')
+	 *   < "background-color"
+	 *   > hyphenateStyleName('MozTransition')
+	 *   < "-moz-transition"
+	 *   > hyphenateStyleName('msTransition')
+	 *   < "-ms-transition"
+	 *
+	 * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
+	 * is converted to `-ms-`.
+	 *
+	 * @param {string} string
+	 * @return {string}
+	 */
+	function hyphenateStyleName(string) {
+	  return hyphenate(string).replace(msPattern, '-ms-');
+	}
+
+	module.exports = hyphenateStyleName;
+
+
+/***/ },
+/* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -23565,7 +23531,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Injectable ordering of event plugins.
@@ -23828,10 +23794,10 @@
 
 	module.exports = EventPluginRegistry;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 126 */
+/* 127 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23847,7 +23813,7 @@
 
 	"use strict";
 
-	var EventPluginHub = __webpack_require__(68);
+	var EventPluginHub = __webpack_require__(115);
 
 	function runEventQueueInBatch(events) {
 	  EventPluginHub.enqueueEvents(events);
@@ -23885,7 +23851,7 @@
 
 
 /***/ },
-/* 127 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -23901,7 +23867,7 @@
 
 	"use strict";
 
-	var getUnboundedScrollPosition = __webpack_require__(148);
+	var getUnboundedScrollPosition = __webpack_require__(143);
 
 	var ViewportMetrics = {
 
@@ -23921,421 +23887,7 @@
 
 
 /***/ },
-/* 128 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule getEventTarget
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * Gets the target node from a native browser event by accounting for
-	 * inconsistencies in browser DOM APIs.
-	 *
-	 * @param {object} nativeEvent Native browser event.
-	 * @return {DOMEventTarget} Target node.
-	 */
-	function getEventTarget(nativeEvent) {
-	  var target = nativeEvent.target || nativeEvent.srcElement || window;
-	  // Safari may fire events on text nodes (Node.TEXT_NODE is 3).
-	  // @see http://www.quirksmode.org/js/events_properties.html
-	  return target.nodeType === 3 ? target.parentNode : target;
-	}
-
-	module.exports = getEventTarget;
-
-
-/***/ },
 /* 129 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule emptyObject
-	 */
-
-	"use strict";
-
-	var emptyObject = {};
-
-	if ("production" !== process.env.NODE_ENV) {
-	  Object.freeze(emptyObject);
-	}
-
-	module.exports = emptyObject;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 130 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactNativeComponent
-	 */
-
-	"use strict";
-
-	var assign = __webpack_require__(49);
-	var invariant = __webpack_require__(58);
-
-	var genericComponentClass = null;
-	// This registry keeps track of wrapper classes around native tags
-	var tagToComponentClass = {};
-
-	var ReactNativeComponentInjection = {
-	  // This accepts a class that receives the tag string. This is a catch all
-	  // that can render any kind of tag.
-	  injectGenericComponentClass: function(componentClass) {
-	    genericComponentClass = componentClass;
-	  },
-	  // This accepts a keyed object with classes as values. Each key represents a
-	  // tag. That particular tag will use this class instead of the generic one.
-	  injectComponentClasses: function(componentClasses) {
-	    assign(tagToComponentClass, componentClasses);
-	  }
-	};
-
-	/**
-	 * Create an internal class for a specific tag.
-	 *
-	 * @param {string} tag The tag for which to create an internal instance.
-	 * @param {any} props The props passed to the instance constructor.
-	 * @return {ReactComponent} component The injected empty component.
-	 */
-	function createInstanceForTag(tag, props, parentType) {
-	  var componentClass = tagToComponentClass[tag];
-	  if (componentClass == null) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      genericComponentClass,
-	      'There is no registered component for the tag %s',
-	      tag
-	    ) : invariant(genericComponentClass));
-	    return new genericComponentClass(tag, props);
-	  }
-	  if (parentType === tag) {
-	    // Avoid recursion
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      genericComponentClass,
-	      'There is no registered component for the tag %s',
-	      tag
-	    ) : invariant(genericComponentClass));
-	    return new genericComponentClass(tag, props);
-	  }
-	  // Unwrap legacy factories
-	  return new componentClass.type(props);
-	}
-
-	var ReactNativeComponent = {
-	  createInstanceForTag: createInstanceForTag,
-	  injection: ReactNativeComponentInjection
-	};
-
-	module.exports = ReactNativeComponent;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
-
-/***/ },
-/* 131 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule CSSProperty
-	 */
-
-	"use strict";
-
-	/**
-	 * CSS properties which accept numbers but are not in units of "px".
-	 */
-	var isUnitlessNumber = {
-	  columnCount: true,
-	  flex: true,
-	  flexGrow: true,
-	  flexShrink: true,
-	  fontWeight: true,
-	  lineClamp: true,
-	  lineHeight: true,
-	  opacity: true,
-	  order: true,
-	  orphans: true,
-	  widows: true,
-	  zIndex: true,
-	  zoom: true,
-
-	  // SVG-related properties
-	  fillOpacity: true,
-	  strokeOpacity: true
-	};
-
-	/**
-	 * @param {string} prefix vendor-specific prefix, eg: Webkit
-	 * @param {string} key style name, eg: transitionDuration
-	 * @return {string} style name prefixed with `prefix`, properly camelCased, eg:
-	 * WebkitTransitionDuration
-	 */
-	function prefixKey(prefix, key) {
-	  return prefix + key.charAt(0).toUpperCase() + key.substring(1);
-	}
-
-	/**
-	 * Support style names that may come passed in prefixed by adding permutations
-	 * of vendor prefixes.
-	 */
-	var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
-
-	// Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
-	// infinite loop, because it iterates over the newly added props too.
-	Object.keys(isUnitlessNumber).forEach(function(prop) {
-	  prefixes.forEach(function(prefix) {
-	    isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
-	  });
-	});
-
-	/**
-	 * Most style properties can be unset by doing .style[prop] = '' but IE8
-	 * doesn't like doing that with shorthand properties so for the properties that
-	 * IE8 breaks on, which are listed here, we instead unset each of the
-	 * individual properties. See http://bugs.jquery.com/ticket/12385.
-	 * The 4-value 'clock' properties like margin, padding, border-width seem to
-	 * behave without any problems. Curiously, list-style works too without any
-	 * special prodding.
-	 */
-	var shorthandPropertyExpansions = {
-	  background: {
-	    backgroundImage: true,
-	    backgroundPosition: true,
-	    backgroundRepeat: true,
-	    backgroundColor: true
-	  },
-	  border: {
-	    borderWidth: true,
-	    borderStyle: true,
-	    borderColor: true
-	  },
-	  borderBottom: {
-	    borderBottomWidth: true,
-	    borderBottomStyle: true,
-	    borderBottomColor: true
-	  },
-	  borderLeft: {
-	    borderLeftWidth: true,
-	    borderLeftStyle: true,
-	    borderLeftColor: true
-	  },
-	  borderRight: {
-	    borderRightWidth: true,
-	    borderRightStyle: true,
-	    borderRightColor: true
-	  },
-	  borderTop: {
-	    borderTopWidth: true,
-	    borderTopStyle: true,
-	    borderTopColor: true
-	  },
-	  font: {
-	    fontStyle: true,
-	    fontVariant: true,
-	    fontWeight: true,
-	    fontSize: true,
-	    lineHeight: true,
-	    fontFamily: true
-	  }
-	};
-
-	var CSSProperty = {
-	  isUnitlessNumber: isUnitlessNumber,
-	  shorthandPropertyExpansions: shorthandPropertyExpansions
-	};
-
-	module.exports = CSSProperty;
-
-
-/***/ },
-/* 132 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule camelizeStyleName
-	 * @typechecks
-	 */
-
-	"use strict";
-
-	var camelize = __webpack_require__(161);
-
-	var msPattern = /^-ms-/;
-
-	/**
-	 * Camelcases a hyphenated CSS property name, for example:
-	 *
-	 *   > camelizeStyleName('background-color')
-	 *   < "backgroundColor"
-	 *   > camelizeStyleName('-moz-transition')
-	 *   < "MozTransition"
-	 *   > camelizeStyleName('-ms-transition')
-	 *   < "msTransition"
-	 *
-	 * As Andi Smith suggests
-	 * (http://www.andismith.com/blog/2012/02/modernizr-prefixed/), an `-ms` prefix
-	 * is converted to lowercase `ms`.
-	 *
-	 * @param {string} string
-	 * @return {string}
-	 */
-	function camelizeStyleName(string) {
-	  return camelize(string.replace(msPattern, 'ms-'));
-	}
-
-	module.exports = camelizeStyleName;
-
-
-/***/ },
-/* 133 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule dangerousStyleValue
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var CSSProperty = __webpack_require__(131);
-
-	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
-
-	/**
-	 * Convert a value into the proper css writable value. The style name `name`
-	 * should be logical (no hyphens), as specified
-	 * in `CSSProperty.isUnitlessNumber`.
-	 *
-	 * @param {string} name CSS property name such as `topMargin`.
-	 * @param {*} value CSS property value such as `10px`.
-	 * @return {string} Normalized style value with dimensions applied.
-	 */
-	function dangerousStyleValue(name, value) {
-	  // Note that we've removed escapeTextForBrowser() calls here since the
-	  // whole string will be escaped when the attribute is injected into
-	  // the markup. If you provide unsafe user data here they can inject
-	  // arbitrary CSS which may be problematic (I couldn't repro this):
-	  // https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
-	  // http://www.thespanner.co.uk/2007/11/26/ultimate-xss-css-injection/
-	  // This is not an XSS hole but instead a potential CSS injection issue
-	  // which has lead to a greater discussion about how we're going to
-	  // trust URLs moving forward. See #2115901
-
-	  var isEmpty = value == null || typeof value === 'boolean' || value === '';
-	  if (isEmpty) {
-	    return '';
-	  }
-
-	  var isNonNumeric = isNaN(value);
-	  if (isNonNumeric || value === 0 ||
-	      isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
-	    return '' + value; // cast to string
-	  }
-
-	  if (typeof value === 'string') {
-	    value = value.trim();
-	  }
-	  return value + 'px';
-	}
-
-	module.exports = dangerousStyleValue;
-
-
-/***/ },
-/* 134 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule hyphenateStyleName
-	 * @typechecks
-	 */
-
-	"use strict";
-
-	var hyphenate = __webpack_require__(162);
-
-	var msPattern = /^ms-/;
-
-	/**
-	 * Hyphenates a camelcased CSS property name, for example:
-	 *
-	 *   > hyphenateStyleName('backgroundColor')
-	 *   < "background-color"
-	 *   > hyphenateStyleName('MozTransition')
-	 *   < "-moz-transition"
-	 *   > hyphenateStyleName('msTransition')
-	 *   < "-ms-transition"
-	 *
-	 * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
-	 * is converted to `-ms-`.
-	 *
-	 * @param {string} string
-	 * @return {string}
-	 */
-	function hyphenateStyleName(string) {
-	  return hyphenate(string).replace(msPattern, '-ms-');
-	}
-
-	module.exports = hyphenateStyleName;
-
-
-/***/ },
-/* 135 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24352,7 +23904,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(71);
+	var SyntheticEvent = __webpack_require__(117);
 
 	/**
 	 * @interface Event
@@ -24386,7 +23938,7 @@
 
 
 /***/ },
-/* 136 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24434,7 +23986,7 @@
 
 
 /***/ },
-/* 137 */
+/* 131 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24450,11 +24002,11 @@
 
 	"use strict";
 
-	var ReactDOMSelection = __webpack_require__(163);
+	var ReactDOMSelection = __webpack_require__(164);
 
-	var containsNode = __webpack_require__(113);
-	var focusNode = __webpack_require__(164);
-	var getActiveElement = __webpack_require__(149);
+	var containsNode = __webpack_require__(95);
+	var focusNode = __webpack_require__(165);
+	var getActiveElement = __webpack_require__(144);
 
 	function isInDocument(node) {
 	  return containsNode(document.documentElement, node);
@@ -24574,7 +24126,7 @@
 
 
 /***/ },
-/* 138 */
+/* 132 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24591,7 +24143,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(71);
+	var SyntheticEvent = __webpack_require__(117);
 
 	/**
 	 * @interface Event
@@ -24624,7 +24176,7 @@
 
 
 /***/ },
-/* 139 */
+/* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24640,7 +24192,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
 	var contentKey = null;
 
@@ -24665,7 +24217,7 @@
 
 
 /***/ },
-/* 140 */
+/* 134 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24682,8 +24234,8 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
-	var ViewportMetrics = __webpack_require__(127);
+	var SyntheticUIEvent = __webpack_require__(150);
+	var ViewportMetrics = __webpack_require__(128);
 
 	var getEventModifierState = __webpack_require__(166);
 
@@ -24752,7 +24304,7 @@
 
 
 /***/ },
-/* 141 */
+/* 135 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -24771,14 +24323,14 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(85);
-	var DOMChildrenOperations = __webpack_require__(165);
-	var DOMPropertyOperations = __webpack_require__(29);
-	var ReactMount = __webpack_require__(43);
-	var ReactPerf = __webpack_require__(45);
+	var CSSPropertyOperations = __webpack_require__(66);
+	var DOMChildrenOperations = __webpack_require__(167);
+	var DOMPropertyOperations = __webpack_require__(10);
+	var ReactMount = __webpack_require__(24);
+	var ReactPerf = __webpack_require__(26);
 
-	var invariant = __webpack_require__(58);
-	var setInnerHTML = __webpack_require__(143);
+	var invariant = __webpack_require__(51);
+	var setInnerHTML = __webpack_require__(137);
 
 	/**
 	 * Errors for properties that should not be updated with `updatePropertyById()`.
@@ -24938,10 +24490,10 @@
 
 	module.exports = ReactDOMIDOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 142 */
+/* 136 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -24958,14 +24510,14 @@
 
 	"use strict";
 
-	var CallbackQueue = __webpack_require__(55);
-	var PooledClass = __webpack_require__(56);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
-	var ReactInputSelection = __webpack_require__(137);
-	var ReactPutListenerQueue = __webpack_require__(160);
-	var Transaction = __webpack_require__(57);
+	var CallbackQueue = __webpack_require__(111);
+	var PooledClass = __webpack_require__(54);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
+	var ReactInputSelection = __webpack_require__(131);
+	var ReactPutListenerQueue = __webpack_require__(155);
+	var Transaction = __webpack_require__(112);
 
-	var assign = __webpack_require__(49);
+	var assign = __webpack_require__(30);
 
 	/**
 	 * Ensures that, when possible, the selection range (currently selected text
@@ -25121,7 +24673,7 @@
 
 
 /***/ },
-/* 143 */
+/* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25137,7 +24689,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
 	var WHITESPACE_TEST = /^[ \r\n\t\f]/;
 	var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
@@ -25203,7 +24755,7 @@
 
 
 /***/ },
-/* 144 */
+/* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25220,7 +24772,7 @@
 
 	"use strict";
 
-	var focusNode = __webpack_require__(164);
+	var focusNode = __webpack_require__(165);
 
 	var AutoFocusMixin = {
 	  componentDidMount: function() {
@@ -25234,7 +24786,7 @@
 
 
 /***/ },
-/* 145 */
+/* 139 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -25250,11 +24802,11 @@
 
 	"use strict";
 
-	var ReactBrowserEventEmitter = __webpack_require__(70);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
 
-	var accumulateInto = __webpack_require__(123);
-	var forEachAccumulated = __webpack_require__(124);
-	var invariant = __webpack_require__(58);
+	var accumulateInto = __webpack_require__(160);
+	var forEachAccumulated = __webpack_require__(161);
+	var invariant = __webpack_require__(51);
 
 	function remove(event) {
 	  event.remove();
@@ -25284,10 +24836,10 @@
 
 	module.exports = LocalEventTrapMixin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 146 */
+/* 140 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -25304,9 +24856,9 @@
 
 	"use strict";
 
-	var ReactPropTypes = __webpack_require__(46);
+	var ReactPropTypes = __webpack_require__(27);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	var hasReadOnlyValue = {
 	  'button': true,
@@ -25443,10 +24995,10 @@
 
 	module.exports = LinkedValueUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 147 */
+/* 141 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -25468,7 +25020,7 @@
 	 * @typechecks
 	 */
 
-	var emptyFunction = __webpack_require__(61);
+	var emptyFunction = __webpack_require__(99);
 
 	/**
 	 * Upstream version of event listener. Does not take into account specific
@@ -25536,10 +25088,45 @@
 
 	module.exports = EventListener;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 148 */
+/* 142 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule getEventTarget
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	/**
+	 * Gets the target node from a native browser event by accounting for
+	 * inconsistencies in browser DOM APIs.
+	 *
+	 * @param {object} nativeEvent Native browser event.
+	 * @return {DOMEventTarget} Target node.
+	 */
+	function getEventTarget(nativeEvent) {
+	  var target = nativeEvent.target || nativeEvent.srcElement || window;
+	  // Safari may fire events on text nodes (Node.TEXT_NODE is 3).
+	  // @see http://www.quirksmode.org/js/events_properties.html
+	  return target.nodeType === 3 ? target.parentNode : target;
+	}
+
+	module.exports = getEventTarget;
+
+
+/***/ },
+/* 143 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25583,7 +25170,7 @@
 
 
 /***/ },
-/* 149 */
+/* 144 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25616,7 +25203,7 @@
 
 
 /***/ },
-/* 150 */
+/* 145 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25633,7 +25220,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(71);
+	var SyntheticEvent = __webpack_require__(117);
 
 	/**
 	 * @interface Event
@@ -25666,7 +25253,7 @@
 
 
 /***/ },
-/* 151 */
+/* 146 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25683,7 +25270,7 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(150);
 
 	/**
 	 * @interface FocusEvent
@@ -25709,7 +25296,7 @@
 
 
 /***/ },
-/* 152 */
+/* 147 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25726,10 +25313,10 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(150);
 
-	var getEventCharCode = __webpack_require__(157);
-	var getEventKey = __webpack_require__(167);
+	var getEventCharCode = __webpack_require__(152);
+	var getEventKey = __webpack_require__(168);
 	var getEventModifierState = __webpack_require__(166);
 
 	/**
@@ -25800,7 +25387,7 @@
 
 
 /***/ },
-/* 153 */
+/* 148 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25817,7 +25404,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var SyntheticMouseEvent = __webpack_require__(134);
 
 	/**
 	 * @interface DragEvent
@@ -25843,7 +25430,7 @@
 
 
 /***/ },
-/* 154 */
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25860,7 +25447,7 @@
 
 	"use strict";
 
-	var SyntheticUIEvent = __webpack_require__(155);
+	var SyntheticUIEvent = __webpack_require__(150);
 
 	var getEventModifierState = __webpack_require__(166);
 
@@ -25895,7 +25482,7 @@
 
 
 /***/ },
-/* 155 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25912,9 +25499,9 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(71);
+	var SyntheticEvent = __webpack_require__(117);
 
-	var getEventTarget = __webpack_require__(128);
+	var getEventTarget = __webpack_require__(142);
 
 	/**
 	 * @interface UIEvent
@@ -25961,7 +25548,7 @@
 
 
 /***/ },
-/* 156 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -25978,7 +25565,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(140);
+	var SyntheticMouseEvent = __webpack_require__(134);
 
 	/**
 	 * @interface WheelEvent
@@ -26026,7 +25613,7 @@
 
 
 /***/ },
-/* 157 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26082,7 +25669,7 @@
 
 
 /***/ },
-/* 158 */
+/* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26097,7 +25684,7 @@
 	 * @typechecks
 	 */
 
-	var isNode = __webpack_require__(168);
+	var isNode = __webpack_require__(169);
 
 	/**
 	 * @param {*} object The object to check.
@@ -26111,7 +25698,7 @@
 
 
 /***/ },
-/* 159 */
+/* 154 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26149,7 +25736,7 @@
 
 
 /***/ },
-/* 160 */
+/* 155 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26165,10 +25752,10 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(56);
-	var ReactBrowserEventEmitter = __webpack_require__(70);
+	var PooledClass = __webpack_require__(54);
+	var ReactBrowserEventEmitter = __webpack_require__(68);
 
-	var assign = __webpack_require__(49);
+	var assign = __webpack_require__(30);
 
 	function ReactPutListenerQueue() {
 	  this.listenersToPut = [];
@@ -26209,7 +25796,436 @@
 
 
 /***/ },
+/* 156 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** Changes descriptor constructor.
+	 * @param {Array} path absolute changed path
+	 * @param {Array} listenerPath absolute listener path
+	 * @param {Boolean} valueChanged value changed flag
+	 * @param {Immutable.Map} previousValue previous backing value
+	 * @param {Immutable.Map} previousMeta previous meta binding backing value
+	 * @public
+	 * @class ChangesDescriptor
+	 * @classdesc Encapsulates binding changes for binding listeners. */
+	var ChangesDescriptor =
+	  function (path, listenerPath, valueChanged, previousValue, previousMeta) {
+	    /** @private */
+	    this._path = path;
+	    /** @private */
+	    this._listenerPath = listenerPath;
+	    /** @private */
+	    this._valueChanged = valueChanged;
+	    /** @private */
+	    this._previousValue = previousValue;
+	    /** @private */
+	    this._previousMeta = previousMeta;
+	  };
+
+	ChangesDescriptor.prototype = Object.freeze( /** @lends ChangesDescriptor.prototype */ {
+	  /** Get changed path relative to binding's path listener was installed on.
+	   * @return {Array} changed path */
+	  getPath: function () {
+	    var listenerPathLen = this._listenerPath.length;
+	    return listenerPathLen === this._path.length ? [] : this._path.slice(listenerPathLen);
+	  },
+
+	  /** Check if binding's value was changed.
+	   * @returns {Boolean} */
+	  isValueChanged: function () {
+	    return this._valueChanged;
+	  },
+
+	  /** Check if meta binding's value was changed.
+	   * @returns {Boolean} */
+	  isMetaChanged: function () {
+	    return !!this._previousMeta;
+	  },
+
+	  /** Get previous value at listening path.
+	   * @returns {*} previous value at listening path or null if not changed */
+	  getPreviousValue: function () {
+	    return this._previousValue && this._previousValue.getIn(this._listenerPath);
+	  },
+
+	  /** Get previous meta at listening path.
+	   * @returns {*} */
+	  getPreviousMeta: function () {
+	    return this._previousMeta && this._previousMeta.getIn(this._listenerPath);
+	  }
+	});
+
+	module.exports = ChangesDescriptor;
+
+
+/***/ },
+/* 157 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule CSSCore
+	 * @typechecks
+	 */
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 * The CSSCore module specifies the API (and implements most of the methods)
+	 * that should be used when dealing with the display of elements (via their
+	 * CSS classes and visibility on screen. It is an API focused on mutating the
+	 * display and not reading it as no logical state should be encoded in the
+	 * display of elements.
+	 */
+
+	var CSSCore = {
+
+	  /**
+	   * Adds the class passed in to the element if it doesn't already have it.
+	   *
+	   * @param {DOMElement} element the element to set the class on
+	   * @param {string} className the CSS className
+	   * @return {DOMElement} the element passed in
+	   */
+	  addClass: function(element, className) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !/\s/.test(className),
+	      'CSSCore.addClass takes only a single class name. "%s" contains ' +
+	      'multiple classes.', className
+	    ) : invariant(!/\s/.test(className)));
+
+	    if (className) {
+	      if (element.classList) {
+	        element.classList.add(className);
+	      } else if (!CSSCore.hasClass(element, className)) {
+	        element.className = element.className + ' ' + className;
+	      }
+	    }
+	    return element;
+	  },
+
+	  /**
+	   * Removes the class passed in from the element
+	   *
+	   * @param {DOMElement} element the element to set the class on
+	   * @param {string} className the CSS className
+	   * @return {DOMElement} the element passed in
+	   */
+	  removeClass: function(element, className) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !/\s/.test(className),
+	      'CSSCore.removeClass takes only a single class name. "%s" contains ' +
+	      'multiple classes.', className
+	    ) : invariant(!/\s/.test(className)));
+
+	    if (className) {
+	      if (element.classList) {
+	        element.classList.remove(className);
+	      } else if (CSSCore.hasClass(element, className)) {
+	        element.className = element.className
+	          .replace(new RegExp('(^|\\s)' + className + '(?:\\s|$)', 'g'), '$1')
+	          .replace(/\s+/g, ' ') // multiple spaces to one
+	          .replace(/^\s*|\s*$/g, ''); // trim the ends
+	      }
+	    }
+	    return element;
+	  },
+
+	  /**
+	   * Helper to add or remove a class from an element based on a condition.
+	   *
+	   * @param {DOMElement} element the element to set the class on
+	   * @param {string} className the CSS className
+	   * @param {*} bool condition to whether to add or remove the class
+	   * @return {DOMElement} the element passed in
+	   */
+	  conditionClass: function(element, className, bool) {
+	    return (bool ? CSSCore.addClass : CSSCore.removeClass)(element, className);
+	  },
+
+	  /**
+	   * Tests whether the element has the class specified.
+	   *
+	   * @param {DOMNode|DOMWindow} element the element to set the class on
+	   * @param {string} className the CSS className
+	   * @return {boolean} true if the element has the class, false if not
+	   */
+	  hasClass: function(element, className) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !/\s/.test(className),
+	      'CSS.hasClass takes only a single class name.'
+	    ) : invariant(!/\s/.test(className)));
+	    if (element.classList) {
+	      return !!className && element.classList.contains(className);
+	    }
+	    return (' ' + element.className + ' ').indexOf(' ' + className + ' ') > -1;
+	  }
+
+	};
+
+	module.exports = CSSCore;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
+/* 158 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule ReactTransitionEvents
+	 */
+
+	"use strict";
+
+	var ExecutionEnvironment = __webpack_require__(33);
+
+	/**
+	 * EVENT_NAME_MAP is used to determine which event fired when a
+	 * transition/animation ends, based on the style property used to
+	 * define that event.
+	 */
+	var EVENT_NAME_MAP = {
+	  transitionend: {
+	    'transition': 'transitionend',
+	    'WebkitTransition': 'webkitTransitionEnd',
+	    'MozTransition': 'mozTransitionEnd',
+	    'OTransition': 'oTransitionEnd',
+	    'msTransition': 'MSTransitionEnd'
+	  },
+
+	  animationend: {
+	    'animation': 'animationend',
+	    'WebkitAnimation': 'webkitAnimationEnd',
+	    'MozAnimation': 'mozAnimationEnd',
+	    'OAnimation': 'oAnimationEnd',
+	    'msAnimation': 'MSAnimationEnd'
+	  }
+	};
+
+	var endEvents = [];
+
+	function detectEvents() {
+	  var testEl = document.createElement('div');
+	  var style = testEl.style;
+
+	  // On some platforms, in particular some releases of Android 4.x,
+	  // the un-prefixed "animation" and "transition" properties are defined on the
+	  // style object but the events that fire will still be prefixed, so we need
+	  // to check if the un-prefixed events are useable, and if not remove them
+	  // from the map
+	  if (!('AnimationEvent' in window)) {
+	    delete EVENT_NAME_MAP.animationend.animation;
+	  }
+
+	  if (!('TransitionEvent' in window)) {
+	    delete EVENT_NAME_MAP.transitionend.transition;
+	  }
+
+	  for (var baseEventName in EVENT_NAME_MAP) {
+	    var baseEvents = EVENT_NAME_MAP[baseEventName];
+	    for (var styleName in baseEvents) {
+	      if (styleName in style) {
+	        endEvents.push(baseEvents[styleName]);
+	        break;
+	      }
+	    }
+	  }
+	}
+
+	if (ExecutionEnvironment.canUseDOM) {
+	  detectEvents();
+	}
+
+	// We use the raw {add|remove}EventListener() call because EventListener
+	// does not know how to remove event listeners and we really should
+	// clean up. Also, these events are not triggered in older browsers
+	// so we should be A-OK here.
+
+	function addEventListener(node, eventName, eventListener) {
+	  node.addEventListener(eventName, eventListener, false);
+	}
+
+	function removeEventListener(node, eventName, eventListener) {
+	  node.removeEventListener(eventName, eventListener, false);
+	}
+
+	var ReactTransitionEvents = {
+	  addEndEventListener: function(node, eventListener) {
+	    if (endEvents.length === 0) {
+	      // If CSS transitions are not supported, trigger an "end animation"
+	      // event immediately.
+	      window.setTimeout(eventListener, 0);
+	      return;
+	    }
+	    endEvents.forEach(function(endEvent) {
+	      addEventListener(node, endEvent, eventListener);
+	    });
+	  },
+
+	  removeEndEventListener: function(node, eventListener) {
+	    if (endEvents.length === 0) {
+	      return;
+	    }
+	    endEvents.forEach(function(endEvent) {
+	      removeEventListener(node, endEvent, eventListener);
+	    });
+	  }
+	};
+
+	module.exports = ReactTransitionEvents;
+
+
+/***/ },
+/* 159 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule performance
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var ExecutionEnvironment = __webpack_require__(33);
+
+	var performance;
+
+	if (ExecutionEnvironment.canUseDOM) {
+	  performance =
+	    window.performance ||
+	    window.msPerformance ||
+	    window.webkitPerformance;
+	}
+
+	module.exports = performance || {};
+
+
+/***/ },
+/* 160 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule accumulateInto
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(51);
+
+	/**
+	 *
+	 * Accumulates items that must not be null or undefined into the first one. This
+	 * is used to conserve memory by avoiding array allocations, and thus sacrifices
+	 * API cleanness. Since `current` can be null before being passed in and not
+	 * null after this function, make sure to assign it back to `current`:
+	 *
+	 * `a = accumulateInto(a, b);`
+	 *
+	 * This API should be sparingly used. Try `accumulate` for something cleaner.
+	 *
+	 * @return {*|array<*>} An accumulation of items.
+	 */
+
+	function accumulateInto(current, next) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    next != null,
+	    'accumulateInto(...): Accumulated items must not be null or undefined.'
+	  ) : invariant(next != null));
+	  if (current == null) {
+	    return next;
+	  }
+
+	  // Both are not empty. Warning: Never call x.concat(y) when you are not
+	  // certain that x is an Array (x could be a string with concat method).
+	  var currentIsArray = Array.isArray(current);
+	  var nextIsArray = Array.isArray(next);
+
+	  if (currentIsArray && nextIsArray) {
+	    current.push.apply(current, next);
+	    return current;
+	  }
+
+	  if (currentIsArray) {
+	    current.push(next);
+	    return current;
+	  }
+
+	  if (nextIsArray) {
+	    // A bit too dangerous to mutate `next`.
+	    return [current].concat(next);
+	  }
+
+	  return [current, next];
+	}
+
+	module.exports = accumulateInto;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
+
+/***/ },
 /* 161 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule forEachAccumulated
+	 */
+
+	"use strict";
+
+	/**
+	 * @param {array} an "accumulation" of items which is either an Array or
+	 * a single item. Useful when paired with the `accumulate` module. This is a
+	 * simple utility that allows us to reason about a collection of items, but
+	 * handling the case when there is exactly one item (and we do not need to
+	 * allocate an array).
+	 */
+	var forEachAccumulated = function(arr, cb, scope) {
+	  if (Array.isArray(arr)) {
+	    arr.forEach(cb, scope);
+	  } else if (arr) {
+	    cb.call(scope, arr);
+	  }
+	};
+
+	module.exports = forEachAccumulated;
+
+
+/***/ },
+/* 162 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26245,7 +26261,7 @@
 
 
 /***/ },
-/* 162 */
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26282,7 +26298,7 @@
 
 
 /***/ },
-/* 163 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26298,10 +26314,10 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
-	var getNodeForCharacterOffset = __webpack_require__(169);
-	var getTextContentAccessor = __webpack_require__(139);
+	var getNodeForCharacterOffset = __webpack_require__(170);
+	var getTextContentAccessor = __webpack_require__(133);
 
 	/**
 	 * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -26495,7 +26511,7 @@
 
 
 /***/ },
-/* 164 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26528,7 +26544,58 @@
 
 
 /***/ },
-/* 165 */
+/* 166 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013 Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule getEventModifierState
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	/**
+	 * Translation from modifier key to the associated property in the event.
+	 * @see http://www.w3.org/TR/DOM-Level-3-Events/#keys-Modifiers
+	 */
+
+	var modifierKeyToProp = {
+	  'Alt': 'altKey',
+	  'Control': 'ctrlKey',
+	  'Meta': 'metaKey',
+	  'Shift': 'shiftKey'
+	};
+
+	// IE8 does not implement getModifierState so we simply map it to the only
+	// modifier keys exposed by the event itself, does not support Lock-keys.
+	// Currently, all major browsers except Chrome seems to support Lock-keys.
+	function modifierStateGetter(keyArg) {
+	  /*jshint validthis:true */
+	  var syntheticEvent = this;
+	  var nativeEvent = syntheticEvent.nativeEvent;
+	  if (nativeEvent.getModifierState) {
+	    return nativeEvent.getModifierState(keyArg);
+	  }
+	  var keyProp = modifierKeyToProp[keyArg];
+	  return keyProp ? !!nativeEvent[keyProp] : false;
+	}
+
+	function getEventModifierState(nativeEvent) {
+	  return modifierStateGetter;
+	}
+
+	module.exports = getEventModifierState;
+
+
+/***/ },
+/* 167 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -26545,11 +26612,11 @@
 
 	"use strict";
 
-	var Danger = __webpack_require__(170);
-	var ReactMultiChildUpdateTypes = __webpack_require__(115);
+	var Danger = __webpack_require__(171);
+	var ReactMultiChildUpdateTypes = __webpack_require__(97);
 
-	var getTextContentAccessor = __webpack_require__(139);
-	var invariant = __webpack_require__(58);
+	var getTextContentAccessor = __webpack_require__(133);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * The DOM property to use when setting text content.
@@ -26703,61 +26770,10 @@
 
 	module.exports = DOMChildrenOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 166 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013 Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule getEventModifierState
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	/**
-	 * Translation from modifier key to the associated property in the event.
-	 * @see http://www.w3.org/TR/DOM-Level-3-Events/#keys-Modifiers
-	 */
-
-	var modifierKeyToProp = {
-	  'Alt': 'altKey',
-	  'Control': 'ctrlKey',
-	  'Meta': 'metaKey',
-	  'Shift': 'shiftKey'
-	};
-
-	// IE8 does not implement getModifierState so we simply map it to the only
-	// modifier keys exposed by the event itself, does not support Lock-keys.
-	// Currently, all major browsers except Chrome seems to support Lock-keys.
-	function modifierStateGetter(keyArg) {
-	  /*jshint validthis:true */
-	  var syntheticEvent = this;
-	  var nativeEvent = syntheticEvent.nativeEvent;
-	  if (nativeEvent.getModifierState) {
-	    return nativeEvent.getModifierState(keyArg);
-	  }
-	  var keyProp = modifierKeyToProp[keyArg];
-	  return keyProp ? !!nativeEvent[keyProp] : false;
-	}
-
-	function getEventModifierState(nativeEvent) {
-	  return modifierStateGetter;
-	}
-
-	module.exports = getEventModifierState;
-
-
-/***/ },
-/* 167 */
+/* 168 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26774,7 +26790,7 @@
 
 	"use strict";
 
-	var getEventCharCode = __webpack_require__(157);
+	var getEventCharCode = __webpack_require__(152);
 
 	/**
 	 * Normalization of deprecated HTML5 `key` values
@@ -26866,7 +26882,7 @@
 
 
 /***/ },
-/* 168 */
+/* 169 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26898,7 +26914,7 @@
 
 
 /***/ },
-/* 169 */
+/* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -26977,7 +26993,7 @@
 
 
 /***/ },
-/* 170 */
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -26996,12 +27012,12 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
-	var createNodesFromMarkup = __webpack_require__(171);
-	var emptyFunction = __webpack_require__(61);
-	var getMarkupWrap = __webpack_require__(172);
-	var invariant = __webpack_require__(58);
+	var createNodesFromMarkup = __webpack_require__(172);
+	var emptyFunction = __webpack_require__(99);
+	var getMarkupWrap = __webpack_require__(173);
+	var invariant = __webpack_require__(51);
 
 	var OPEN_TAG_NAME_EXP = /^(<[^ \/>]+)/;
 	var RESULT_INDEX_ATTR = 'data-danger-index';
@@ -27163,10 +27179,10 @@
 
 	module.exports = Danger;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 171 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27183,11 +27199,11 @@
 
 	/*jslint evil: true, sub: true */
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
-	var createArrayFrom = __webpack_require__(173);
-	var getMarkupWrap = __webpack_require__(172);
-	var invariant = __webpack_require__(58);
+	var createArrayFrom = __webpack_require__(174);
+	var getMarkupWrap = __webpack_require__(173);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Dummy container used to render all markup.
@@ -27256,10 +27272,10 @@
 
 	module.exports = createNodesFromMarkup;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 172 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27273,9 +27289,9 @@
 	 * @providesModule getMarkupWrap
 	 */
 
-	var ExecutionEnvironment = __webpack_require__(52);
+	var ExecutionEnvironment = __webpack_require__(33);
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Dummy container used to detect which wraps are necessary.
@@ -27376,10 +27392,10 @@
 
 	module.exports = getMarkupWrap;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ },
-/* 173 */
+/* 174 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -27394,7 +27410,7 @@
 	 * @typechecks
 	 */
 
-	var toArray = __webpack_require__(174);
+	var toArray = __webpack_require__(175);
 
 	/**
 	 * Perform a heuristic test to determine if an object is "array-like".
@@ -27469,7 +27485,7 @@
 
 
 /***/ },
-/* 174 */
+/* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27484,7 +27500,7 @@
 	 * @typechecks
 	 */
 
-	var invariant = __webpack_require__(58);
+	var invariant = __webpack_require__(51);
 
 	/**
 	 * Convert array-like objects to arrays.
@@ -27541,7 +27557,7 @@
 
 	module.exports = toArray;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)))
 
 /***/ }
 /******/ ])
