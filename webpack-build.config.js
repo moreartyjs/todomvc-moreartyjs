@@ -12,7 +12,7 @@ module.exports = {
   plugins: [
   ],
   resolve: {
-    extensions: ['', '.js']
+    extensions: ['', '.js', '.jsx']
   },
   module: {
     loaders: [
