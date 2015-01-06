@@ -16,7 +16,7 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, loaders: ['jsx'] },
+      { test: /\.js$/, loaders: ['jsx'] }
     ]
   }
 };

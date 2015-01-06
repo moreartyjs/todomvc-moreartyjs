@@ -1,6 +1,6 @@
 {
   "name": "todomvc-moreartyjs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Moreartyjs demo app with react hot reload",
   "main": "index.js",
   "scripts": {
@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/moreartyjs/todomvc-moreartyjs",
   "dependencies": {
-    "director": "^1.2.3",
-    "immutable": "~3.2.x",
+    "director": "^1.2.7",
+    "immutable": "~3.4.x",
     "morearty": "^0.7.x",
     "react": "^0.12.x"
   },
