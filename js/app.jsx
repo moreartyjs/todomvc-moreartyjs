@@ -18,7 +18,7 @@ var state = {
   }]
 };
 
-var Ctx = Morearty.createContext(state);
+var Ctx = Morearty.createContext(state, {});
 
 var App = React.createClass({
   displayName: 'App',
