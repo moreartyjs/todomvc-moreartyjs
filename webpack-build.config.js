@@ -2,7 +2,7 @@ var webpack = require('webpack');
 
 module.exports = {
   entry: [
-    './js/app'
+    './js/bootstrap'
   ],
   output: {
     path: __dirname,
