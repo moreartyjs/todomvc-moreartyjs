@@ -5,20 +5,18 @@ var Immutable = require('immutable');
 
 var NOW_SHOWING = Object.freeze({ ALL: 'all', ACTIVE: 'active', COMPLETED: 'completed' });
 var currentId = 2;
-var Bootstrap;
 
-// initial state
-var state = {
-  nowShowing: 'all',
-  items: [{
-    id: 1,
-    title: 'My first task',
-    completed: false,
-    editing: false
-  }]
-};
-
-var Ctx = Morearty.createContext(state, {});
+var Ctx = Morearty.createContext({
+  initialState: {
+    nowShowing: 'all',
+    items: [{
+      id: 1,
+      title: 'My first task',
+      completed: false,
+      editing: false
+    }]
+  }
+});
 
 var App = React.createClass({
   displayName: 'App',
