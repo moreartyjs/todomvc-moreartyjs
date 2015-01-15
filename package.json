@@ -24,14 +24,14 @@
   },
   "homepage": "https://github.com/moreartyjs/todomvc-moreartyjs",
   "dependencies": {
-    "director": "^1.2.7",
-    "immutable": "~3.4.x",
+    "react-router": "^0.11.6",
+    "immutable": "~3.5.x",
     "morearty": "^0.7.x",
     "react": "^0.12.x"
   },
   "devDependencies": {
     "jsx-loader": "^0.12.x",
-    "react-hot-loader": "^0.5.0",
+    "react-hot-loader": "^1.1.1",
     "webpack": "^1.4.8",
     "webpack-dev-server": "^1.6.5"
   }
