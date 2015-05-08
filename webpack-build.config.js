@@ -1,4 +1,5 @@
 var webpack = require('webpack');
+var path = require('path');
 
 module.exports = {
   entry: [
@@ -16,7 +17,7 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.jsx$/, loaders: ['jsx'] }
+      { test: /\.jsx$/, loaders: ['jsx'], include: path.join(__dirname, 'js') }
     ]
   }
 };

@@ -1,4 +1,5 @@
 var webpack = require('webpack');
+var path = require('path');
 
 module.exports = {
   // If it gets slow on your project, change to 'eval':
@@ -22,8 +23,8 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, loaders: ['react-hot'] },
-      { test: /\.jsx$/, loaders: ['react-hot', 'jsx'] }
+      { test: /\.js$/, loaders: ['react-hot'], include: path.join(__dirname, 'js') },
+      { test: /\.jsx$/, loaders: ['react-hot', 'jsx'], include: path.join(__dirname, 'js') }
     ]
   }
 };
